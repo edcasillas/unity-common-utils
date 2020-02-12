@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Packages.CommonUtils.Editor {
     public static class GameObjectOrganizer {
-        [MenuItem("GameObject/Organize/Remove inactive children")]
-        private static void removeInactiveChildren() {
+        [MenuItem("GameObject/Organize/Remove inactive children", priority = -100)]
+        private static void removeInactiveChildren(MenuCommand command) {
             var selection = Selection.gameObjects;
             if (selection.IsNullOrEmpty()) {
                 EditorUtility.DisplayDialog("Remove inactive children", "Please select an object from the hierarchy", "Ok");
@@ -37,7 +37,7 @@ namespace Packages.CommonUtils.Editor {
                                         "Ok");
         }
 
-        [MenuItem("GameObject/Organize/Sort children/By name")]
+        [MenuItem("GameObject/Organize/Sort children/By name", priority = -100)]
         private static void sortChildrenByName() {
             var selection = Selection.gameObjects;
             if (selection.IsNullOrEmpty()) {
@@ -58,7 +58,7 @@ namespace Packages.CommonUtils.Editor {
             }
         }
 
-        [MenuItem("GameObject/Organize/Group children/By name")]
+        [MenuItem("GameObject/Organize/Group children/By name", priority = -100)]
         private static void groupChildrenByName() {
             var selection = Selection.gameObjects;
             if (selection.IsNullOrEmpty()) {
@@ -88,7 +88,7 @@ namespace Packages.CommonUtils.Editor {
             }
         }
 
-        [MenuItem("GameObject/Organize/Sanitize name", priority = 200)]
+        [MenuItem("GameObject/Organize/Sanitize name", priority = -100)]
         private static void sanitizeNames() {
             var selection = Selection.gameObjects;
             if (selection.IsNullOrEmpty()) {
@@ -101,6 +101,12 @@ namespace Packages.CommonUtils.Editor {
                 go.name = removeTrailingParenthesis(go.name);
             }
         }
+        
+        [MenuItem("GameObject/Organize/Remove inactive children", validate = true)]
+        [MenuItem("GameObject/Organize/Sort children/By name", validate    = true)]
+        [MenuItem("GameObject/Organize/Group children/By name", validate = true)]
+        [MenuItem("GameObject/Organize/Sanitize name", validate = true)]
+        private static bool selectionValidate( MenuCommand command ) => Selection.objects.Length > 0;
 
         private static string removeTrailingParenthesis(string goName) {
             if (string.IsNullOrWhiteSpace(goName)) return goName;
