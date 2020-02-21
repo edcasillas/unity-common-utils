@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
 using CommonUtils.Extensions;
+using Packages.CommonUtils.Editor.ScreenshotManager;
 using UnityEditor;
 using UnityEngine;
 
-namespace Packages.CommonUtils.Editor.ScreenshotManager {
+namespace CommonUtils.Editor.ScreenshotManager {
     public static class ScreenshotManager {
         private const string defaultConfigDirectory = "Assets/ScreenshotManager/";
         private const string configFileName         = "ScreenshotManagerConfig.asset";

@@ -1,28 +1,24 @@
-using CommonUtils.Inspector.SceneRefs;
 using UnityEngine;
 
-public class SceneReferenceTest : MonoBehaviour
-{
-    private void OnGUI()
-    {
-        DisplayLevel(exampleNull);
-        DisplayLevel(exampleMissing);
-        DisplayLevel(exampleDisabled);
-        DisplayLevel(exampleEnabled);
-    }
+namespace CommonUtils.Inspector.SceneRefs {
+    public class SceneReferenceTest : MonoBehaviour {
+        public SceneReference exampleNull;
+        public SceneReference exampleMissing;
+        public SceneReference exampleDisabled;
+        public SceneReference exampleEnabled;
+        
+        private void OnGUI() {
+            displayLevel(exampleNull);
+            displayLevel(exampleMissing);
+            displayLevel(exampleDisabled);
+            displayLevel(exampleEnabled);
+        }
 
-    public void DisplayLevel(SceneReference scene)
-    {
-        GUILayout.Label(new GUIContent("Scene name Path: " + scene));
-        if (GUILayout.Button("Load " + scene))
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(scene);
+        private static void displayLevel(SceneReference scene) {
+            GUILayout.Label(new GUIContent("Scene name Path: " + scene));
+            if (GUILayout.Button("Load " + scene)) {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(scene);
+            }
         }
     }
-
-    public SceneReference exampleNull;
-    public SceneReference exampleMissing;
-    public SceneReference exampleDisabled;
-    public SceneReference exampleEnabled;
-    
 }
