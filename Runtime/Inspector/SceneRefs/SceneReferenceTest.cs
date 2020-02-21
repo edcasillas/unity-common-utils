@@ -1,3 +1,4 @@
+using CommonUtils.Inspector.SceneRefs;
 using UnityEngine;
 
 public class SceneReferenceTest : MonoBehaviour
