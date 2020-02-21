@@ -71,6 +71,8 @@ namespace CommonUtils.Inspector.SceneRefs {
 
         public static implicit operator string(SceneReference sceneReference) => sceneReference.ScenePath;
 
+        public static implicit operator int(SceneReference sceneReference) => sceneReference.buildIndex;
+
         // Called to prepare this data for serialization. Stubbed out when not in editor.
         public void OnBeforeSerialize() {
 #if UNITY_EDITOR

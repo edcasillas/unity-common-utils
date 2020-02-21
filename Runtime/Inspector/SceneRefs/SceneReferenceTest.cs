@@ -17,7 +17,7 @@ namespace CommonUtils.Inspector.SceneRefs {
         private static void displayLevel(SceneReference scene) {
             GUILayout.Label(new GUIContent("Scene name Path: " + scene));
             if (GUILayout.Button("Load " + scene)) {
-                UnityEngine.SceneManagement.SceneManager.LoadScene(scene);
+                UnityEngine.SceneManagement.SceneManager.LoadScene((int)scene);
             }
         }
     }
