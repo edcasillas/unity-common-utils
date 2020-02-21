@@ -35,9 +35,9 @@ namespace CommonUtils.Inspector.SceneRefs {
 
         // What we use in editor to select the scene
         [SerializeField]
-        private Object sceneAsset = null;
+        private Object sceneAsset;
 
-        bool IsValidSceneAsset {
+        private bool IsValidSceneAsset {
             get {
                 if (sceneAsset == null)
                     return false;
