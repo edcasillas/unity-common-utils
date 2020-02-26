@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
+	[AddComponentMenu("UI/Animated Submenu/Slide-in Submenu")]
 	public class SubmenuSlideIn : AbstractSubmenu {
 		public enum SlideInDirections {
 			LeftToRight,

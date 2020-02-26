@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
+	[AddComponentMenu("UI/Animated Submenu/Scaled Submenu")]
 	public class SubmenuScaled : AbstractSubmenu {
 		public override void OnAnimationUpdated(Vector2 updatedValue) {
 			Debug.Log(updatedValue);
