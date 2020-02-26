@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
-using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace CommonUtils.UI {
+namespace CommonUtils.UI.BlinkerUIElements {
     [RequireComponent(typeof(Image))]
     public class BlinkerImage : MonoBehaviour, IBlinkerUIElement {
 		#pragma warning disable 649

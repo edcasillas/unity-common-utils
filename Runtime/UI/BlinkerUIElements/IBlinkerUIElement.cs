@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-namespace UI {
+namespace CommonUtils.UI.BlinkerUIElements {
 	public interface IBlinkerUIElement : IUnityComponent {
 		float BlinkingRate { get; }
 		IEnumerable<Graphic> BlinkerGraphics { get; }

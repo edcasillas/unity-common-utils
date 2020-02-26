@@ -1,3 +1,14 @@
-﻿{
-	"name": "com.ecasillas.commonutils"
+{
+    "name": "com.ecasillas.commonutils",
+    "references": [
+        "com.pixelplacement.itween"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
 }
