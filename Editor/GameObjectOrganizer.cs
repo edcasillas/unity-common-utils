@@ -4,7 +4,7 @@ using CommonUtils.Extensions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Packages.CommonUtils.Editor {
+namespace CommonUtils.Editor {
     public static class GameObjectOrganizer {
         [MenuItem("GameObject/Organize/Remove inactive children", priority = -100)]
         private static void removeInactiveChildren(MenuCommand command) {
