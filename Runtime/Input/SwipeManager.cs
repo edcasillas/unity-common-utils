@@ -7,6 +7,7 @@ namespace CommonUtils.Input {
 	/// Swipe manager. Detects swipes and taps.
 	/// </summary>
 	/// <author>Eduardo Casillas</author>
+	[AddComponentMenu("Input/Swipe Manager")]
 	public class SwipeManager : MonoBehaviour {
 		#region Singleton
 

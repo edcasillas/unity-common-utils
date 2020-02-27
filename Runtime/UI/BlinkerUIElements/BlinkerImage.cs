@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace CommonUtils.UI.BlinkerUIElements {
+	[AddComponentMenu("UI/Blinker Image")]
     [RequireComponent(typeof(Image))]
     public class BlinkerImage : MonoBehaviour, IBlinkerUIElement {
 		#pragma warning disable 649
