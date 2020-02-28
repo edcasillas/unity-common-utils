@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Packages.CommonUtils.Editor {
+namespace CommonUtils.Editor {
 	public static class ExtendedGizmos {
 		public static void DrawWireCapsule(Vector3 _pos, Quaternion _rot, float _radius, float _height,
 										   Color   _color = default(Color)) {

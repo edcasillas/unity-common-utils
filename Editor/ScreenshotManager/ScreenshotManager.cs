@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using CommonUtils.Extensions;
-using Packages.CommonUtils.Editor.ScreenshotManager;
 using UnityEditor;
 using UnityEngine;
 

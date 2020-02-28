@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Packages.CommonUtils.Editor.ScreenshotManager {
+namespace CommonUtils.Editor.ScreenshotManager {
     [CreateAssetMenu(fileName = "ScreenshotManagerConfig", menuName = "Screenshot Manager/Configuration")]
     public class ScreenshotManagerConfig : ScriptableObject {
         public string  SaveToFolder = "Screenshots";

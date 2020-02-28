@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 
-namespace Packages.CommonUtils.Editor {
+namespace CommonUtils.Editor {
 	public static class MenuItems {
 		[MenuItem("Tools/Common Utils/Free Packages/Missing References Finder", priority = 0)]
 		private static void missingReferencesFinder() { Help.BrowseURL("https://github.com/edcasillas/unity-missing-references-finder"); }
