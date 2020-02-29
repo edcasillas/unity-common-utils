@@ -6,37 +6,53 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.ScreenshotManager {
     public static class ScreenshotManager {
-        private const string defaultConfigDirectory = "Assets/ScreenshotManager/";
-        private const string configFileName         = "ScreenshotManagerConfig.asset";
-    
-        [MenuItem("Tools/Take Screenshot #1")]
-        private static void takeScreenshot() {
-            var config          = AssetDatabase.LoadAssetAtPath<ScreenshotManagerConfig>($"{defaultConfigDirectory}{configFileName}");
-            if (!config) config = createConfigAsset();
+        #region Constants
+        public const string EDITOR_PREF_KEY_SAVE_TO       = "ScreenshotManager.SaveTo";
+        public const string EDITOR_PREF_KEY_PREFIX        = "ScreenshotManager.Prefix";
+        public const string EDITOR_PREF_KEY_CURRENT_COUNT = "ScreenshotManager.CurrentCount";
+        private const string defaultSaveDirectory        = "Assets/Screenshots";
+        #endregion
 
-            var filename = $"{config.SaveToFolder}/{config.FilePrefix}{++config.CurrentCount}.png"; 
+        #region Properties (connected to EditorPrefs)
+        internal static string SaveToFolder {
+            get => EditorPrefs.GetString(EDITOR_PREF_KEY_SAVE_TO, defaultSaveDirectory);
+            set => EditorPrefs.SetString(EDITOR_PREF_KEY_SAVE_TO, value);
+        }
+        
+        internal static string FilePrefix {
+            get => EditorPrefs.GetString(EDITOR_PREF_KEY_PREFIX, "screenshot");
+            set => EditorPrefs.SetString(EDITOR_PREF_KEY_PREFIX, value);
+        }
+        
+        internal static int CurrentCount {
+            get => EditorPrefs.GetInt(EDITOR_PREF_KEY_CURRENT_COUNT, 0);
+            set => EditorPrefs.SetInt(EDITOR_PREF_KEY_CURRENT_COUNT, value);
+        }
+        #endregion
+
+        [MenuItem("Tools/Take Screenshot _F10")]
+        private static void takeScreenshot() {
+            var saveTo = SaveToFolder;
+            if (!Directory.Exists(saveTo)) {
+                Debug.LogError($"Could not save screenshot because the folder '{saveTo}' does not exist. Create this folder or change it in the menu Tools/Configure screenshots...");
+                return;
+            }
+
+            var count = CurrentCount;
+            var filename = $"{SaveToFolder}/{FilePrefix}{++count}.png"; 
             try {
                 ScreenCapture.CaptureScreenshot(filename);
                 Debug.Log($"Screenshot saved at \"{filename}\"");
                 AssetDatabase.SaveAssets();
+                CurrentCount = count;
             } catch(Exception e) {
                 Debug.LogError($"Could not save screenshot at {filename}: {e.Message}");
             }
-        
         }
 
-        private static ScreenshotManagerConfig createConfigAsset() {
-            var config = ScriptableObject.CreateInstance<ScreenshotManagerConfig>();
-
-            config.SaveToFolder = EditorUtility.SaveFolderPanel("Choose folder to save screenshots", "", "Screenshots");
-            if (config.SaveToFolder.IsNullOrEmpty()) return config;
-
-            if (!Directory.Exists(defaultConfigDirectory)) {
-                Directory.CreateDirectory(defaultConfigDirectory);
-            }
-
-            AssetDatabase.CreateAsset(config, $"{defaultConfigDirectory}{configFileName}");
-            return config;
+        [MenuItem("Tools/Configure screenshots...")]
+        private static void openConfigWindow() {
+            ScreenshotManagerConfigWindow.OpenActiveWindow();
         }
     }
 }
