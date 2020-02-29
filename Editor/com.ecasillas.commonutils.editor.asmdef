@@ -1,9 +1,9 @@
 {
     "name": "com.ecasillas.commonutils.editor",
     "references": [
-        "com.ecasillas.commonutils"
+        "com.ecasillas.commonutils",
+        "Unity.EditorCoroutines.Editor"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -12,5 +12,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -203,5 +203,9 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 		/// Open the default Unity Build Settings window
 		/// </summary>
 		public static void OpenBuildSettings() => EditorWindow.GetWindow(typeof(BuildPlayerWindow));
+		
+		public static SceneAsset GetSceneAssetFromPath(string scenePath) => string.IsNullOrEmpty(scenePath) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+		
+		public static string GetScenePath(SceneAsset sceneAsset) => sceneAsset == null ? string.Empty : AssetDatabase.GetAssetPath(sceneAsset);
 	}
 }

@@ -8,5 +8,8 @@
     "name": "Ed Casillas",
     "email": "ed@exagames-studio.com",
     "url": "https://edu.itch.io"
+  },
+  "dependencies": {
+    "com.unity.editorcoroutines": "0.1.0-preview.1"
   }
 }
