@@ -2,7 +2,7 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace CommonUtils.Editor {
+namespace CommonUtils.Editor.SceneAutoLoading {
 	/// <summary>
 	/// Scene auto loader.
 	/// </summary>
