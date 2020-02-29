@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using Unity.EditorCoroutines.Editor;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -50,30 +48,6 @@ namespace CommonUtils.Editor {
 		}
 		#endregion
 
-		#region Menu items to select the "master" scene and control whether or not to load it.
-		[MenuItem("File/Scene Autoload/Select Master Scene...")]
-		private static void SelectMasterScene() {
-			var masterScene = EditorUtility.OpenFilePanel("Select Master Scene", Application.dataPath, "unity");
-			masterScene = masterScene.Replace(Application.dataPath, "Assets"); //project relative instead of absolute path
-			if (!string.IsNullOrEmpty(masterScene)) {
-				MasterScene      = masterScene;
-				LoadMasterOnPlay = true;
-			}
-		}
-
-		[MenuItem("File/Scene Autoload/Load Master On Play", true)]
-		private static bool ShowLoadMasterOnPlay() { return !LoadMasterOnPlay; }
-
-		[MenuItem("File/Scene Autoload/Load Master On Play")]
-		private static void EnableLoadMasterOnPlay() { LoadMasterOnPlay = true; }
-
-		[MenuItem("File/Scene Autoload/Don't Load Master On Play", true)]
-		private static bool ShowDontLoadMasterOnPlay() { return LoadMasterOnPlay; }
-
-		[MenuItem("File/Scene Autoload/Don't Load Master On Play")]
-		private static void DisableLoadMasterOnPlay() { LoadMasterOnPlay = false; }
-		#endregion
-
 		/// <summary>
 		/// Play mode change callback handles the scene load/reload.
 		/// </summary>
@@ -85,6 +59,33 @@ namespace CommonUtils.Editor {
 			if (!EditorApplication.isPlaying && EditorApplication.isPlayingOrWillChangePlaymode) {
 				// User pressed play -- autoload master scene.
 				PreviousScene = EditorSceneManager.GetActiveScene().path;
+
+				if (string.IsNullOrWhiteSpace(PreviousScene)) {
+					var userSelection = EditorUtility.DisplayDialogComplex("Scene Autoloader",
+																		   "You must save the current scene to be able to load the master scene.",
+																		   "Save",
+																		   "Cancel",
+																		   "Play current scene only");
+					switch (userSelection) {
+						case 0:
+							if (EditorSceneManager.SaveOpenScenes()) {
+								PreviousScene = EditorSceneManager.GetActiveScene().path;
+							} else {
+								EditorUtility.DisplayDialog("Scene Autoloader",
+															"Could not play the game because the current scene is not saved.",
+															"Ok");
+								EditorApplication.isPlaying = false;
+								return;	
+							}
+							break;
+						case 1:
+							EditorApplication.isPlaying = false;
+							return;
+						case 2:
+							return;
+					}
+				}
+
 				if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
 					try {
 						EditorSceneManager.OpenScene(MasterScene);
@@ -100,7 +101,7 @@ namespace CommonUtils.Editor {
 			}
 
 			// isPlaying check required because cannot OpenScene while playing
-			if (!EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode) {
+			if (!EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode && !string.IsNullOrWhiteSpace(PreviousScene)) {
 				// User pressed stop -- reload previous scene.
 				try {
 					EditorSceneManager.OpenScene(PreviousScene);

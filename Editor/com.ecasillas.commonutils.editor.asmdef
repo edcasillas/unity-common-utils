@@ -1,8 +1,7 @@
 {
     "name": "com.ecasillas.commonutils.editor",
     "references": [
-        "com.ecasillas.commonutils",
-        "Unity.EditorCoroutines.Editor"
+        "com.ecasillas.commonutils"
     ],
     "includePlatforms": [
         "Editor"
