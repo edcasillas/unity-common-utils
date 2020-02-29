@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace CommonUtils.Editor.Inspector.SceneRefs {
+namespace CommonUtils.Editor {
 	/// <summary>
 	/// Various BuildSettings interactions
 	/// </summary>
