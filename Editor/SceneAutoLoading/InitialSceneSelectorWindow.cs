@@ -1,48 +1,24 @@
 ﻿using CommonUtils.Editor.Inspector.SceneRefs;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace CommonUtils.Editor.SceneAutoLoading {
 	public class InitialSceneSelectorWindow : EditorWindow {
-		#region Constants
-		private const string cEditorPrefLoadMasterOnPlay = "SceneAutoLoader.LoadMasterOnPlay";
-		private const string cEditorPrefMasterScene      = "SceneAutoLoader.MasterScene";
-		private const string cEditorPrefPreviousScene    = "SceneAutoLoader.PreviousScene";
-		#endregion
-
 		private static InitialSceneSelectorWindow instance = null;
 		private         SceneAsset                     selectedScene;
 		private bool loadMasterOnPlay;
 
-		#region Properties (connected to EditorPrefs)
-		private static bool LoadMasterOnPlay {
-			get => EditorPrefs.GetBool(cEditorPrefLoadMasterOnPlay, false);
-			set => EditorPrefs.SetBool(cEditorPrefLoadMasterOnPlay, value);
-		}
-
-		private static string masterScenePath {
-			get => EditorPrefs.GetString(cEditorPrefMasterScene, null);
-			set => EditorPrefs.SetString(cEditorPrefMasterScene, value);
-		}
-
-		private static string PreviousScene {
-			get => EditorPrefs.GetString(cEditorPrefPreviousScene, EditorSceneManager.GetActiveScene().path);
-			set => EditorPrefs.SetString(cEditorPrefPreviousScene, value);
-		}
-		#endregion
-
-		[MenuItem("File/Scene Autoload/test Window")]
+		[MenuItem("File/Scene Autoload/Configure...")]
 		private static void OpenActiveWindow() {
 			if (!instance) {
 				instance              = GetWindow<InitialSceneSelectorWindow>();
-				instance.titleContent = new GUIContent("Select master scene");
+				instance.titleContent = new GUIContent("SceneAutoLoader");
 				instance.maxSize      = new Vector2(325f, 120f);
 			}
 
-			if (!string.IsNullOrWhiteSpace(masterScenePath)) {
-				instance.selectedScene = BuildUtils.GetSceneAssetFromPath(masterScenePath);
-				instance.loadMasterOnPlay = LoadMasterOnPlay;
+			if (!string.IsNullOrWhiteSpace(SceneAutoLoader.MasterScene)) {
+				instance.selectedScene = BuildUtils.GetSceneAssetFromPath(SceneAutoLoader.MasterScene);
+				instance.loadMasterOnPlay = SceneAutoLoader.LoadMasterOnPlay;
 			} else {
 				instance.loadMasterOnPlay = false;
 			}
@@ -59,10 +35,10 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 				selectedScenePath = BuildUtils.GetScenePath(selectedScene);
 			}
 			
-			GUI.enabled = selectedScenePath != masterScenePath || loadMasterOnPlay != LoadMasterOnPlay;
+			GUI.enabled = selectedScenePath != SceneAutoLoader.MasterScene || loadMasterOnPlay != SceneAutoLoader.LoadMasterOnPlay;
 			if (GUILayout.Button("Save changes")) {
-				masterScenePath = selectedScenePath;
-				LoadMasterOnPlay = loadMasterOnPlay;
+				SceneAutoLoader.MasterScene = selectedScenePath;
+				SceneAutoLoader.LoadMasterOnPlay = loadMasterOnPlay;
 				instance.Close();
 				return;
 			}

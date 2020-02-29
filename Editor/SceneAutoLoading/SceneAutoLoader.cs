@@ -34,13 +34,13 @@ namespace CommonUtils.Editor {
 		static SceneAutoLoader() => EditorApplication.playModeStateChanged += OnPlayModeChanged;
 
 		#region Properties (connected to EditorPrefs)
-		private static bool LoadMasterOnPlay {
+		public static bool LoadMasterOnPlay {
 			get => EditorPrefs.GetBool(cEditorPrefLoadMasterOnPlay, false);
 			set => EditorPrefs.SetBool(cEditorPrefLoadMasterOnPlay, value);
 		}
 
-		private static string MasterScene {
-			get => EditorPrefs.GetString(cEditorPrefMasterScene, "Master.unity");
+		public static string MasterScene {
+			get => EditorPrefs.GetString(cEditorPrefMasterScene);
 			set => EditorPrefs.SetString(cEditorPrefMasterScene, value);
 		}
 
@@ -89,7 +89,7 @@ namespace CommonUtils.Editor {
 					try {
 						EditorSceneManager.OpenScene(MasterScene);
 					} catch {
-						Debug.LogError(string.Format("error: scene not found: {0}", MasterScene));
+						Debug.LogError($"error: scene not found: {MasterScene}");
 						EditorApplication.isPlaying = false;
 
 					}
@@ -105,7 +105,7 @@ namespace CommonUtils.Editor {
 				try {
 					EditorSceneManager.OpenScene(PreviousScene);
 				} catch {
-					Debug.LogError(string.Format("error: scene not found: {0}", PreviousScene));
+					Debug.LogError($"error: scene not found: {PreviousScene}");
 				}
 			}
 		}
