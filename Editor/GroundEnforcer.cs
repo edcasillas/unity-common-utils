@@ -5,7 +5,7 @@ using UnityEngine;
 namespace CommonUtils.Editor {
 	public static class GroundEnforcer {
 		[MenuItem("GameObject/Move selected to ground position", priority = 40)]
-		private static void LogSelectedTransformName() {
+		private static void MoveSelectedToGround() {
 			foreach (var transform in Selection.transforms) {
 				Debug.Log($"Moving {transform.name} to ground position.", transform);
 				if(Physics.Raycast(transform.position,Vector3.down, out var hitInfo,float.MaxValue, ~0, QueryTriggerInteraction.Ignore)) {
