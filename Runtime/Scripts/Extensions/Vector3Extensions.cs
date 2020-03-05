@@ -31,5 +31,11 @@ namespace CommonUtils.Extensions {
 		}
 
 		public static bool NearlyEquals(this Vector3 lhs, Vector3 rhs, double inaccuracy = 9.99999943962493E-11) => Vector3.SqrMagnitude(lhs - rhs) < inaccuracy;
+
+		public static Vector3 MidPointTo(this Vector3 origin, Vector3 destination) => new Vector3(
+																								  (origin.x + destination.x) /2,
+																								  (origin.y + destination.y) /2,
+																								  (origin.z + destination.z) /2
+																								 );
 	}
 }
