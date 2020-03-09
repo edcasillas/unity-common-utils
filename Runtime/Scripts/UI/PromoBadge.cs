@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using CommonUtils.Extensions;
+using UnityEngine;
 using UnityEngine.UI;
 
-namespace ExaGames.Common {
+namespace CommonUtils.UI {
 	/// <summary>
 	/// A component that can be used to create a button that links to a random application (picked from its configuration.) using platform-dependent URLs.
 	/// </summary>
