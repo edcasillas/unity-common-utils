@@ -25,7 +25,7 @@ namespace CommonUtils.RestSdk {
 		/// <typeparam name="TResult">Type of expected result.</typeparam>
 		/// <param name="actionRelativePath">Action path to be called in the API.</param>
 		/// <param name="callback">Method to receive the response.</param>
-		void Get<TResult>(string actionRelativePath, Action<RestResponse<DtoCollection<TResult>>> callback);
+		void GetCollection<TResult>(string actionRelativePath, Action<RestResponse<DtoCollection<TResult>>> callback);
 
 		/// <summary>
 		/// Creates a GET request to the specified <paramref name="actionRelativePath"/> to retreive an object of type <typeparamref name="TResult"/> identified by <paramref name="id"/>, and receives the response in <paramref name="callback"/>.

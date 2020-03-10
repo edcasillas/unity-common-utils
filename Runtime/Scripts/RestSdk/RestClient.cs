@@ -45,7 +45,7 @@ namespace CommonUtils.RestSdk {
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of DTO requested.</typeparam>
-		public void Get<TResult>(string actionRelativePath, Action<RestResponse<DtoCollection<TResult>>> callback)
+		public void GetCollection<TResult>(string actionRelativePath, Action<RestResponse<DtoCollection<TResult>>> callback)
 			=> get(actionRelativePath, callback);
 
 		/// <summary>
