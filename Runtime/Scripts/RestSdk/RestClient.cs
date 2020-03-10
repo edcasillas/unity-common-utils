@@ -125,7 +125,7 @@ namespace CommonUtils.RestSdk {
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
 
 			var requestId = Guid.NewGuid().ToString(); // An id to recognize this request in the log.
-			Debug.Log($"{DateTime.Now} Executing REST request {requestId}: [POST {url}; data: {postData}]");
+			Debug.Log($"Executing REST request {requestId}: [POST {url}; data: {postData}]");
 
 			var response = new RestResponse<TResult>();
 
@@ -141,7 +141,7 @@ namespace CommonUtils.RestSdk {
 			response.ErrorMessage = www.error;
 
 			if (!string.IsNullOrEmpty(www.error)) {
-				Debug.LogError($"{DateTime.Now} REST POST ERROR {requestId}: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
+				Debug.LogError($"REST POST ERROR {requestId}: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
 				var err     = www.error.Substring(0, 3);
 				response.StatusCode = int.TryParse(err, out var errCode) ? errCode : 500;
 
@@ -154,7 +154,7 @@ namespace CommonUtils.RestSdk {
 				response.StatusCode = 200;
 				var data = www.text;
 				if (!string.IsNullOrEmpty(data)) {
-					Debug.Log($"{DateTime.Now} REST POST SUCCESS {requestId}: {data}");
+					Debug.Log($"REST POST SUCCESS {requestId}: {data}");
 					response.Data = JsonUtility.FromJson<TResult>(data);
 				}
 			}
@@ -178,7 +178,7 @@ namespace CommonUtils.RestSdk {
 				response.ErrorMessage = www.error;
 
 				if (!string.IsNullOrEmpty(www.error)) {
-					Debug.LogError($"{DateTime.Now} REST POST ERROR: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
+					Debug.LogError($"REST POST ERROR: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
 					var err     = www.error.Substring(0, 3);
 					response.StatusCode = int.TryParse(err, out var errCode) ? errCode : 500;
 				} else {
@@ -188,7 +188,7 @@ namespace CommonUtils.RestSdk {
 				callback(response);
 			} else if (!string.IsNullOrEmpty(www.error)) {
 				// If a callback was not specified, then we should just fire-and-forget, so we only log the error, if any.
-				Debug.LogError($"{DateTime.Now} REST POST ERROR: [{www.url}: {www.error}]");
+				Debug.LogError($"REST POST ERROR: [{www.url}: {www.error}]");
 			}
 		}
 
