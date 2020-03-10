@@ -50,11 +50,9 @@ namespace CommonUtils.RestSdk {
 		}
 
 		private void get<TResult>(string actionRelativePath, Action<RestResponse<TResult>> callback) {
-			if (string.IsNullOrEmpty(ApiUrl))
-				throw new InvalidOperationException("No requests can be performed when ApiUrl is null or empty.");
+			if (string.IsNullOrEmpty(ApiUrl)) throw new InvalidOperationException("No requests can be performed when ApiUrl is null or empty.");
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
-			var url =
-				$"{ApiUrl}{(!string.IsNullOrWhiteSpace(actionRelativePath) ? $"/{actionRelativePath}" : string.Empty)}";
+			var url = $"{ApiUrl}{(!string.IsNullOrWhiteSpace(actionRelativePath) ? $"/{actionRelativePath}" : string.Empty)}";
 			ExecuteGet(url, callback);
 		}
 
@@ -82,7 +80,24 @@ namespace CommonUtils.RestSdk {
 
 			var url      = $"{ApiUrl}/{actionRelativePath}";
 			var postData = JsonUtility.ToJson(data);
-			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
+			ExecutePost(url, postData, callback);
+		}
+		
+		public void Post<TResult>(string actionRelativePath, Dictionary<string, object> data, Action<RestResponse<TResult>> callback) {
+			#region Input validation
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
+			if (callback == null) throw new ArgumentNullException(nameof(callback));
+			#endregion
+
+			var url      = $"{ApiUrl}/{actionRelativePath}";
+			
+			var form = new WWWForm();
+			foreach (var kvp in data) {
+				form.AddField(kvp.Key, kvp.Value.ToString());	
+			}
+			var www = UnityWebRequest.Post(url, form);
+			Coroutiner.StartCoroutine(SendRequest(www, callback, true), $"REST POST {url}");
+			//ExecutePost(url, postData, callback);
 		}
 
 		/// <summary>
@@ -100,16 +115,15 @@ namespace CommonUtils.RestSdk {
 			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
 		}
 
-		protected IEnumerator ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
+		protected void ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
 			
-			var  requestU = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
-			var           bytes    = Encoding.UTF8.GetBytes(postData);
-			var uH       = new UploadHandlerRaw(bytes);
-			uH.contentType         = "application/json";
-			requestU.uploadHandler = uH;
-			requestU.downloadHandler = new DownloadHandlerBuffer();
-			yield return SendRequest(requestU, callback);
+			var  www = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
+			var bytes = Encoding.UTF8.GetBytes(postData);
+			var uH = new UploadHandlerRaw(bytes) {contentType = "application/json"};
+			www.uploadHandler = uH;
+			www.downloadHandler = new DownloadHandlerBuffer();
+			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST POST {url}");
 		}
 
 		protected IEnumerator ExecutePost(string url, string postData, Action<RestResponse> callback) {
@@ -269,7 +283,7 @@ namespace CommonUtils.RestSdk {
 		/// <param name="request">Request to send..</param>
 		/// <param name="callback">Callback to receive the response..</param>
 		/// <typeparam name="TResult">Type of expected result.</typeparam>
-		protected IEnumerator SendRequest<TResult>(UnityWebRequest request, Action<RestResponse<TResult>> callback) {
+		protected IEnumerator SendRequest<TResult>(UnityWebRequest request, Action<RestResponse<TResult>> callback, bool omitHeaders = false) {
 			#region Input validation
 			if (request  == null) throw new ArgumentNullException(nameof(request));
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -279,11 +293,13 @@ namespace CommonUtils.RestSdk {
 			RestResponse<TResult> response = null;
 
 			using (request) {
-				try {
-					SetRequestHeaders(request);
-				} catch (InvalidOperationException ex) {
-					callback(new RestResponse<TResult>() {StatusCode = -1, ErrorMessage = ex.Message});
-					yield break;
+				if (!omitHeaders) {
+					try {
+						SetRequestHeaders(request);
+					} catch (InvalidOperationException ex) {
+						callback(new RestResponse<TResult>() {StatusCode = -1, ErrorMessage = ex.Message});
+						yield break;
+					}
 				}
 
 				yield return request.SendWebRequest();
@@ -298,7 +314,7 @@ namespace CommonUtils.RestSdk {
 		/// </summary>
 		/// <param name="request">Request a ejecutar.</param>
 		/// <param name="callback">Callback donde se recibirá la respuesta del servidor.</param>
-		protected IEnumerator SendRequest(UnityWebRequest request, Action<RestResponse> callback) {
+		protected IEnumerator SendRequest(UnityWebRequest request, Action<RestResponse> callback, bool omitHeaders = false) {
 			#region Input validation
 			if (request == null)
 				throw new ArgumentNullException("request");
@@ -309,10 +325,12 @@ namespace CommonUtils.RestSdk {
 			RestResponse response = null;
 
 			using (request) {
-				try {
-					SetRequestHeaders(request);
-				} catch (InvalidOperationException ex) {
-					response = new RestResponse() {StatusCode = -1, ErrorMessage = ex.Message};
+				if (!omitHeaders) {
+					try {
+						SetRequestHeaders(request);
+					} catch (InvalidOperationException ex) {
+						response = new RestResponse() {StatusCode = -1, ErrorMessage = ex.Message};
+					}
 				}
 
 				if (response == null) {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ExaGames.RestSdk;
 
 namespace CommonUtils.RestSdk {
@@ -44,6 +45,8 @@ namespace CommonUtils.RestSdk {
 		/// <param name="data">Data to be sent as POST body.</param>
 		/// <param name="callback">Method to receive the response.</param>
 		void Post<TResult>(string actionRelativePath, object data, Action<RestResponse<TResult>> callback);
+
+		void Post<TResult>(string actionRelativePath, Dictionary<string, object> data, Action<RestResponse<TResult>> callback);
 
 		/// <summary>
 		/// Creates a POST request to the specified <paramref name="actionRelativePath"/> to send the <paramref name="data"/> and receive a response in <paramref name="callback"/>.
