@@ -8,30 +8,9 @@ using UnityEngine.Networking;
 
 namespace CommonUtils.RestSdk {
 	/// <summary>
-	/// Clase que permite la interacción con un API mediante métodos GET, POST, PUT y DELETE.
+	/// Class with methods that allow interaction with an API through GET, POST, PUT and DELETE methods.
 	/// </summary>
-	/// <last-change>$LastChangedBy: ed $</last-change>
 	public class RestClient : IRestClient {
-
-/*#if DEBUG
-		private const string apiConfigPath = "Config/ApiConfigDev"; // Para utilizar el servicio ejecutado desde Visual Studio.
-#else
-		private const string apiConfigPath = "Config/ApiConfig";	// Para ejecutar el API instalada en IIS.
-#endif*/
-
-		/*private static readonly string apiUrl;
-
-		static RestProxy() {
-			Debug.LogFormat("Cargando la configuración de la API desde '{0}'", apiConfigPath);
-			var cfg = Resources.Load<ApiConfig>(apiConfigPath);
-			if(cfg == null || string.IsNullOrEmpty(cfg.APIUrl)) {
-				Debug.LogError("No se ha establecido la URL del API a utilizar.");
-			} else {
-				apiUrl = cfg.APIUrl;
-				Debug.LogFormat("Conectando al API en {0}", apiUrl);
-			}
-		}*/
-
 		/// <summary>
 		/// Gets or sets the URL of the API this client will connect to, without trailing slash. 
 		/// </summary>
@@ -123,43 +102,14 @@ namespace CommonUtils.RestSdk {
 
 		protected IEnumerator ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
-
-			var requestId = Guid.NewGuid().ToString(); // An id to recognize this request in the log.
-			Debug.Log($"Executing REST request {requestId}: [POST {url}; data: {postData}]");
-
-			var response = new RestResponse<TResult>();
-
-			// HACK For some reason, UnityWebRequest arrives with null body to the server, so we handle this different than the other requests.
-			var headers = new Dictionary<string, string> {
-				{"Content-type", "application/json"}
-			};
-			var body = Encoding.UTF8.GetBytes(postData);
-			var    www  = new WWW(url, body, headers);
-
-			yield return www;
-
-			response.ErrorMessage = www.error;
-
-			if (!string.IsNullOrEmpty(www.error)) {
-				Debug.LogError($"REST POST ERROR {requestId}: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
-				var err     = www.error.Substring(0, 3);
-				response.StatusCode = int.TryParse(err, out var errCode) ? errCode : 500;
-
-				response.AdditionalInfo = www.text;
-				if (!string.IsNullOrEmpty(response.AdditionalInfo) && response.AdditionalInfo.StartsWith("\"") &&
-					response.AdditionalInfo.EndsWith("\"")) {
-					response.AdditionalInfo = response.AdditionalInfo.Substring(1, response.AdditionalInfo.Length - 2);
-				}
-			} else {
-				response.StatusCode = 200;
-				var data = www.text;
-				if (!string.IsNullOrEmpty(data)) {
-					Debug.Log($"REST POST SUCCESS {requestId}: {data}");
-					response.Data = JsonUtility.FromJson<TResult>(data);
-				}
-			}
-
-			callback(response);
+			
+			var  requestU = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
+			var           bytes    = Encoding.UTF8.GetBytes(postData);
+			var uH       = new UploadHandlerRaw(bytes);
+			uH.contentType         = "application/json";
+			requestU.uploadHandler = uH;
+			requestU.downloadHandler = new DownloadHandlerBuffer();
+			yield return SendRequest(requestU, callback);
 		}
 
 		protected IEnumerator ExecutePost(string url, string postData, Action<RestResponse> callback) {
@@ -330,15 +280,14 @@ namespace CommonUtils.RestSdk {
 
 			using (request) {
 				try {
-					SetAuthRequestHeaders(request);
+					SetRequestHeaders(request);
 				} catch (InvalidOperationException ex) {
-					response = new RestResponse<TResult>() {StatusCode = -1, ErrorMessage = ex.Message};
+					callback(new RestResponse<TResult>() {StatusCode = -1, ErrorMessage = ex.Message});
+					yield break;
 				}
 
-				if (response == null) {
-					yield return request.SendWebRequest();
-					response = GetResponseFrom<TResult>(request);
-				}
+				yield return request.SendWebRequest();
+				response = GetResponseFrom<TResult>(request);
 			}
 
 			callback(response);
@@ -361,7 +310,7 @@ namespace CommonUtils.RestSdk {
 
 			using (request) {
 				try {
-					SetAuthRequestHeaders(request);
+					SetRequestHeaders(request);
 				} catch (InvalidOperationException ex) {
 					response = new RestResponse() {StatusCode = -1, ErrorMessage = ex.Message};
 				}
@@ -377,7 +326,7 @@ namespace CommonUtils.RestSdk {
 			if (callback != null) callback(response);
 		}
 
-		protected virtual void SetAuthRequestHeaders(UnityWebRequest www) => www.SetRequestHeader("Content-type", "application/json");
+		protected virtual void SetRequestHeaders(UnityWebRequest www) => www.SetRequestHeader("Content-type", "application/json");
 
 		protected virtual RestResponse<string> GetRawResponseFrom(UnityWebRequest www) {
 			if (!www.isDone) {
