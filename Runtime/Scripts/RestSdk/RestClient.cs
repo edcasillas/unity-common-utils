@@ -45,8 +45,7 @@ namespace CommonUtils.RestSdk {
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of DTO requested.</typeparam>
-		public void GetCollection<TResult>(string actionRelativePath, Action<RestResponse<DtoCollection<TResult>>> callback)
-			=> get(actionRelativePath, callback);
+		public void GetCollection<TResult>(string actionRelativePath, Action<RestResponse<DtoCollection<TResult>>> callback) => get(actionRelativePath, callback);
 
 		/// <summary>
 		/// Executes a GET request to obtain a single result.
@@ -82,104 +81,81 @@ namespace CommonUtils.RestSdk {
 
 		protected void ExecuteGet<TResult>(string url, Action<RestResponse<TResult>> callback) {
 			var www = UnityWebRequest.Get(url);
-			Coroutiner.StartCoroutine(SendRequest(www, callback));
+			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST GET {url}");
 		}
 
 		#endregion
 
 		#region POST
-
 		/// <summary>
-		/// Hace una petición POST al servidor (en la ruta especificada por <paramref name="controller"/>) para publicar (crear) los datos especificados en <paramref name="data"/>,
-		/// y obtiene los resultados de tipo <typeparamref name="TResult"> en el <paramref name="callback"/>
+		/// Sends a POST request to the specified <paramref name="actionRelativePath"/> of the API to publish the specified <paramref name="data"/> and retrieves results
+		/// of type <typeparamref name="TResult"/> in the specified <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="controller">Ruta del método POST.</param>
-		/// <param name="data">Datos a enviar.</param>
-		/// <param name="callback">Callback para recibir la respuesta.</param>
-		/// <typeparam name="TResult">Tipo de resultado esperado.</typeparam>
-		public void Post<TResult>(string controller, object data, Action<RestResponse<TResult>> callback) {
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="data">Data to be sent.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		/// <typeparam name="TResult">Type of DTO expected as result.</typeparam>
+		public void Post<TResult>(string actionRelativePath, object data, Action<RestResponse<TResult>> callback) {
 			#region Input validation
-			if (string.IsNullOrEmpty(controller)) throw new ArgumentNullException("route");
-			if (callback == null) throw new ArgumentNullException("callback");
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
+			if (callback == null) throw new ArgumentNullException(nameof(callback));
 			#endregion
 
-			string url      = string.Format("{0}/{1}", ApiUrl, controller);
-			string postData = JsonUtility.ToJson(data);
-			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback));
+			var url      = $"{ApiUrl}/{actionRelativePath}";
+			var postData = JsonUtility.ToJson(data);
+			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
 		}
 
 		/// <summary>
-		/// Hace una petición POST al servidor (en la ruta especificada por <paramref name="controller"/>) para publicar (crear) los datos especificados en <paramref name="data"/>,
-		/// y obtiene una respuesta simple (sin datos) en el <paramref name="callback"/>.
+		/// Sends a POST request to the specified <paramref name="actionRelativePath"/> of the API to publish the specified <paramref name="data"/> and retrieves a simple response
+		/// (without attached data) in the specified <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="controller">Ruta del método POST.</param>
-		/// <param name="data">Datos a enviar.</param>
-		/// <param name="callback">Callback para recibir la respuesta.</param>
-		public void Post(string controller, object data, Action<RestResponse> callback = null) {
-			if (string.IsNullOrEmpty(controller)) throw new ArgumentNullException("route");
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="data">Data to be sent.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		public void Post(string actionRelativePath, object data, Action<RestResponse> callback = null) {
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
 
-			string url      = string.Format("{0}/{1}", ApiUrl, controller);
-			string postData = JsonUtility.ToJson(data);
-			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback));
+			var url      = $"{ApiUrl}/{actionRelativePath}";
+			var postData = JsonUtility.ToJson(data);
+			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
 		}
 
-		protected IEnumerator
-			ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
-			if (callback == null) throw new ArgumentNullException("callback");
+		protected IEnumerator ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
+			if (callback == null) throw new ArgumentNullException(nameof(callback));
 
 			var requestId = Guid.NewGuid().ToString(); // An id to recognize this request in the log.
-			Debug.LogFormat("{0} Executing REST request {1}: [POST {2}; data: {3}]",
-							DateTime.Now,
-							requestId,
-							url,
-							postData);
+			Debug.Log($"{DateTime.Now} Executing REST request {requestId}: [POST {url}; data: {postData}]");
 
 			var response = new RestResponse<TResult>();
 
 			// HACK For some reason, UnityWebRequest arrives with null body to the server, so we handle this different than the other requests.
-			if (string.IsNullOrEmpty(MacAddress.Current)) {
-				response.ErrorMessage = "No se ha podido verificar la identidad de esta máquina.";
+			var headers = new Dictionary<string, string> {
+				{"Content-type", "application/json"}
+			};
+			var body = Encoding.UTF8.GetBytes(postData);
+			var    www  = new WWW(url, body, headers);
+
+			yield return www;
+
+			response.ErrorMessage = www.error;
+
+			if (!string.IsNullOrEmpty(www.error)) {
+				Debug.LogError($"{DateTime.Now} REST POST ERROR {requestId}: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
+				var err     = www.error.Substring(0, 3);
+				response.StatusCode = int.TryParse(err, out var errCode) ? errCode : 500;
+
+				response.AdditionalInfo = www.text;
+				if (!string.IsNullOrEmpty(response.AdditionalInfo) && response.AdditionalInfo.StartsWith("\"") &&
+					response.AdditionalInfo.EndsWith("\"")) {
+					response.AdditionalInfo = response.AdditionalInfo.Substring(1, response.AdditionalInfo.Length - 2);
+				}
 			} else {
-				Dictionary<string, string> headers = new Dictionary<string, string> {
-					{"MacAddress", MacAddress.Current},
-					{"Content-type", "application/json"}
-				};
-				byte[] body = Encoding.UTF8.GetBytes(postData);
-				WWW    www  = new WWW(url, body, headers);
-
-				yield return www;
-
-				response.ErrorMessage = www.error;
-
-				if (!string.IsNullOrEmpty(www.error)) {
-					Debug.LogErrorFormat("{0} REST POST ERROR {1}: [{2}{3}]",
-										 DateTime.Now,
-										 requestId,
-										 www.error,
-										 !string.IsNullOrEmpty(www.text) ?
-											 string.Format("; {0}", www.text) :
-											 string.Empty);
-					var err     = www.error.Substring(0, 3);
-					var errCode = 0;
-					if (int.TryParse(err, out errCode)) {
-						response.StatusCode = errCode;
-					} else {
-						response.StatusCode = 500;
-					}
-
-					response.AdditionalInfo = www.text;
-					if (!string.IsNullOrEmpty(response.AdditionalInfo) && response.AdditionalInfo.StartsWith("\"") &&
-						response.AdditionalInfo.EndsWith("\"")) {
-						response.AdditionalInfo =
-							response.AdditionalInfo.Substring(1, response.AdditionalInfo.Length - 2);
-					}
-				} else {
-					response.StatusCode = 200;
-					var data = www.text;
-					if (!string.IsNullOrEmpty(data)) {
-						Debug.LogFormat("{0} REST POST SUCCESS {1}: {2}", DateTime.Now, requestId, data);
-						response.Data = JsonUtility.FromJson<TResult>(data);
-					}
+				response.StatusCode = 200;
+				var data = www.text;
+				if (!string.IsNullOrEmpty(data)) {
+					Debug.Log($"{DateTime.Now} REST POST SUCCESS {requestId}: {data}");
+					response.Data = JsonUtility.FromJson<TResult>(data);
 				}
 			}
 
@@ -188,49 +164,31 @@ namespace CommonUtils.RestSdk {
 
 		protected IEnumerator ExecutePost(string url, string postData, Action<RestResponse> callback) {
 			var response = new RestResponse();
-			if (string.IsNullOrEmpty(MacAddress.Current)) {
-				if (callback != null) {
-					response.ErrorMessage = "No se ha podido verificar la identidad de esta máquina.";
-					callback(response);
+
+			// HACK For some reason, UnityWebRequest arrives with null body to the server, so we handle this different than the other requests.
+			var headers = new Dictionary<string, string> {
+				{"Content-type", "application/json"}
+			};
+			var body = Encoding.UTF8.GetBytes(postData);
+			var    www  = new WWW(url, body, headers);
+
+			yield return www;
+
+			if (callback != null) {
+				response.ErrorMessage = www.error;
+
+				if (!string.IsNullOrEmpty(www.error)) {
+					Debug.LogError($"{DateTime.Now} REST POST ERROR: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
+					var err     = www.error.Substring(0, 3);
+					response.StatusCode = int.TryParse(err, out var errCode) ? errCode : 500;
 				} else {
-					Debug.LogError("No se ha podido obtener la Mac Address de esta máquina.");
+					response.StatusCode = 200;
 				}
-			} else {
-				// HACK Por alguna razón, UnityWebRequest llega con valores nulos en el body al servidor, por lo que aquí se maneja diferente a todos los demás.
-				var headers = new Dictionary<string, string> {
-					{"MacAddress", MacAddress.Current},
-					{"Content-type", "application/json"}
-				};
-				byte[] body = Encoding.UTF8.GetBytes(postData);
-				var    www  = new WWW(url, body, headers);
 
-				yield return www;
-
-				if (callback != null) {
-					response.ErrorMessage = www.error;
-
-					if (!string.IsNullOrEmpty(www.error)) {
-						Debug.LogErrorFormat("El servidor contestó con el error: {0}{1}",
-											 www.error,
-											 !string.IsNullOrEmpty(www.text) ?
-												 string.Format("; {0}", www.text) :
-												 string.Empty);
-						var err     = www.error.Substring(0, 3);
-						var errCode = 0;
-						if (int.TryParse(err, out errCode)) {
-							response.StatusCode = errCode;
-						} else {
-							response.StatusCode = 500;
-						}
-					} else {
-						response.StatusCode = 200;
-					}
-
-					callback(response);
-				} else if (!string.IsNullOrEmpty(www.error)) {
-					// Si no se especificó un callback, se está solicitando ejecutar un fire-and-forget, por lo que solo registramos si hay algún error en el log.
-					Debug.LogErrorFormat("Error en POST {0}: {1}", www.url, www.error);
-				}
+				callback(response);
+			} else if (!string.IsNullOrEmpty(www.error)) {
+				// If a callback was not specified, then we should just fire-and-forget, so we only log the error, if any.
+				Debug.LogError($"{DateTime.Now} REST POST ERROR: [{www.url}: {www.error}]");
 			}
 		}
 
