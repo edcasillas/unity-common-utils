@@ -35,9 +35,8 @@ namespace CommonUtils {
             } else {
                 Debug.Log("Save cancelled");
             }
-
-            return false;
 #endif
+            return false;
         }
     }
 }
