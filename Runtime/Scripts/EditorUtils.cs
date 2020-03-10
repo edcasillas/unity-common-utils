@@ -18,6 +18,7 @@ namespace CommonUtils {
         }
 
         public static bool SaveAsJsonFile<T>(this T source, string title = null, string defaultDirectory = null, string defaultName = null) {
+#if UNITY_EDITOR
             var path = UnityEditor.EditorUtility.SaveFilePanel($"Save {typeof(T)} as JSON",
                                                                defaultDirectory ?? "",
                                                                defaultName ?? $"{typeof(T)}.json",
@@ -36,6 +37,7 @@ namespace CommonUtils {
             }
 
             return false;
+#endif
         }
     }
 }
