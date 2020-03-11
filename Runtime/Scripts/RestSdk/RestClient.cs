@@ -112,7 +112,8 @@ namespace CommonUtils.RestSdk {
 
 			var url      = $"{ApiUrl}/{actionRelativePath}";
 			var postData = JsonUtility.ToJson(data);
-			Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
+			//Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
+			ExecutePost(url, postData, callback);
 		}
 
 		protected void ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
@@ -126,8 +127,15 @@ namespace CommonUtils.RestSdk {
 			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST POST {url}");
 		}
 
-		protected IEnumerator ExecutePost(string url, string postData, Action<RestResponse> callback) {
-			var response = new RestResponse();
+		protected void ExecutePost(string url, string postData, Action<RestResponse> callback) {
+			var www   = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
+			var bytes = Encoding.UTF8.GetBytes(postData);
+			var uH    = new UploadHandlerRaw(bytes) {contentType = "application/json"};
+			www.uploadHandler   = uH;
+			www.downloadHandler = new DownloadHandlerBuffer();
+			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST POST {url}");
+			
+			/*var response = new RestResponse();
 
 			// HACK For some reason, UnityWebRequest arrives with null body to the server, so we handle this different than the other requests.
 			var headers = new Dictionary<string, string> {
@@ -153,13 +161,12 @@ namespace CommonUtils.RestSdk {
 			} else if (!string.IsNullOrEmpty(www.error)) {
 				// If a callback was not specified, then we should just fire-and-forget, so we only log the error, if any.
 				Debug.LogError($"REST POST ERROR: [{www.url}: {www.error}]");
-			}
+			}*/
 		}
 
 		#endregion
 
 		#region PUT
-
 		/// <summary>
 		/// Hace una petición PUT al servidor en el endpoint especificado por <paramref name="controller"/> para actualizar los datos de una entidad con el identificador
 		/// especificado por <paramref name="id"/> con los datos especificados en <paramref name="data"/>, y obtiene los resultados de tipo <typeparamref name="TResult">
@@ -341,7 +348,7 @@ namespace CommonUtils.RestSdk {
 				}
 			}
 
-			if (callback != null) callback(response);
+			callback?.Invoke(response);
 		}
 
 		protected virtual void SetRequestHeaders(UnityWebRequest www) => www.SetRequestHeader("Content-type", "application/json");
