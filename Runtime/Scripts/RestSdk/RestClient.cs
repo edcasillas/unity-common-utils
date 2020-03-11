@@ -112,56 +112,27 @@ namespace CommonUtils.RestSdk {
 
 			var url      = $"{ApiUrl}/{actionRelativePath}";
 			var postData = JsonUtility.ToJson(data);
-			//Coroutiner.StartCoroutine(ExecutePost(url, postData, callback), $"REST POST {url}");
 			ExecutePost(url, postData, callback);
+		}
+
+		private UnityWebRequest preparePostRequest(string url, string postData) {
+			var request = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
+			var bytes = Encoding.UTF8.GetBytes(postData);
+			var uH    = new UploadHandlerRaw(bytes) {contentType = "application/json"};
+			request.uploadHandler = uH;
+			request.downloadHandler = new DownloadHandlerBuffer();
+			return request;
 		}
 
 		protected void ExecutePost<TResult>(string url, string postData, Action<RestResponse<TResult>> callback) {
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
-			
-			var  www = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
-			var bytes = Encoding.UTF8.GetBytes(postData);
-			var uH = new UploadHandlerRaw(bytes) {contentType = "application/json"};
-			www.uploadHandler = uH;
-			www.downloadHandler = new DownloadHandlerBuffer();
+			var www = preparePostRequest(url, postData);
 			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST POST {url}");
 		}
 
 		protected void ExecutePost(string url, string postData, Action<RestResponse> callback) {
-			var www   = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
-			var bytes = Encoding.UTF8.GetBytes(postData);
-			var uH    = new UploadHandlerRaw(bytes) {contentType = "application/json"};
-			www.uploadHandler   = uH;
-			www.downloadHandler = new DownloadHandlerBuffer();
+			var www = preparePostRequest(url, postData);
 			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST POST {url}");
-			
-			/*var response = new RestResponse();
-
-			// HACK For some reason, UnityWebRequest arrives with null body to the server, so we handle this different than the other requests.
-			var headers = new Dictionary<string, string> {
-				{"Content-type", "application/json"}
-			};
-			var body = Encoding.UTF8.GetBytes(postData);
-			var    www  = new WWW(url, body, headers);
-
-			yield return www;
-
-			if (callback != null) {
-				response.ErrorMessage = www.error;
-
-				if (!string.IsNullOrEmpty(www.error)) {
-					Debug.LogError($"REST POST ERROR: [{www.error}{(!string.IsNullOrEmpty(www.text) ? $"; {www.text}" : string.Empty)}]");
-					var err     = www.error.Substring(0, 3);
-					response.StatusCode = int.TryParse(err, out var errCode) ? errCode : 500;
-				} else {
-					response.StatusCode = 200;
-				}
-
-				callback(response);
-			} else if (!string.IsNullOrEmpty(www.error)) {
-				// If a callback was not specified, then we should just fire-and-forget, so we only log the error, if any.
-				Debug.LogError($"REST POST ERROR: [{www.url}: {www.error}]");
-			}*/
 		}
 
 		#endregion
@@ -284,7 +255,6 @@ namespace CommonUtils.RestSdk {
 
 		#region Private methods
 		/// <summary>
-		/// Ejecuta un <paramref name="request"/> al API y obtiene la respuesta en el <paramref name="callback"/> especificado.
 		/// Sends a <paramref name="request"/> to the API and obtains the response in the specified <paramref name="callback"/>.
 		/// </summary>
 		/// <param name="request">Request to send..</param>
@@ -400,13 +370,13 @@ namespace CommonUtils.RestSdk {
 		}
 
 		/// <summary>
-		/// Deserializa una <see cref="UnityWebRequest"/> terminada y la convierte en un <see cref="RestResponse"/>
+		/// Deserializes a response contained in a finished <see cref="UnityWebRequest"/> and packs it into a <see cref="RestResponse"/> instance.
 		/// </summary>
-		/// <returns>Respuesta deserializada.</returns>
-		/// <param name="www">Respuesta serializada.</param>
+		/// <param name="www">Finished request.</param>
+		/// <returns>Deserialized response..</returns>
 		protected RestResponse GetResponseFrom(UnityWebRequest www) {
 			if (!www.isDone) {
-				Debug.LogError("Se está intentando obtener el valor de una respuesta de un servicio que no ha terminado de contestar. ABORTANDO.");
+				Debug.LogError("Trying to get the value of a response from an unfinished request is not allowed. ABORTING.");
 				return null;
 			}
 
