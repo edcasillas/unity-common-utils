@@ -83,6 +83,15 @@ namespace CommonUtils.RestSdk {
 			ExecutePost(url, postData, callback);
 		}
 		
+		/// <summary>
+		/// Sends a POST request to the specified <paramref name="actionRelativePath"/> of the API to publish the specified <paramref name="data"/> and retrieves results
+		/// of type <typeparamref name="TResult"/> in the specified <paramref name="callback"/>.
+		/// Data will be sent as a www-form. 
+		/// </summary>
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="data">Data to be sent.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		/// <typeparam name="TResult">Type of DTO expected as result.</typeparam>
 		public void Post<TResult>(string actionRelativePath, Dictionary<string, object> data, Action<RestResponse<TResult>> callback) {
 			#region Input validation
 			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
@@ -97,7 +106,6 @@ namespace CommonUtils.RestSdk {
 			}
 			var www = UnityWebRequest.Post(url, form);
 			Coroutiner.StartCoroutine(SendRequest(www, callback, true), $"REST POST {url}");
-			//ExecutePost(url, postData, callback);
 		}
 
 		/// <summary>
@@ -139,62 +147,52 @@ namespace CommonUtils.RestSdk {
 
 		#region PUT
 		/// <summary>
-		/// Hace una petición PUT al servidor en el endpoint especificado por <paramref name="controller"/> para actualizar los datos de una entidad con el identificador
-		/// especificado por <paramref name="id"/> con los datos especificados en <paramref name="data"/>, y obtiene los resultados de tipo <typeparamref name="TResult">
-		/// en el <paramref name="callback"/>.
+		/// Sends a PUT request to the specified <paramref name="actionRelativePath"/> to update an entity with the specified <paramref name="id"/> and <paramref name="data"/>, and
+		/// retrieves a result of type <typeparamref name="TResult"/> in the <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="controller">Controlador (endpoint) al que se enviará la petición.</param>
-		/// <param name="id">Identificador de la entidad a modificar.</param>
-		/// <param name="data">Datos de la entidad a modificar.</param>
-		/// <param name="callback">Callback para recibir la respuesta.</param>
-		/// <typeparam name="TResult">Tipo de resultado esperado.</typeparam>
-		public void Put<TResult>(string controller, object id, object data, Action<RestResponse<TResult>> callback) {
-			if (string.IsNullOrEmpty(controller))
-				throw new ArgumentNullException("controller");
-			if (id == null)
-				throw new ArgumentNullException("id");
-			if (data == null)
-				throw new ArgumentNullException("data");
-			if (callback == null)
-				throw new ArgumentNullException("callback");
-			string url     = string.Format("{0}/{1}/{2}", ApiUrl, controller, id);
-			string putData = JsonUtility.ToJson(data);
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="id">Identifier of the entity to modify.</param>
+		/// <param name="data">Data to be set to the entity.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		/// <typeparam name="TResult">Type of expected result.</typeparam>
+		public void Put<TResult>(string actionRelativePath, object id, object data, Action<RestResponse<TResult>> callback) {
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
+			if (id == null) throw new ArgumentNullException(nameof(id));
+			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (callback == null) throw new ArgumentNullException(nameof(callback));
+			var url     = $"{ApiUrl}/{actionRelativePath}/{id}";
+			var putData = JsonUtility.ToJson(data);
 			ExecutePut(url, putData, callback);
 		}
 
 		/// <summary>
-		/// Hace una petición PUT al servidor en el endpoint especificado por <paramref name="controller"/> para actualizar los datos de una entidad con el identificador
-		/// especificado por <paramref name="id"/> con los datos especificados en <paramref name="data"/>, y obtiene una respuesta simple (sin datos)
-		/// en el <paramref name="callback"/>.
+		/// Sends a PUT request to the specified <paramref name="actionRelativePath"/> to update an entity with the specified <paramref name="id"/> and <paramref name="data"/>, and
+		/// retrieves a simple response with no attached data in the <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="controller">Controlador (endpoint) al que se enviará la petición.</param>
-		/// <param name="id">Identificador de la entidad a modificar.</param>
-		/// <param name="data">Datos de la entidad a modificar.</param>
-		/// <param name="callback">Callback para recibir la respuesta.</param>
-		public void Put(string controller, object id, object data, Action<RestResponse> callback) {
-			if (string.IsNullOrEmpty(controller))
-				throw new ArgumentNullException("controller");
-			if (id == null)
-				throw new ArgumentNullException("id");
-			if (data == null)
-				throw new ArgumentNullException("data");
-			if (callback == null)
-				throw new ArgumentNullException("callback");
-			string url     = string.Format("{0}/{1}/{2}", ApiUrl, controller, id);
-			string putData = JsonUtility.ToJson(data);
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="id">Identifier of the entity to modify.</param>
+		/// <param name="data">Data to be set to the entity.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		public void Put(string actionRelativePath, object id, object data, Action<RestResponse> callback) {
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
+			if (id == null) throw new ArgumentNullException(nameof(id));
+			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (callback == null) throw new ArgumentNullException(nameof(callback));
+			var url     = $"{ApiUrl}/{actionRelativePath}/{id}";
+			var putData = JsonUtility.ToJson(data);
 			ExecutePut(url, putData, callback);
 		}
 
 		protected void ExecutePut<TResult>(string url, string putData, Action<RestResponse<TResult>> callback) {
 			byte[] putBody = Encoding.UTF8.GetBytes(putData);
 			var    www     = UnityWebRequest.Put(url, putBody);
-			Coroutiner.StartCoroutine(SendRequest<TResult>(www, callback));
+			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST PUT {url}");
 		}
 
 		protected void ExecutePut(string url, string putData, Action<RestResponse> callback) {
 			byte[] putBody = Encoding.UTF8.GetBytes(putData);
 			var    www     = UnityWebRequest.Put(url, putBody);
-			Coroutiner.StartCoroutine(SendRequest(www, callback));
+			Coroutiner.StartCoroutine(SendRequest(www, callback), $"REST PUT {url}");
 		}
 
 		#endregion
@@ -293,10 +291,8 @@ namespace CommonUtils.RestSdk {
 		/// <param name="callback">Callback donde se recibirá la respuesta del servidor.</param>
 		protected IEnumerator SendRequest(UnityWebRequest request, Action<RestResponse> callback, bool omitHeaders = false) {
 			#region Input validation
-			if (request == null)
-				throw new ArgumentNullException("request");
-			if (request.isDone)
-				throw new InvalidOperationException("No se puede ejecutar un request una vez que ha terminado.");
+			if (request == null) throw new ArgumentNullException(nameof(request));
+			if (request.isDone) throw new InvalidOperationException("No se puede ejecutar un request una vez que ha terminado.");
 			#endregion
 
 			RestResponse response = null;
@@ -311,7 +307,7 @@ namespace CommonUtils.RestSdk {
 				}
 
 				if (response == null) {
-					yield return request.Send();
+					yield return request.SendWebRequest();
 					if (request.isNetworkError)
 						Debug.LogErrorFormat("Error de REST ({0}): {1}", request.method, request.error);
 					response = GetResponseFrom(request);

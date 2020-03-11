@@ -56,8 +56,8 @@ namespace CommonUtils.RestSdk {
 		/// <param name="callback">Method to receive the response. If none specified, executes a fire-and-forget POST request.</param>
 		void Post(string actionRelativePath, object data, Action<RestResponse> callback = null);
 
-		void Put<TResult>(string controller, object id, object data, Action<RestResponse<TResult>> callback);
-		void Put(string          controller, object id, object data, Action<RestResponse>          callback);
+		void Put<TResult>(string actionRelativePath, object id, object data, Action<RestResponse<TResult>> callback);
+		void Put(string          actionRelativePath, object id, object data, Action<RestResponse>          callback);
 
 		void Delete<TResult>(string controller, object id, Action<RestResponse<TResult>> callback);
 		void Delete(string          controller, object id, Action<RestResponse>          callback);
