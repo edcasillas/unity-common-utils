@@ -15,6 +15,11 @@ namespace CommonUtils.RestSdk {
 		/// Gets the URL of the API this client will connect to. 
 		/// </summary>
 		public string ApiUrl { get; }
+		
+		/// <summary>
+		/// When <c>true</c>, this client will log its activity to the console.
+		/// </summary>
+		public bool Verbose { get; set; }
 
 		/// <summary>
 		/// Creates a new instance of <see cref="RestClient"/>.
@@ -38,8 +43,7 @@ namespace CommonUtils.RestSdk {
 		/// <typeparam name="TResult">Type of DTO requested.</typeparam>
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
 		/// <param name="callback">Callback method to receive the response.</param>
-		public void Get<TResult>(string actionRelativePath, Action<RestResponse<TResult>> callback)
-			=> get(actionRelativePath, callback);
+		public void Get<TResult>(string actionRelativePath, Action<RestResponse<TResult>> callback) => get(actionRelativePath, callback);
 
 		/// <summary>
 		/// Executes a GET request to obtain result identified by <paramref name="id"/>.
@@ -233,7 +237,7 @@ namespace CommonUtils.RestSdk {
 			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
 			if (id == null) throw new ArgumentNullException(nameof(id));
 			if (callback == null) {
-				Debug.Log($"A callback was not specified for the DELETE request to {actionRelativePath}; will fire and forget.");
+				debugLog($"A callback was not specified for the DELETE request to {actionRelativePath}; will fire and forget.");
 			}
 			#endregion
 
@@ -267,6 +271,8 @@ namespace CommonUtils.RestSdk {
 			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
 			#endregion
 
+			debugLog($"Sending {request.method} {request.url}");
+			
 			RestResponse<TResult> response = null;
 
 			using (request) {
@@ -297,6 +303,8 @@ namespace CommonUtils.RestSdk {
 			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
 			#endregion
 
+			debugLog($"Sending {request.method} {request.url}");
+			
 			RestResponse response = null;
 
 			using (request) {
@@ -311,7 +319,7 @@ namespace CommonUtils.RestSdk {
 				if (response == null) {
 					yield return request.SendWebRequest();
 					if (request.isNetworkError)
-						Debug.LogErrorFormat($"REST ERROR: ({request.method}): {request.error}");
+						Debug.LogError($"REST ERROR: ({request.method}): {request.error}");
 					response = GetResponseFrom(request);
 				}
 			}
@@ -382,6 +390,10 @@ namespace CommonUtils.RestSdk {
 				StatusCode = www.responseCode
 			};
 			return response;
+		}
+
+		private void debugLog(string message) {
+			if (Verbose) Debug.Log(message);
 		}
 		#endregion
 	}
