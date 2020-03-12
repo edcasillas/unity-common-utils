@@ -11,9 +11,7 @@ namespace CommonUtils.Extensions {
 		/// <param name="collection">Collection of items from which to pick a random item.</param>
 		/// <returns>Random item inside the collection, or its default value (e.g. null) if the collection is null or empty.</returns>
 		public static T PickRandom<T>(this IEnumerable<T> collection) =>
-			!collection.IsNullOrEmpty() ?
-				collection.ElementAt(Random.Range(0, collection.Count())) :
-				default(T);
+			!collection.IsNullOrEmpty() ? collection.ElementAt(Random.Range(0, collection.Count())) : default;
 
 		/// <summary>
 		/// Gets a value indicating whether this collection is null or empty.

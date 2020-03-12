@@ -4,6 +4,9 @@ using UnityEditor;
 using UnityEngine;
 
 namespace CommonUtils.Editor {
+	/// <summary>
+	/// A collection of methods to help showing useful data in CustomEditors.
+	/// </summary>
 	public static class EditorExtensions {
 		private static GUIStyle _richTextLabelStyle;
 

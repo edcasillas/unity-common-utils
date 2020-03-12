@@ -200,48 +200,44 @@ namespace CommonUtils.RestSdk {
 		#region DELETE
 
 		/// <summary>
-		/// Hace una petición DELETE al servidor en el endpoint especificado por <paramref name="controller"/> para eliminar la entidad con el identificador especificado por
-		/// <paramref name="id"/> y obtiene los resultados de tipo <typeparamref name="TResult"> en el <paramref name="callback"/>.
+		/// Sends a DELETE request to the specified <paramref name="actionRelativePath"/> to remove an entity with the specified <paramref name="id"/> and retrieves
+		/// a result of type <typeparamref name="TResult"/> in the <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="controller">Controlador (endpoint) al que se enviará la petición.</param>
-		/// <param name="id">Identificador de la entidad a eliminar.</param>
-		/// <param name="callback">Callback para recibir la respuesta.</param>
-		/// <typeparam name="TResult">Tipo de resultado esperado.</typeparam>
-		public void Delete<TResult>(string controller, object id, Action<RestResponse<TResult>> callback) {
-			if (string.IsNullOrEmpty(controller))
-				throw new ArgumentNullException("controller");
-			if (id == null)
-				throw new ArgumentNullException("id");
-			if (callback == null)
-				throw new ArgumentNullException("callback");
-			string url = string.Format("{0}/{1}/{2}", ApiUrl, controller, id);
-			ExecuteDelete<TResult>(url, callback);
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="id">Identifier of the entity to delete.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		/// <typeparam name="TResult">Type of expected result.</typeparam>
+		public void Delete<TResult>(string actionRelativePath, object id, Action<RestResponse<TResult>> callback) {
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
+			if (id == null) throw new ArgumentNullException(nameof(id));
+			if (callback == null) throw new ArgumentNullException(nameof(callback));
+			var url = $"{ApiUrl}/{actionRelativePath}/{id}";
+			ExecuteDelete(url, callback);
 		}
 
 		/// <summary>
-		/// Hace una petición DELETE al servidor en el endpoint especificado por <paramref name="controller"/> para eliminar la entidad con el identificador especificado por
-		/// <paramref name="id"/> y obtiene una respuesta simple (sin datos) en el <paramref name="callback"/>.
+		/// Sends a DELETE request to the specified <paramref name="actionRelativePath"/> to remove an entity with the specified <paramref name="id"/> and retrieves
+		/// a simple response with no attached data in the <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="controller">Controlador (endpoint) al que se enviará la petición.</param>
+		/// <param name="actionRelativePath">Controlador (endpoint) al que se enviará la petición.</param>
 		/// <param name="id">Identificador de la entidad a eliminar.</param>
 		/// <param name="callback">Callback para recibir la respuesta.</param>
-		public void Delete(string controller, object id, Action<RestResponse> callback) {
+		public void Delete(string actionRelativePath, object id, Action<RestResponse> callback = null) {
 			#region Input validation
-			if (string.IsNullOrEmpty(controller)) throw new ArgumentNullException("controller");
-			if (id == null) throw new ArgumentNullException("id");
+			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
+			if (id == null) throw new ArgumentNullException(nameof(id));
 			if (callback == null) {
-				Debug.LogWarningFormat("No se estableció un callback para la petición DELETE a {0}; se ejecutará la llamada sin respuesta.",
-									   controller);
+				Debug.Log($"A callback was not specified for the DELETE request to {actionRelativePath}; will fire and forget.");
 			}
 			#endregion
 
-			string url = string.Format("{0}/{1}/{2}", ApiUrl, controller, id);
+			var url = $"{ApiUrl}/{actionRelativePath}/{id}";
 			ExecuteDelete(url, callback);
 		}
 
 		protected void ExecuteDelete<TResult>(string url, Action<RestResponse<TResult>> callback) {
 			var www = UnityWebRequest.Delete(url);
-			Coroutiner.StartCoroutine(SendRequest<TResult>(www, callback));
+			Coroutiner.StartCoroutine(SendRequest(www, callback));
 		}
 
 		protected void ExecuteDelete(string url, Action<RestResponse> callback) {
@@ -255,8 +251,8 @@ namespace CommonUtils.RestSdk {
 		/// <summary>
 		/// Sends a <paramref name="request"/> to the API and obtains the response in the specified <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="request">Request to send..</param>
-		/// <param name="callback">Callback to receive the response..</param>
+		/// <param name="request">Request to send.</param>
+		/// <param name="callback">Callback to receive the response.</param>
 		/// <typeparam name="TResult">Type of expected result.</typeparam>
 		protected IEnumerator SendRequest<TResult>(UnityWebRequest request, Action<RestResponse<TResult>> callback, bool omitHeaders = false) {
 			#region Input validation
@@ -285,14 +281,14 @@ namespace CommonUtils.RestSdk {
 		}
 
 		/// <summary>
-		/// Ejecuta un <paramref name="request"/> al API y obtiene la respuesta en el <paramref name="callback"/> especificado.
+		/// Sends a <paramref name="request"/> to the API and obtains the response in the specified <paramref name="callback"/>.
 		/// </summary>
-		/// <param name="request">Request a ejecutar.</param>
-		/// <param name="callback">Callback donde se recibirá la respuesta del servidor.</param>
+		/// <param name="request">Request to send.</param>
+		/// <param name="callback">Callback to receive the response</param>
 		protected IEnumerator SendRequest(UnityWebRequest request, Action<RestResponse> callback, bool omitHeaders = false) {
 			#region Input validation
 			if (request == null) throw new ArgumentNullException(nameof(request));
-			if (request.isDone) throw new InvalidOperationException("No se puede ejecutar un request una vez que ha terminado.");
+			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
 			#endregion
 
 			RestResponse response = null;
@@ -309,7 +305,7 @@ namespace CommonUtils.RestSdk {
 				if (response == null) {
 					yield return request.SendWebRequest();
 					if (request.isNetworkError)
-						Debug.LogErrorFormat("Error de REST ({0}): {1}", request.method, request.error);
+						Debug.LogErrorFormat($"REST ERROR: ({request.method}): {request.error}");
 					response = GetResponseFrom(request);
 				}
 			}

@@ -59,7 +59,7 @@ namespace CommonUtils.RestSdk {
 		void Put<TResult>(string actionRelativePath, object id, object data, Action<RestResponse<TResult>> callback);
 		void Put(string          actionRelativePath, object id, object data, Action<RestResponse>          callback);
 
-		void Delete<TResult>(string controller, object id, Action<RestResponse<TResult>> callback);
-		void Delete(string          controller, object id, Action<RestResponse>          callback);
+		void Delete<TResult>(string actionRelativePath, object id, Action<RestResponse<TResult>> callback);
+		void Delete(string actionRelativePath, object id, Action<RestResponse> callback = null);
 	}
 }
