@@ -125,6 +125,15 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
+		/// <summary>
+		/// Creates a collapsible area.
+		/// </summary>
+		/// <param name="show">Indicates whether the collapsible area is expanded.</param>
+		/// <param name="title">Title for this group.</param>
+		/// <param name="contentsDelegate">Delegate containing the contents of this collapsible area.</param>
+		/// <param name="indentContents">Indicates whether the contents should be indented by one level.</param>
+		/// <param name="showBox">Indicates whether the contents should be surrounded with a box.</param>
+		/// <returns>New value for <paramref name="show"/>.</returns>
 		public static bool Collapse(bool show, string title, Action contentsDelegate, bool indentContents = true, bool showBox = false) {
 			if (GUILayout.Button($"{(show ? "\u25BC" : "\u25B6")} {title}", EditorStyles.toolbarButton))
 				show = !show;
