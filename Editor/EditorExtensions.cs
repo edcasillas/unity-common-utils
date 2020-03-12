@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CommonUtils.Editor {
 	/// <summary>
@@ -10,7 +12,7 @@ namespace CommonUtils.Editor {
 	public static class EditorExtensions {
 		private static GUIStyle _richTextLabelStyle;
 
-		private static GUIStyle richTextLabelStyle {
+		private static GUIStyle richTextLabelStyle { // TODO Can this be removed and use only GUI.skin.label 
 			get {
 				if (_richTextLabelStyle == null) {
 					_richTextLabelStyle = new GUIStyle(GUI.skin.label) {
@@ -26,8 +28,7 @@ namespace CommonUtils.Editor {
 
 		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, richTextLabelStyle);
 
-		public static void ObjectField(string label, Object obj)
-			=> EditorGUILayout.ObjectField($"{label}:", obj, typeof(Object), false);
+		public static void ObjectField(string label, Object obj) => EditorGUILayout.ObjectField($"{label}:", obj, typeof(Object), false);
 
 		public static bool ReadonlyDictionary<TKey, TValue>(bool   fold, IDictionary<TKey, TValue> dictionary,
 															string displayName) where TValue : Object {
@@ -122,6 +123,30 @@ namespace CommonUtils.Editor {
 			}
 
 			return fold;
+		}
+
+		public static bool Collapse(bool show, string title, Action contentsDelegate, bool indentContents = true, bool showBox = false) {
+			if (GUILayout.Button($"{(show ? "\u25BC" : "\u25B6")} {title}", EditorStyles.toolbarButton))
+				show = !show;
+
+			if(indentContents) EditorGUI.indentLevel++;
+			if (show) {
+				if (showBox) BoxGroup(contentsDelegate);
+				else contentsDelegate();
+			} 
+			if(indentContents) EditorGUI.indentLevel--;
+			
+			return show;
+		}
+
+		public static void BoxGroup(Action contentsDelegate, string title = null) {
+			GUILayout.BeginVertical(title, "box");
+			if (!string.IsNullOrWhiteSpace(title)) {
+				EditorGUILayout.Space();
+				EditorGUILayout.Space();
+			}
+			contentsDelegate();
+			GUILayout.EndVertical();
 		}
 	}
 }

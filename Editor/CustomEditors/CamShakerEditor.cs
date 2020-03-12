@@ -7,7 +7,7 @@ namespace CommonUtils.Editor.CustomEditors {
     public class CamShakerEditor : UnityEditor.Editor {
         private CamShakeMode testCamShakeMode;
         private float testDuration = 1f;
-        
+
         public override void OnInspectorGUI() {
             var camShaker = (CamShaker) target;
 
