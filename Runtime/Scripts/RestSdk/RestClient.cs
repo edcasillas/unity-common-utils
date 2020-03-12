@@ -12,9 +12,15 @@ namespace CommonUtils.RestSdk {
 	/// </summary>
 	public class RestClient : IRestClient {
 		/// <summary>
-		/// Gets or sets the URL of the API this client will connect to, without trailing slash. 
+		/// Gets the URL of the API this client will connect to. 
 		/// </summary>
-		public string ApiUrl { get; set; }
+		public string ApiUrl { get; }
+
+		/// <summary>
+		/// Creates a new instance of <see cref="RestClient"/>.
+		/// </summary>
+		/// <param name="apiUrl">URL of the API this client will connect to, without trailing slash.</param>
+		public RestClient(string apiUrl) => ApiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
 
 		#region GET
 
