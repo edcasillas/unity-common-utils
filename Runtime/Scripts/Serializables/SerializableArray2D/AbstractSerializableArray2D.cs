@@ -13,6 +13,7 @@ namespace CommonUtils.Serializables.SerializableArray2D {
 
         public int RowCount => rows.Length;
         public int ColCount => RowCount > 0 ? rows[0].Length : 0;
+        public int TotalSize => RowCount * ColCount;
 
         public AbstractSerializableArray2D(){}
 
