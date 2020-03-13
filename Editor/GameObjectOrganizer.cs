@@ -20,19 +20,17 @@ namespace CommonUtils.Editor {
                                              "No"))
                 return;
 
-            var count = 0;
-            foreach (var go in selection) {
-                foreach (Transform child in go.transform) {
-                    if (!child.gameObject.activeSelf) {
-                        Undo.DestroyObjectImmediate(child.gameObject);
-                        count++;
-                    }
-                }
-            }
+            var result = 0;
+            var passCount = 0;
+
+            do {
+                passCount = selection.Sum(go => go.transform.RemoveChildren(child => !child.gameObject.activeSelf));
+                result += passCount;
+            } while (passCount > 0);
 
             EditorUtility.DisplayDialog("Remove inactive children",
-                                        count > 0 ?
-                                            $"{count} objects have been removed." :
+                                        result > 0 ?
+                                            $"{result} objects have been removed." :
                                             $"No inactive children were found.",
                                         "Ok");
         }
