@@ -42,7 +42,9 @@ To ensure you have the latest version of the package, remove the version lock th
     - PlayerPrefsDb: [TODO]
     - MacAddress util: [TODO]
     - MathUtils: [TODO]
-    - Randomizables: [TODO]
+    - Serializables:
+        - Randomizables: [TODO]
+        - Serializable Array2D: [TODO]
     - REST SDK: [TODO]
     - Blinker UI Elements: [TODO]
     - PromoBadge: [TODO]
