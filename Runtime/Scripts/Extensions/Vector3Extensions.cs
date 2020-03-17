@@ -12,6 +12,12 @@ namespace CommonUtils.Extensions {
 		
 		public static Vector3 RotateAround(this Vector3 point, Vector3 pivot, Quaternion rotation) => rotation * (point - pivot) + pivot;
 		
+		/// <summary>
+		/// Translates, rotates and scales the <paramref name="vector"/> by the position, rotation and scale of the transform.
+		/// </summary>
+		/// <param name="vector">Vector to transform.</param>
+		/// <param name="transform">Transform to be applied.</param>
+		/// <returns>Transformed vector.</returns>
 		public static Vector3 ApplyTransform(this Vector3 vector, Transform transform) => vector.Transform(transform.position, transform.rotation, transform.lossyScale);
 
 		public static Vector3 Transform(this Vector3 vector, Vector3 position, Quaternion rotation, Vector3 scale) {
@@ -37,5 +43,7 @@ namespace CommonUtils.Extensions {
 																								  (origin.y + destination.y) /2,
 																								  (origin.z + destination.z) /2
 																								 );
+
+		public static bool IsInside(this Vector3 vector, Collider collider) => vector == collider.ClosestPoint(vector);
 	}
 }

@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace CommonUtils.Extensions {
 	public static class TransformExtensions {
-		public static bool IsInside(this Transform transform, BoxCollider collider) {
-			var point    = collider.transform.InverseTransformPoint(transform.position) - collider.center;
-			var halfSize = collider.size * 0.5f;
-			return point.x < halfSize.x && point.x > -halfSize.x &&
-				   point.y < halfSize.y && point.y > -halfSize.y &&
-				   point.z < halfSize.z && point.z > -halfSize.z;
-		}
+		/// <summary>
+		/// Gets a value indicating whether the position of the <paramref name="transform"/> is inside the specified <paramref name="collider"/>.
+		/// </summary>
+		/// <param name="transform">Transform to check.</param>
+		/// <param name="collider">Collider to check.</param>
+		/// <returns><c>true</c> when the position of the <paramref name="transform"/> is inside the <paramref name="collider"/>; otherwise <c>false</c></returns>
+		public static bool IsInside(this Transform transform, Collider collider) => transform.position.IsInside(collider);
 
 		public static int RemoveChildren(this Transform transform, Func<Transform, bool> where = null) {
 			if (!transform) return 0;
