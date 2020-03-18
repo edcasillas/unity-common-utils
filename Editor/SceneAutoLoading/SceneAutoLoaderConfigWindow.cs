@@ -6,15 +6,16 @@ using UnityEngine;
 namespace CommonUtils.Editor.SceneAutoLoading {
 	public class SceneAutoLoaderConfigWindow : EditorWindow {
 		private static SceneAutoLoaderConfigWindow instance = null;
-		private         SceneAsset                     selectedScene;
+		private SceneAsset selectedScene;
 		private bool loadMasterOnPlay;
+		private bool autoSaveOnPlay;
 
 		[MenuItem("Tools/Configure Scene Autoloader...")]
 		private static void OpenActiveWindow() {
 			if (!instance) {
 				instance              = GetWindow<SceneAutoLoaderConfigWindow>();
 				instance.titleContent = new GUIContent("SceneAutoLoader");
-				instance.maxSize      = new Vector2(325f, 180f);
+				instance.maxSize      = new Vector2(325f, 200f);
 			}
 
 			if (!string.IsNullOrWhiteSpace(SceneAutoLoader.MasterScene)) {
@@ -47,16 +48,23 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 			if (selectedScene && !loadMasterOnPlay) {
 				EditorGUILayout.HelpBox("Your master scene won't be loaded on Play. Check the box above to fix this.", MessageType.Warning);
 			}
+			
+			autoSaveOnPlay = loadMasterOnPlay && EditorGUILayout.Toggle("Auto Save on Play", autoSaveOnPlay);
 
 			string selectedScenePath = null;
 			if (selectedScene) {
 				selectedScenePath = BuildUtils.GetScenePath(selectedScene);
 			}
+
+			GUI.enabled =
+				selectedScenePath != SceneAutoLoader.MasterScene      ||
+				loadMasterOnPlay  != SceneAutoLoader.LoadMasterOnPlay ||
+				autoSaveOnPlay    != SceneAutoLoader.AutoSaveOnPlay;
 			
-			GUI.enabled = selectedScenePath != SceneAutoLoader.MasterScene || loadMasterOnPlay != SceneAutoLoader.LoadMasterOnPlay;
 			if (GUILayout.Button("Save changes")) {
 				SceneAutoLoader.MasterScene = selectedScenePath;
 				SceneAutoLoader.LoadMasterOnPlay = loadMasterOnPlay;
+				SceneAutoLoader.AutoSaveOnPlay = autoSaveOnPlay;
 				instance.Close();
 				return;
 			}

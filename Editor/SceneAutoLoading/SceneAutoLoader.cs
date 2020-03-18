@@ -22,6 +22,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 	public static class SceneAutoLoader {
 		#region Constants
 		private const string cEditorPrefLoadMasterOnPlay = "SceneAutoLoader.LoadMasterOnPlay";
+		private const string cEditorPrefAutoSaveOnPlay = "SceneAutoLoader.AutoSaveOnPlay";
 		private const string cEditorPrefMasterScene      = "SceneAutoLoader.MasterScene";
 		private const string cEditorPrefPreviousScene    = "SceneAutoLoader.PreviousScene";
 		#endregion
@@ -35,6 +36,11 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 		public static bool LoadMasterOnPlay {
 			get => EditorPrefs.GetBool(cEditorPrefLoadMasterOnPlay, false);
 			set => EditorPrefs.SetBool(cEditorPrefLoadMasterOnPlay, value);
+		}
+
+		public static bool AutoSaveOnPlay {
+			get => EditorPrefs.GetBool(cEditorPrefAutoSaveOnPlay, false);
+			set => EditorPrefs.SetBool(cEditorPrefAutoSaveOnPlay, value);
 		}
 
 		public static string MasterScene {
@@ -86,7 +92,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 					}
 				}
 
-				if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
+				if ((AutoSaveOnPlay && EditorSceneManager.SaveOpenScenes()) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
 					try {
 						EditorSceneManager.OpenScene(MasterScene);
 					} catch {
