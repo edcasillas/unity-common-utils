@@ -11,7 +11,7 @@ namespace CommonUtils.Serializables.SerializableArray2D {
             set => rows[index0][index1] = value;
         }
 
-        public int RowCount => rows.Length;
+        public int RowCount => rows?.Length ?? 0;
         public int ColCount => RowCount > 0 ? rows[0].Length : 0;
         public int TotalSize => RowCount * ColCount;
 
