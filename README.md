@@ -49,5 +49,6 @@ To ensure you have the latest version of the package, remove the version lock th
     - Blinker UI Elements: [TODO]
     - PromoBadge: [TODO]
     - Animated submenus: [TODO]
+    - Verbosables: [TODO]
     
      
