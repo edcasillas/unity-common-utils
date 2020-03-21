@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CommonUtils.Extensions {
 	public static class VerbosableExtensions {
@@ -10,7 +11,7 @@ namespace CommonUtils.Extensions {
 		/// <param name="message">Message to be sent to the console.</param>
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, string message)
-			where TVerbosable : MonoBehaviour, IVerbosable {
+			where TVerbosable : Object, IVerbosable {
 			if (verbosable.IsVerbose) Debug.Log(message, verbosable);
 		}
 		
@@ -23,7 +24,7 @@ namespace CommonUtils.Extensions {
 		/// <param name="messageDelegate">Function that creates the message to be sent to the console.</param>
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate)
-			where TVerbosable : MonoBehaviour, IVerbosable {
+			where TVerbosable : Object, IVerbosable {
 			if (verbosable.IsVerbose) Debug.Log(messageDelegate.Invoke(), verbosable);
 		}
 	}
