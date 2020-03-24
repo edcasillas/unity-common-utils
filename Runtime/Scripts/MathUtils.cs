@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 
 namespace CommonUtils {
-	public class MathUtils {
-
+	public static class MathUtils {
 		public static float NormalizeAngle(float angle)
 		{
 			// reduce the angle  
@@ -25,13 +24,6 @@ namespace CommonUtils {
 			transf.Rotate(Vector3.forward, -90f);
 		}
 
-		public static Quaternion ClampQuaternion(Quaternion q, Vector3 min, Vector3 max)
-		{
-			return Quaternion.Euler (Mathf.Clamp(NormalizeAngle(q.eulerAngles.x), min.x, max.x), 
-									 Mathf.Clamp(NormalizeAngle(q.eulerAngles.y), min.y, max.y), 
-									 Mathf.Clamp(NormalizeAngle(q.eulerAngles.z), min.z, max.z));
-		}
-
 		public static Vector3 ScreenPointToLocalPointInRectangle(Canvas canvas, Vector2 position) {
 			Vector2 pos;
 			RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform,
@@ -41,11 +33,8 @@ namespace CommonUtils {
 			return canvas.transform.TransformPoint(pos);
 		}
 
-		private static readonly System.DateTime UnixEpoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
-		public static long UnixTimeMS()
-		{
-			return (long)(System.DateTime.UtcNow - UnixEpoch).TotalMilliseconds;
-		}
+		private static readonly System.DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+		public static long UnixTimeMS() => (long)(System.DateTime.UtcNow - UnixEpoch).TotalMilliseconds;
 
 		public static Vector3 GetDirectionFromSpread(Quaternion rotation, float spreadAngle)
 		{
@@ -54,63 +43,15 @@ namespace CommonUtils {
 			return rotation * multiplier;
 		}
 
-		public static Vector2 RotatePointAroundOrigin(Vector2 point, Vector2 origin, float theta)
-		{
-			float s = Mathf.Sin(theta);
-			float c = Mathf.Cos(theta);
+		public static double DegreeToRadian(this double angle) => Math.PI * angle / 180.0;
 
-			// translate point back to origin:
-			point.x -= origin.x;
-			point.y -= origin.y;
+		public static double RadianToDegree(this double angle) => angle * (180.0 / Math.PI);
 
-			// rotate point
-			float xnew = point.x * c - point.y * s;
-			float ynew = point.x * s + point.y * c;
+		public static int WrapValue(int value, int min, int max) => (((value - min) % (max - min)) + (max - min)) % (max - min) + min;
 
-			// translate point back:
-			point.x = xnew + origin.x;
-			point.y = ynew + origin.y;
-			return point;
-		}
+		public static Color GetColorFromRGB255(int r, int g, int b) => new Color ((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
 
-		public static double DegreeToRadian(double angle) {
-			return Math.PI * angle / 180.0;
-		}
-
-		public static double RadianToDegree(double angle) {
-			return angle * (180.0 / Math.PI);
-		}
-
-		public static bool GetUpdatedAmmoFromReload(ref int currentAmmoInMagazine, ref int currentAmmoNotInMagazine, int ammoPerMagazine)
-		{
-			int ammoToTake = (int)Mathf.Min(Mathf.Clamp(currentAmmoNotInMagazine, 0, ammoPerMagazine - currentAmmoInMagazine), currentAmmoNotInMagazine);
-			if (currentAmmoInMagazine == 0 && currentAmmoNotInMagazine <= ammoPerMagazine) {
-				ammoToTake = currentAmmoNotInMagazine;
-			}
-
-			if (ammoToTake <= 0) {
-				return false;
-			}
-
-			currentAmmoInMagazine    += ammoToTake;
-			currentAmmoNotInMagazine -= ammoToTake;
-			return true;
-		}
-
-		public static int WrapValue(int value, int min, int max)
-		{
-			return (((value - min) % (max - min)) + (max - min)) % (max - min) + min;
-		}
-
-		public static Color GetColorFromRGB255(int r, int g, int b)
-		{
-			return new Color ((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
-		}
-
-		public static int RandomNegPos()
-		{
-			return UnityEngine.Random.Range (0, 2) * 2 - 1;
-		}
+		public static int RandomNegPos() => UnityEngine.Random.Range (0, 2) * 2 - 1;
 
 		public static void SetGlobalScale (Transform transform, Vector3 globalScale)
 		{
@@ -169,11 +110,6 @@ namespace CommonUtils {
 				   (r.Contains(p1) && r.Contains(p2));
 		}
 
-		public static string Vector3ToStringVerbose(Vector3 v)
-		{
-			return "(" + v.x + ", " + v.y + ", " + v.z + ")";
-		}
-
 		private static bool LineIntersectsLine(Vector2 l1p1, Vector2 l1p2, Vector2 l2p1, Vector2 l2p2)
 		{
 			float q = (l1p1.y - l2p1.y) * (l2p2.x - l2p1.x) - (l1p1.x - l2p1.x) * (l2p2.y - l2p1.y);
@@ -217,7 +153,7 @@ namespace CommonUtils {
 			}
 		}
 
-		public static Rect RectTransformToScreenSpace(RectTransform transform)
+		public static Rect RectTransformToScreenSpace(RectTransform transform) // TODO This might be a duplicate of RectTransformExtensions.WorldRect
 		{
 			Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
 			Rect    rect = new Rect(transform.position.x, Screen.height - transform.position.y, size.x, size.y);
@@ -230,13 +166,6 @@ namespace CommonUtils {
 		{
 			DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 			return origin.AddSeconds(timestamp);
-		}
-
-		public static double ConvertToUnixTimestamp(DateTime date)
-		{
-			DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			TimeSpan diff   = date.ToUniversalTime() - origin;
-			return Math.Floor(diff.TotalSeconds);
 		}
 
 	}

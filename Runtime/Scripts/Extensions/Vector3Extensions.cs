@@ -45,5 +45,7 @@ namespace CommonUtils.Extensions {
 																								 );
 
 		public static bool IsInside(this Vector3 vector, Collider collider) => vector == collider.ClosestPoint(vector);
+		
+		public static string ToStringVerbose(this Vector3 v) => $"({v.x}, {v.y}, {v.z})";
 	}
 }
