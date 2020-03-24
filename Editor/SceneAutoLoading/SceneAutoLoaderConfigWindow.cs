@@ -21,8 +21,10 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 			if (!string.IsNullOrWhiteSpace(SceneAutoLoader.MasterScene)) {
 				instance.selectedScene = BuildUtils.GetSceneAssetFromPath(SceneAutoLoader.MasterScene);
 				instance.loadMasterOnPlay = SceneAutoLoader.LoadMasterOnPlay;
+				instance.autoSaveOnPlay = SceneAutoLoader.AutoSaveOnPlay;
 			} else {
 				instance.loadMasterOnPlay = false;
+				instance.autoSaveOnPlay = false;
 			}
 
 			instance.Show();
