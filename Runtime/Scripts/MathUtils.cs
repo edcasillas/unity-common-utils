@@ -33,9 +33,6 @@ namespace CommonUtils {
 			return canvas.transform.TransformPoint(pos);
 		}
 
-		private static readonly System.DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-		public static long UnixTimeMS() => (long)(System.DateTime.UtcNow - UnixEpoch).TotalMilliseconds;
-
 		public static Vector3 GetDirectionFromSpread(Quaternion rotation, float spreadAngle)
 		{
 			float angleOff   = spreadAngle * Mathf.Deg2Rad; 
@@ -161,12 +158,5 @@ namespace CommonUtils {
 			rect.y -= ((1.0f - transform.pivot.y) * size.y);
 			return rect;
 		}
-
-		public static DateTime ConvertFromUnixTimestamp(double timestamp)
-		{
-			DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			return origin.AddSeconds(timestamp);
-		}
-
 	}
 }
