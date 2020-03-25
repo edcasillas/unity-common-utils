@@ -16,5 +16,7 @@ namespace CommonUtils.Extensions {
 			var b = byte.Parse(inputHexString.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
 			return new Color32(r, g, b, 255);
 		}
+		
+		public static Color GetColorFromRGB255(int r, int g, int b) => new Color (r / 255.0f, g / 255.0f, b / 255.0f);
 	}
 }
