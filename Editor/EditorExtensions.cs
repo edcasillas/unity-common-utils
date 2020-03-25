@@ -30,7 +30,7 @@ namespace CommonUtils.Editor {
 
 		public static void ObjectField(string label, Object obj) => EditorGUILayout.ObjectField($"{label}:", obj, typeof(Object), false);
 
-		public static bool ReadonlyDictionary<TKey, TValue>(bool   fold, IDictionary<TKey, TValue> dictionary,
+		public static bool ReadonlyDictionary<TKey, TValue>(bool   fold, IReadOnlyDictionary<TKey, TValue> dictionary,
 															string displayName) where TValue : Object {
 			if (dictionary == null) {
 				EditorGUILayout.LabelField($"{displayName} is null.");
@@ -53,7 +53,7 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
-		public static bool ReadonlyDictionaryLabels<TKey, TValue>(bool fold, IDictionary<TKey, TValue> dictionary, string displayName) {
+		public static bool ReadonlyDictionaryLabels<TKey, TValue>(bool fold, IReadOnlyDictionary<TKey, TValue> dictionary, string displayName) {
 			if (dictionary == null) {
 				EditorGUILayout.LabelField($"{displayName} is null.");
 			} else if (!dictionary.Any()) {
