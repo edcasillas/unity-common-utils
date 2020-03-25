@@ -13,8 +13,7 @@ namespace CommonUtils.Extensions {
 		/// </summary>
 		/// <param name="other">Other rectangle to test overlapping with.</param>
 		/// <param name="allowInverse">Does the test allow the widths and heights of the Rects to be negative?</param>
-		public static bool Overlaps(this RectTransform rect, RectTransform other, bool allowInverse)
-			=> rect.WorldRect().Overlaps(other.WorldRect(), allowInverse);
+		public static bool Overlaps(this RectTransform rect, RectTransform other, bool allowInverse) => rect.WorldRect().Overlaps(other.WorldRect(), allowInverse);
 
 		public static Rect WorldRect(this RectTransform rectTransform) {
 			var sizeDelta           = rectTransform.sizeDelta;
@@ -26,6 +25,15 @@ namespace CommonUtils.Extensions {
 							position.y - rectTransformHeight / 2f,
 							rectTransformWidth,
 							rectTransformHeight);
+		}
+		
+		public static Rect ToScreenSpace(this RectTransform transform) // TODO This might be a duplicate of RectTransformExtensions.WorldRect
+		{
+			Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
+			Rect    rect = new Rect(transform.position.x, Screen.height - transform.position.y, size.x, size.y);
+			rect.x -= (transform.pivot.x          * size.x);
+			rect.y -= ((1.0f - transform.pivot.y) * size.y);
+			return rect;
 		}
 	}
 }
