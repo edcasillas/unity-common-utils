@@ -3,9 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.UI.BlinkerUIElements;
+using CommonUtils.UnityComponents;
 using UnityEngine;
 using UnityEngine.UI;
-using Utils;
 
 namespace CommonUtils.Extensions {
 	public static class BlinkerUIElementExtensions {

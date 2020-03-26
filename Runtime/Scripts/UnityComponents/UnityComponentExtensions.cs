@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Utils {
+namespace CommonUtils.UnityComponents {
 	public static class UnityComponentExtensions {
 		/// <summary>
 		/// Returns true when this <paramref name="unityComponent"/> is a valid GameObject in the scene.
