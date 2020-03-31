@@ -23,7 +23,6 @@ namespace CommonUtils.UnityComponents {
 		void        StopCoroutine(string            methodName);
 		void        StopAllCoroutines();
 		bool        useGUILayout       { get; set; }
-		bool        runInEditMode      { get; set; }
 		bool        enabled            { get; set; }
 		bool        isActiveAndEnabled { get; }
 		Transform   transform          { get; }
