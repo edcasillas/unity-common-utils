@@ -29,22 +29,6 @@ namespace CommonUtils.UnityComponents {
 		Transform   transform          { get; }
 		GameObject  gameObject         { get; }
 		string      tag                { get; set; }
-		Component   rigidbody          { get; }
-		Component   rigidbody2D        { get; }
-		Component   camera             { get; }
-		Component   light              { get; }
-		Component   animation          { get; }
-		Component   constantForce      { get; }
-		Component   renderer           { get; }
-		Component   audio              { get; }
-		Component   guiText            { get; }
-		Component   networkView        { get; }
-		Component   guiElement         { get; }
-		Component   guiTexture         { get; }
-		Component   collider           { get; }
-		Component   collider2D         { get; }
-		Component   hingeJoint         { get; }
-		Component   particleSystem     { get; }
 		string      name               { get; set; }
 		HideFlags   hideFlags          { get; set; }
 		Component   GetComponent(Type type);
