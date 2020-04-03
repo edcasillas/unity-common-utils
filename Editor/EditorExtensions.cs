@@ -157,5 +157,11 @@ namespace CommonUtils.Editor {
 			contentsDelegate();
 			GUILayout.EndVertical();
 		}
+
+		public static void ShowScriptField<T>(this T target, string label = "Script") where T : MonoBehaviour {
+			GUI.enabled = false;
+			EditorGUILayout.ObjectField(label, MonoScript.FromMonoBehaviour(target), target.GetType(), false);
+			GUI.enabled = true;
+		}
 	}
 }
