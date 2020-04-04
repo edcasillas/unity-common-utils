@@ -6,7 +6,7 @@ namespace CommonUtils.Input {
 	/// <summary>
 	/// Swipe manager. Detects swipes and taps.
 	/// </summary>
-	/// <author>Eduardo Casillas</author>
+	/// <author>Ed Casillas</author>
 	[AddComponentMenu("Input/Swipe Manager")]
 	public class SwipeManager : MonoBehaviour {
 		#region Singleton
@@ -139,7 +139,6 @@ namespace CommonUtils.Input {
 		#endregion
 
 		#region Properties
-
 		/// <summary>
 		/// Gets a value indicating whether a touch has started with any finger.
 		/// </summary>
@@ -210,7 +209,6 @@ namespace CommonUtils.Input {
 				return result; 
 			}
 		}
-
 		#endregion
 
 		#region Unity Behaviour
