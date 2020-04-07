@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using CommonUtils.Extensions;
 using CommonUtils.Heaps;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace CommonUtils.Tests.Editor.Heaps {
 	public class DynamicPriorityQueueTests {
@@ -20,9 +23,8 @@ namespace CommonUtils.Tests.Editor.Heaps {
 			public override string ToString() => $"[{Id},{Priority}]";
 		}
 
-		// A Test behaves as an ordinary method
 		[Test]
-		public void DynamicPriorityQueueTestsSimplePasses() {
+		public void RandomlyInsertedItemsWithPrioritiesChanged() {
 			// Arrange
 			var heap = new DynamicPriorityQueue<Queueable>();
 			var queueables = new List<Queueable> {
@@ -36,17 +38,6 @@ namespace CommonUtils.Tests.Editor.Heaps {
 				new Queueable{Id = 7, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
 				new Queueable{Id = 8, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
 				new Queueable{Id = 9, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
-
-				/*new Queueable{Id = 0, Priority = 9},
-				new Queueable{Id = 1, Priority = 8},
-				new Queueable{Id = 2, Priority = 7},
-				new Queueable{Id = 3, Priority = 6},
-				new Queueable{Id = 4, Priority = 5},
-				new Queueable{Id = 5, Priority = 4},
-				new Queueable{Id = 6, Priority = 3},
-				new Queueable{Id = 7, Priority = 2},
-				new Queueable{Id = 8, Priority = 1},
-				new Queueable{Id = 9, Priority = 0},*/
 			};
 
 			// Act
@@ -97,6 +88,147 @@ namespace CommonUtils.Tests.Editor.Heaps {
 			Assert.AreEqual(queueables[6], heap.Dequeue());
 			Assert.AreEqual(queueables[8], heap.Dequeue());
 			Assert.IsTrue(heap.IsEmpty);
+		}
+
+		[Test]
+		public void HeapValidity() {
+			// Arrange
+			var heap = new DynamicPriorityQueue<Queueable>();
+			var queueables = new List<Queueable> {
+				new Queueable{Id = 1, Priority = 134}, // 4th update
+				new Queueable{Id = 2, Priority = 134}, // 1st update
+				new Queueable{Id = 3, Priority = 134}, // 2nd update
+				new Queueable{Id = 4, Priority = 134}, // 3rd update
+				new Queueable{Id = 5, Priority = 134},
+				new Queueable{Id = 6, Priority = 134},
+				new Queueable{Id = 7, Priority = 134},
+				new Queueable{Id = 8, Priority = 134},
+				new Queueable{Id = 9, Priority = 134},
+			};
+
+			// Act
+			foreach (var queueable in queueables) {
+				heap.Enqueue(queueable);
+			}
+
+			// Update priorities
+			queueables[1].Priority = 135;
+			heap.Enqueue(queueables[1]);
+			Assert.IsTrue(isValidHeap(heap.UnderlyingData), "Failed at 1st update");
+
+			queueables[2].Priority = 135;
+			heap.Enqueue(queueables[2]);
+			Assert.IsTrue(isValidHeap(heap.UnderlyingData), "Failed at 2nd update");
+
+			queueables[3].Priority = 135;
+			heap.Enqueue(queueables[3]);
+			Assert.IsTrue(isValidHeap(heap.UnderlyingData), "Failed at 3rd update");
+
+			var tree = heap.StringifyTree();
+
+			queueables[0].Priority = 135;
+			heap.Enqueue(queueables[0]);
+
+			tree = heap.StringifyTree();
+
+			Assert.IsTrue(isValidHeap(heap.UnderlyingData), "Failed at 4th update");
+		}
+
+		[Test]
+		public void TestCaseFromFile() {
+			const string path =  "Packages/CommonUtils/Tests/Editor/Heaps/testcase.txt";
+
+			if(!File.Exists(path)) Assert.Inconclusive("Couldn't find a file for the test case.");
+
+			var heap = new DynamicPriorityQueue<Queueable>();
+			var added = new Dictionary<int, Queueable>();
+
+			var e = 0;
+			var u = 0;
+			var d = 0;
+
+			//Read the text from directly from the test.txt file
+			using (var reader = new StreamReader(path)) {
+				while (!reader.EndOfStream) {
+					var line = reader.ReadLine();
+					var args = line.Split(' ');
+					switch (args[0]) {
+						case "E":
+							var id = int.Parse(args[1]);
+							var priority = int.Parse(args[2]);
+							var prevPriority = -1;
+
+							bool checkTree = false;
+							Queueable enqueueable;
+							if (added.ContainsKey(id)) {
+								enqueueable = added[id];
+								prevPriority = enqueueable.Priority;
+								enqueueable.Priority = priority;
+								u++;
+								checkTree = true;
+							} else {
+								enqueueable = new Queueable {Id = id, Priority = priority};
+								added.Add(id, enqueueable);
+								e++;
+							}
+
+							try {
+								if (checkTree) {
+									var tree = heap.StringifyTree();
+								}
+								heap.Enqueue(enqueueable);
+								if (checkTree) {
+									var tree = heap.StringifyTree();
+								}
+							} catch {
+								Debug.Log($"{e}/{u}/{d}");
+								Debug.Log($"Added: {added.Count}; Actual count: {heap.Count}");
+								throw;
+							}
+							break;
+						case "D":
+							d++;
+							var dequeued = heap.Dequeue();
+							if (!added.ContainsKey(dequeued.Id)) {
+								Debug.Log($"{e}/{u}/{d}");
+								Assert.Fail("The item dequeued was not in the dictionary.");
+							}
+
+							added.Remove(dequeued.Id);
+							break;
+						default:
+							// Error
+							break;
+
+					}
+
+					if (!isValidHeap(heap.UnderlyingData)) {
+						Debug.Log($"{e}/{u}/{d}");
+						Assert.Fail($"Heap became invalid after \"{line}\".");
+					}
+				}
+
+				reader.Close();
+			}
+
+			Debug.Log($"{e}/{u}/{d}");
+			Assert.AreEqual(added.Count, heap.Count);
+		}
+
+		private bool isValidHeap(IReadOnlyList<Queueable> arr, int index = 0) {
+			if (arr.IsNullOrEmpty() || index > arr.Count) return true;
+			var leftIndex = PriorityQueue<Queueable>.GetLeftChildIndex(index);
+			var rightIndex = leftIndex + 1;
+
+			if (leftIndex < arr.Count) {
+				if (arr[leftIndex].Priority < arr[index].Priority || !isValidHeap(arr, leftIndex)) return false;
+			}
+
+			if (rightIndex < arr.Count) {
+				if (arr[rightIndex].Priority < arr[index].Priority || !isValidHeap(arr, rightIndex)) return false;
+			}
+
+			return true;
 		}
 	}
 }

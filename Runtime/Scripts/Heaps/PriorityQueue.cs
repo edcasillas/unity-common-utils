@@ -16,6 +16,8 @@ namespace CommonUtils.Heaps {
 		/// </summary>
 		protected readonly List<T> Data;
 
+		public IReadOnlyList<T> UnderlyingData => Data;
+
 		/// <summary>
 		/// Gets the number of elements contained in the <see cref="PriorityQueue{T}"/>.
 		/// </summary>
@@ -43,7 +45,7 @@ namespace CommonUtils.Heaps {
 		/// <param name="item">The object to add to the queue.</param>
 		public virtual void Enqueue(T item) {
 			Data.Add(item);
-			heapifyUp(getParentIndex(Data.Count - 1));
+			heapifyUp(GetParentIndex(Data.Count - 1));
 		}
 
 		/// <summary>
@@ -128,11 +130,11 @@ namespace CommonUtils.Heaps {
 		/// </summary>
 		/// <param name="index">Index of the heap that must be fixed.</param>
 		protected void FixHeap(int index) {
-			var parentIndex = getParentIndex(index);
+			var parentIndex = GetParentIndex(index);
 			if (parentIndex >= 0 && Data[parentIndex].CompareTo(Data[index]) < 0) { // The parent of the item at index has a higher priority than the item itself, so they're in the correct places and we need to heapify down.
 				heapifyDown(index);
 			} else {
-				if(parentIndex >= 0) heapifyUp(getParentIndex(index));
+				if(parentIndex >= 0) heapifyUp(GetParentIndex(index));
 				else heapifyDown();
 			}
 		}
@@ -148,21 +150,21 @@ namespace CommonUtils.Heaps {
 
 		private void heapifyUp(int i) {
 			if (i < 0 || i > Data.Count) return;
-			var left = getLeftChildIndex(i);
-			var right = getRightChildIndex(i);
+			var left = GetLeftChildIndex(i);
+			var right = GetRightChildIndex(i);
 			var min = i;
 			if (left < Data.Count && Data[left].CompareTo(Data[min]) < 0) min = left;
 			if (right < Data.Count && Data[right].CompareTo(Data[min]) < 0) min = right;
 			if (min != i) {
 				Swap(min, i);
-				heapifyUp(getParentIndex(i));
+				heapifyUp(GetParentIndex(i));
 			}
 		}
 
 		private void heapifyDown(int i = 0) {
 			if (i < 0 || i > Data.Count) return;
-			var left = getLeftChildIndex(i);
-			var right = getRightChildIndex(i);
+			var left = GetLeftChildIndex(i);
+			var right = GetRightChildIndex(i);
 			var min = i;
 			if (left < Data.Count && Data[left].CompareTo(Data[min]) < 0) min = left;
 			if (right < Data.Count && Data[right].CompareTo(Data[min]) < 0) min = right;
@@ -172,9 +174,11 @@ namespace CommonUtils.Heaps {
 			}
 		}
 
-		private static int getLeftChildIndex(int i) => (2 * i) + 1;
-		private static int getRightChildIndex(int i) => (2 * i) + 2;
-		private static int getParentIndex(int i) => (i - 1) / 2;
+		// TODO Should these methods be internal instead of public?
+		public static int GetLeftChildIndex(int i) => (2 * i) + 1;
+		public static int GetRightChildIndex(int i) => (2 * i) + 2;
+		public static int GetParentIndex(int i) => i > 0 ? (i - 1) / 2 : -1;
+
 		private static int getLevel(int i) => Mathf.FloorToInt(Mathf.Log(i + 1, 2));
 		private int getDepth() => getLevel(Data.Count - 1);
 	}
