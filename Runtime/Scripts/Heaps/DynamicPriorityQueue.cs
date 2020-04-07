@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("com.ecasillas.commonutils.editor.tests")]
 
 namespace CommonUtils.Heaps {
 	/// <summary>
@@ -9,6 +12,8 @@ namespace CommonUtils.Heaps {
 	/// <typeparam name="T">Specifies the type of elements in the queue.</typeparam>
 	public class DynamicPriorityQueue<T> : PriorityQueue<T> where T : IComparable<T> {
 		private readonly Dictionary<T,int> indexOf = new Dictionary<T, int>();
+
+		public IReadOnlyDictionary<T, int> IndexOf => indexOf;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DynamicPriorityQueue{T}"/> class. An optional collection can be specified
@@ -49,6 +54,8 @@ namespace CommonUtils.Heaps {
 			if (indexOf.ContainsKey(result)) {
 				indexOf.Remove(result);
 			}
+
+			indexOf[Data[0]] = 0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
 
 			return result;
 		}

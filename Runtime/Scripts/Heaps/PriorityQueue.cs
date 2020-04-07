@@ -16,7 +16,7 @@ namespace CommonUtils.Heaps {
 		/// </summary>
 		protected readonly List<T> Data;
 
-		public IReadOnlyList<T> UnderlyingData => Data;
+		internal IReadOnlyList<T> UnderlyingData => Data;
 
 		/// <summary>
 		/// Gets the number of elements contained in the <see cref="PriorityQueue{T}"/>.

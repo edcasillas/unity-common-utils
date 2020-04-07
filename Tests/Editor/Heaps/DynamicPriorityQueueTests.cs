@@ -91,6 +91,65 @@ namespace CommonUtils.Tests.Editor.Heaps {
 		}
 
 		[Test]
+		public void IndicesAreValidAfterDequeue() {
+			// Arrange
+			var heap = new DynamicPriorityQueue<Queueable>();
+			var queueables = new List<Queueable> {
+				new Queueable{Id = 0, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 1, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 2, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 3, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 4, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 5, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 6, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 7, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 8, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+				new Queueable{Id = 9, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
+			};
+
+			foreach (var queueable in queueables) {
+				heap.Enqueue(queueable);
+			}
+
+			// Update priorities
+			queueables[0].Priority = 6;
+			heap.Enqueue(queueables[0]);
+
+			queueables[1].Priority = 5;
+			heap.Enqueue(queueables[1]);
+
+			queueables[2].Priority = 7;
+			heap.Enqueue(queueables[2]);
+
+			queueables[3].Priority = 4;
+			heap.Enqueue(queueables[3]);
+
+			queueables[4].Priority = 8;
+			heap.Enqueue(queueables[4]);
+
+			queueables[5].Priority = 3;
+			heap.Enqueue(queueables[5]);
+
+			queueables[6].Priority = 9;
+			heap.Enqueue(queueables[6]);
+
+			queueables[7].Priority = 2;
+			heap.Enqueue(queueables[7]);
+
+			queueables[8].Priority = 10;
+			heap.Enqueue(queueables[8]);
+
+			queueables[9].Priority = 1;
+			heap.Enqueue(queueables[9]);
+
+			// Act
+			heap.Dequeue();
+
+			// Assert
+			Assert.IsTrue(indicesAreValid(heap));
+		}
+
+		[Test]
 		public void HeapValidity() {
 			// Arrange
 			var heap = new DynamicPriorityQueue<Queueable>();
@@ -158,14 +217,14 @@ namespace CommonUtils.Tests.Editor.Heaps {
 							var priority = int.Parse(args[2]);
 							var prevPriority = -1;
 
-							bool checkTree = false;
+							bool isUpdate = false;
 							Queueable enqueueable;
 							if (added.ContainsKey(id)) {
 								enqueueable = added[id];
 								prevPriority = enqueueable.Priority;
 								enqueueable.Priority = priority;
 								u++;
-								checkTree = true;
+								isUpdate = true;
 							} else {
 								enqueueable = new Queueable {Id = id, Priority = priority};
 								added.Add(id, enqueueable);
@@ -173,16 +232,19 @@ namespace CommonUtils.Tests.Editor.Heaps {
 							}
 
 							try {
-								if (checkTree) {
+								if (isUpdate) {
 									var tree = heap.StringifyTree();
 								}
 								heap.Enqueue(enqueueable);
-								if (checkTree) {
+								if (isUpdate) {
 									var tree = heap.StringifyTree();
 								}
 							} catch {
+								Debug.Log($"Error {(isUpdate ? "updating" : "adding")} {id}");
 								Debug.Log($"{e}/{u}/{d}");
 								Debug.Log($"Added: {added.Count}; Actual count: {heap.Count}");
+
+								var s = heap.StringifyTree();
 								throw;
 							}
 							break;
@@ -206,6 +268,11 @@ namespace CommonUtils.Tests.Editor.Heaps {
 						Debug.Log($"{e}/{u}/{d}");
 						Assert.Fail($"Heap became invalid after \"{line}\".");
 					}
+
+					if (!indicesAreValid(heap)) {
+						Debug.Log($"{e}/{u}/{d}");
+						Assert.Fail($"Indices became invalid after \"{line}\".");
+					}
 				}
 
 				reader.Close();
@@ -226,6 +293,15 @@ namespace CommonUtils.Tests.Editor.Heaps {
 
 			if (rightIndex < arr.Count) {
 				if (arr[rightIndex].Priority < arr[index].Priority || !isValidHeap(arr, rightIndex)) return false;
+			}
+
+			return true;
+		}
+
+		private bool indicesAreValid(DynamicPriorityQueue<Queueable> queue) {
+			if (queue.UnderlyingData.Count != queue.IndexOf.Count) return false;
+			for (var i = 0; i < queue.UnderlyingData.Count; i++) {
+				if (queue.IndexOf[queue.UnderlyingData[i]] != i) return false;
 			}
 
 			return true;
