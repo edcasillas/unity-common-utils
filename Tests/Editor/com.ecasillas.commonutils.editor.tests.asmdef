@@ -1,0 +1,18 @@
+{
+    "name": "com.ecasillas.commonutils.editor.tests",
+    "references": [
+        "com.ecasillas.commonutils"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

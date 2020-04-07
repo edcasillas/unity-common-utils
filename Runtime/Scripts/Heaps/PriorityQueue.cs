@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
+using CommonUtils.Extensions;
+using UnityEngine;
 
 namespace CommonUtils.Heaps {
 	/// <summary>
@@ -89,6 +92,35 @@ namespace CommonUtils.Heaps {
 			FixHeap(index);
 		}
 
+		public string StringifyTree(Func<T, string> printItemDelegate = null, int printedItemLength = 0) {
+			if (IsEmpty) return string.Empty;
+			if (printItemDelegate == null) printItemDelegate = item => item.ToString();
+			if (printedItemLength <= 0) printedItemLength = printItemDelegate(Data[Data.Count - 1]).Length;
+
+			var depth = getDepth();
+			var strLevels = new string[depth + 1];
+			var lastNodeInLevel = Data.Count; // exclusive
+			var spacesIncrement = StringExtensions.GetWhiteSpaces(printedItemLength);
+			var spaces = string.Empty;
+
+			while(depth >= 0) {
+				var initialNode = Mathf.RoundToInt(Mathf.Pow(2, depth) -1); // inclusive
+				var levelStrBuilder = new StringBuilder();
+
+				levelStrBuilder.Append(spaces);
+				spaces = spaces + spaces + spacesIncrement;
+
+				for(var i = initialNode; i < lastNodeInLevel; i++) {
+					levelStrBuilder.Append($"{Data[i]}{spaces}");
+				}
+				strLevels[depth] = levelStrBuilder.ToString().TrimEnd();
+				depth--;
+				lastNodeInLevel = initialNode;
+			}
+
+			return string.Join("\n", strLevels);
+		}
+
 		/// <summary>
 		/// Fixes the heap assuming a conflict at the specified <paramref name="index"/> of the heap.
 		/// If the priority of the item at <paramref name="index"/> is higher than its parent, bubbles up the item at <paramref name="index"/>,
@@ -141,5 +173,7 @@ namespace CommonUtils.Heaps {
 		private static int getLeftChildIndex(int i) => (2 * i) + 1;
 		private static int getRightChildIndex(int i) => (2 * i) + 2;
 		private static int getParentIndex(int i) => (i - 1) / 2;
+		private static int getLevel(int i) => Mathf.FloorToInt(Mathf.Log(i + 1, 2));
+		private int getDepth() => getLevel(Data.Count - 1);
 	}
 }
