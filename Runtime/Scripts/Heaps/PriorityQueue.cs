@@ -111,7 +111,7 @@ namespace CommonUtils.Heaps {
 				spaces = spaces + spaces + spacesIncrement;
 
 				for(var i = initialNode; i < lastNodeInLevel; i++) {
-					levelStrBuilder.Append($"{Data[i]}{spaces}");
+					levelStrBuilder.Append($"{printItemDelegate(Data[i])}{spaces}");
 				}
 				strLevels[depth] = levelStrBuilder.ToString().TrimEnd();
 				depth--;
