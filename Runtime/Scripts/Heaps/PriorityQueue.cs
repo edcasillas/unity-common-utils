@@ -128,10 +128,12 @@ namespace CommonUtils.Heaps {
 		/// </summary>
 		/// <param name="index">Index of the heap that must be fixed.</param>
 		protected void FixHeap(int index) {
-			if (index > 0 && Data[getParentIndex(index)].CompareTo(Data[index]) < 0) {
-				heapifyUp(getParentIndex(index));
-			} else {
+			var parentIndex = getParentIndex(index);
+			if (parentIndex >= 0 && Data[parentIndex].CompareTo(Data[index]) < 0) { // The parent of the item at index has a higher priority than the item itself, so they're in the correct places and we need to heapify down.
 				heapifyDown(index);
+			} else {
+				if(parentIndex >= 0) heapifyUp(getParentIndex(index));
+				else heapifyDown();
 			}
 		}
 
