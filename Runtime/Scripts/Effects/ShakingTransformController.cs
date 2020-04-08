@@ -3,6 +3,7 @@
 namespace CommonUtils.Effects {
 	[AddComponentMenu("Effects/Shaking Transform Controller")]
 	public class ShakingTransformController : MonoBehaviour { // Based on https://roystan.net/articles/camera-shake.html
+#pragma warning disable 649
 		[Tooltip("Defines the maximum translation at each axis.")]
 		[SerializeField] private Vector3 intensity = Vector3.one * 0.5f;
 
@@ -16,6 +17,7 @@ namespace CommonUtils.Effects {
 
 		[Tooltip("Multiplier to control the smooth falloff of the shake.")]
 		[SerializeField] private float magnitude = 2f; // traumaExponent
+#pragma warning restore 649
 
 		private float seed;
 
