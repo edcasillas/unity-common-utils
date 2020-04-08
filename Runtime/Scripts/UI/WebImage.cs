@@ -35,10 +35,6 @@ namespace CommonUtils.UI {
 		}
 
 		public void Load() {
-			/*if (string.IsNullOrWhiteSpace(url) || Uri.IsWellFormedUriString(url, UriKind.Absolute)) {
-				Debug.LogError($"A valid URL has not been set to load a web image.", this);
-				return;
-			}*/
 			Status = DownloadStatus.Loading;
 			WebLoader.LoadWebTexture(url,
 				response => {

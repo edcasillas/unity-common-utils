@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CommonUtils.RestSdk;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace CommonUtils.WebResources {
 	/// <summary>
@@ -56,24 +57,26 @@ namespace CommonUtils.WebResources {
 		/// <param name="url">URL to retrieve the <see cref="Texture"/> from.</param>
 		/// <param name="onFinish">Callback to receive the response.</param>
 		private static IEnumerator requestImage(string url, Action<RestResponse<Texture>> onFinish) {
-			var www = new WWW(url);
-			yield return www;
+			var response = new RestResponse<Texture>();
 
-			var response = new RestResponse<Texture> {
-				ErrorMessage = www.error
-			};
+			using (var uwr = UnityWebRequestTexture.GetTexture(url)) {
+				yield return uwr.SendWebRequest();
 
-			if (!string.IsNullOrEmpty(www.error)) {
-				Debug.LogError($"Couldn't retrieve texture from '{url}': {www.error}");
-				response.StatusCode = getStatusCodeFromMessage(www.error, out var errMsg);
-				response.ErrorMessage = errMsg;
-			} else {
-				if (www.texture == null) {
-					Debug.LogError($"Couldn't receive a texture from '{url}'");
-					response.StatusCode = 500;
+				if (uwr.isNetworkError || uwr.isHttpError) {
+					Debug.LogError($"Couldn't retrieve texture from '{url}': {uwr.error}");
+					response.StatusCode = getStatusCodeFromMessage(uwr.error, out var errMsg);
+					response.ErrorMessage = errMsg;
+					Debug.Log(uwr.error);
 				} else {
-					response.StatusCode = 200;
-					response.Data = www.texture;
+					// Get downloaded asset bundle
+					var texture = DownloadHandlerTexture.GetContent(uwr);
+					if (!texture) {
+						Debug.LogError($"Couldn't receive a texture from '{url}'");
+						response.StatusCode = 500;
+					} else {
+						response.StatusCode = 200;
+						response.Data = texture;
+					}
 				}
 			}
 
