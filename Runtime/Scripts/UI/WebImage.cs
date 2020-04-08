@@ -1,23 +1,19 @@
-﻿using System;
-using CommonUtils.WebResources;
+﻿using CommonUtils.WebResources;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace CommonUtils.UI {
 	[RequireComponent(typeof(RawImage))]
 	[AddComponentMenu("UI/Web Image")]
-	public class WebImage : MonoBehaviour {
+	public class WebImage : AbstractWebResourceComponent {
 		#region Inspector fields
 #pragma warning disable 649
-		[SerializeField] private string url;
-		[SerializeField] private bool loadOnAwake;
 		[SerializeField] private Texture errorTexture;
 #pragma warning restore 649
 		#endregion
 
 		#region Properties and backing fields
-		public string Url { get => url; set => url = value; }
-
 		private RawImage _rawImage;
 
 		private RawImage rawImage {
@@ -26,23 +22,18 @@ namespace CommonUtils.UI {
 				return _rawImage;
 			}
 		}
-
-		public DownloadStatus Status { get; private set; } = DownloadStatus.NotInited;
 		#endregion
 
-		private void Awake() {
-			if(loadOnAwake) Load();
-		}
-
-		public void Load() {
-			Status = DownloadStatus.Loading;
-			WebLoader.LoadWebTexture(url,
+		public override void Load() {
+			base.Load();
+			WebLoader.LoadWebTexture(Url,
 				response => {
 					if (response.IsSuccess) {
 						rawImage.texture = response.Data;
 						Status = DownloadStatus.Loaded;
-					} else if (errorTexture) {
-						rawImage.texture = errorTexture;
+						OnResourceReady.Invoke();
+					} else {
+						if (errorTexture) rawImage.texture = errorTexture;
 						Status = DownloadStatus.Error;
 					}
 				});
