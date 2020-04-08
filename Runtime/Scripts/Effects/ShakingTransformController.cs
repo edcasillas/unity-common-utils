@@ -29,8 +29,9 @@ namespace CommonUtils.Effects {
 
 		private void Awake() => seed = Random.value;
 
-		private void Update() {
-			float shake = Mathf.Pow(trauma, magnitude);
+		private void Update() { // TODO Improve to use a coroutine instead of the Update method so it doesn't execute when not shaking.
+			//if(trauma <= 0) return; // Can't do this, or else the transform never returns to its original position and rotation.
+			var shake = Mathf.Pow(trauma, magnitude);
 
 			transform.localPosition = new Vector3(
 				intensity.x * (Mathf.PerlinNoise(seed, Time.time * frequency) * 2 - 1),
