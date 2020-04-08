@@ -36,6 +36,7 @@ namespace CommonUtils.WebResources {
 			Coroutiner.StartCoroutine(requestImage(url, onFinish), "WebImageLoader");
 		}
 
+		/*
 		/// <summary>
 		/// Loads an <see cref="AudioClip"/> from the specified <paramref name="url"/> into <paramref name="downloadableAudioClip"/>.
 		/// </summary>
@@ -44,7 +45,7 @@ namespace CommonUtils.WebResources {
 		public static void LoadWebAudioClip(string url, DownloadableAudioClip downloadableAudioClip) {
 			if (string.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
 			Coroutiner.StartCoroutine(requestAudioClip(url, downloadableAudioClip), "WebAudioClipLoader");
-		}
+		}*/
 
 		/// <summary>
 		/// Loads an <see cref="AudioClip"/> from the specified <paramref name="url"/> and returns the result at <paramref name="onFinish"/>.
@@ -56,6 +57,12 @@ namespace CommonUtils.WebResources {
 			if (onFinish == null) throw new ArgumentNullException(nameof(onFinish));
 			Coroutiner.StartCoroutine(requestAudioClip(url, onFinish), "WebAudioClipLoader");
 		}
+
+		/*public static void LoadWebAudioClipMp3(string url, Action<RestResponse<AudioClip>> onFinish) {
+			if (string.IsNullOrEmpty(url)) throw new ArgumentNullException(nameof(url));
+			if (onFinish == null) throw new ArgumentNullException(nameof(onFinish));
+			Coroutiner.StartCoroutine(requestMp3AudioClip(url, onFinish), "WebAudioClipLoader");
+		}*/
 
 		#region Private methods
 		/// <summary>
@@ -75,7 +82,6 @@ namespace CommonUtils.WebResources {
 					response.ErrorMessage = errMsg;
 					Debug.Log(uwr.error);
 				} else {
-					// Get downloaded asset bundle
 					var texture = DownloadHandlerTexture.GetContent(uwr);
 					if (!texture) {
 						Debug.LogError($"Couldn't receive a texture from '{url}'");
@@ -97,7 +103,11 @@ namespace CommonUtils.WebResources {
 		/// <param name="onFinish">Callback to receive the response.</param>
 		private static IEnumerator requestAudioClip(string url, Action<RestResponse<AudioClip>> onFinish, bool is3dSound = false, bool stream = false) {
 			Debug.Log($"Attempting download of an audio clip from '{url}'");
+
+			#pragma warning disable 618 // TODO For now, ignore the deprecation warning. We want to still use WWW instead of UnityWebRequestMultimedia because the latter requires to know the AudioType upfront.
 			var www = new WWW(url);
+			#pragma warning restore 618
+
 			yield return www;
 
 			var response = new RestResponse<AudioClip> {
@@ -150,8 +160,42 @@ namespace CommonUtils.WebResources {
 			onFinish(response);
 		}
 
+		/*
+		/// <summary>
+		/// Private coroutine to retrieve an audio clip from the specified <paramref name="url"/>.
+		/// </summary>
+		/// <param name="url">URL to retrieve the <see cref="AudioClip"/> from.</param>
+		/// <param name="onFinish">Callback to receive the response.</param>
+		private static IEnumerator requestMp3AudioClip(string url, Action<RestResponse<AudioClip>> onFinish) {
+			Debug.Log($"Attempting download of an audio clip from '{url}'");
+
+			var response = new RestResponse<AudioClip> ();
+
+			using (var uwr = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.MPEG)) {
+				yield return uwr.SendWebRequest();
+
+				if (uwr.isNetworkError || uwr.isHttpError) {
+					Debug.LogError($"Couldn't retrieve MP3 audio clip from '{url}': {uwr.error}");
+					response.StatusCode = getStatusCodeFromMessage(uwr.error, out var errMsg);
+					response.ErrorMessage = errMsg;
+					Debug.Log(uwr.error);
+				} else {
+					var clip = DownloadHandlerAudioClip.GetContent(uwr);
+					if (!clip) {
+						Debug.LogError($"Couldn't receive an MP3 audio clip from '{url}'");
+						response.StatusCode = 500;
+					} else {
+						response.StatusCode = 200;
+						response.Data = clip;
+					}
+				}
+			}
+
+			onFinish(response);
+		}*/
+
 		// FIXME No funciona :(
-		private static IEnumerator requestAudioClip(string url, DownloadableAudioClip downloadableAudioClip) {
+		/*private static IEnumerator requestAudioClip(string url, DownloadableAudioClip downloadableAudioClip) {
 			Debug.Log($"Requesting AudioClip to: {url}");
 			downloadableAudioClip.DownloadStatus = DownloadStatus.Loading;
 
@@ -183,7 +227,7 @@ namespace CommonUtils.WebResources {
 					}
 				}
 			}
-		}
+		}*/
 
 		/// <summary>
 		/// Tries parsing the first 3 characters of an Http response message to find the status code.
