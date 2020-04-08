@@ -15,7 +15,14 @@ namespace CommonUtils.WebResources {
 		private static readonly Dictionary<string, AudioType> audioContentTypesDict =
 			new Dictionary<string, AudioType>() {
 				{"audio/ogg", AudioType.OGGVORBIS},
-				{"audio/wav", AudioType.WAV}
+				{"audio/wav", AudioType.WAV},
+
+				/*
+				 * TODO MP3 doesn't seem to be supported by Unity (at least on desktop and editor, need to test other platforms).
+				 * It might be possible to convert MP3 files to WAV using this SO answer: https://gamedev.stackexchange.com/a/114886
+				 * but I need to figure out whether adding this dll will be supported by all platforms.
+				 */
+				//{"audio/mpeg", AudioType.MPEG}
 			};
 
 		/// <summary>
@@ -88,7 +95,7 @@ namespace CommonUtils.WebResources {
 		/// </summary>
 		/// <param name="url">URL to retrieve the <see cref="AudioClip"/> from.</param>
 		/// <param name="onFinish">Callback to receive the response.</param>
-		private static IEnumerator requestAudioClip(string url, Action<RestResponse<AudioClip>> onFinish) {
+		private static IEnumerator requestAudioClip(string url, Action<RestResponse<AudioClip>> onFinish, bool is3dSound = false, bool stream = false) {
 			Debug.Log($"Attempting download of an audio clip from '{url}'");
 			var www = new WWW(url);
 			yield return www;
@@ -117,7 +124,7 @@ namespace CommonUtils.WebResources {
 						AudioClip clip = null;
 
 						try {
-							clip = www.GetAudioClip(false, false, audioContentTypesDict[receivedContentType]);
+							clip = www.GetAudioClip(is3dSound, stream, audioContentTypesDict[receivedContentType]);
 						} catch (Exception ex) {
 							Debug.LogErrorFormat($"An error occured decoding the downloaded audio clip bytes: {ex.Message}");
 						}
