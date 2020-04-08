@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 
 namespace CommonUtils.Effects {
-	public class ShakingTransformController : MonoBehaviour {
+	[AddComponentMenu("Effects/Shaking Transform Controller")]
+	public class ShakingTransformController : MonoBehaviour { // Based on https://roystan.net/articles/camera-shake.html
 		[Tooltip("Defines the maximum translation at each axis.")]
 		[SerializeField] private Vector3 intensity = Vector3.one * 0.5f;
 
@@ -24,7 +25,7 @@ namespace CommonUtils.Effects {
 		/// <summary>
 		/// Controls shake magnitude with a decreasing value from 1 to 0; when it reaches 0, the transform is fully recovered from shaking.
 		/// </summary>
-		private float trauma = 1;
+		private float trauma = 0;
 
 		private void Awake() => seed = Random.value;
 
@@ -46,20 +47,15 @@ namespace CommonUtils.Effects {
 			trauma = Mathf.Clamp01(trauma - recoverySpeed * Time.deltaTime);
 		}
 
-		/// <summary>
-		///
-		/// </summary>
-		/// <param name="stress"></param>
-		/// <example>
-		/// [SerializeField] private float range = 45; // radius of explosion
-		/// [SerializeField] private float maximumStress = 0.6f;
-		///
-		/// float distance = Vector3.Distance(transform.position, target.transform.position);
-		/// float distance01 = Mathf.Clamp01(distance / range);
-		/// float stress = (1 - Mathf.Pow(distance01, 2)) * maximumStress;
-		/// target.InduceStress(stress); // target is a ShakingTransformController
-		/// </example>
 		public void InduceStress(float stress) => trauma = Mathf.Clamp01(trauma + stress);
+
+		public void InduceExplosionStress(Vector3 explosionPoint, float explosionRadius, float maximumStress = 0.6f) {
+			// Example usage of InduceStress for an explosion.
+			var distance = Vector3.Distance(explosionPoint, transform.position);
+			var distance01 = Mathf.Clamp01(distance / explosionRadius);
+			var stress = (1 - Mathf.Pow(distance01, 2)) * maximumStress;
+			InduceStress(stress);
+		}
 
 		#if UNITY_EDITOR
 		[ContextMenu("Shake it baby!")]
