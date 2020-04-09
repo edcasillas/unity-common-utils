@@ -34,6 +34,8 @@ namespace CommonUtils.Effects {
 
 		public bool IsShaking { get; private set; }
 
+		public bool IsPaused => !IsShaking && Trauma > 0;
+
 		public bool IsVerbose => verbose;
 
 		private void Awake() => Seed = Random.value;
@@ -49,6 +51,25 @@ namespace CommonUtils.Effects {
 			var distance01 = Mathf.Clamp01(distance / explosionRadius);
 			var stress = (1 - Mathf.Pow(distance01, 2)) * maximumStress;
 			InduceStress(stress);
+		}
+
+		public void Pause(bool restoreOrigin = false) {
+			StopAllCoroutines();
+			IsShaking = false;
+			if (restoreOrigin) {
+				transform.localPosition = Vector3.zero;
+				transform.localRotation = Quaternion.identity;
+			}
+		}
+
+		public void Resume() => StartCoroutine(shake());
+
+		public void Stop() {
+			StopAllCoroutines();
+			Trauma = 0;
+			IsShaking = false;
+			transform.localPosition = Vector3.zero;
+			transform.localRotation = Quaternion.identity;
 		}
 
 		private IEnumerator shake() {
@@ -72,7 +93,8 @@ namespace CommonUtils.Effects {
 
 				Trauma = Mathf.Clamp01(Trauma - recoverySpeed * Time.deltaTime);
 				yield return null;
-			} while (Trauma >= 0 && transform.localPosition != Vector3.zero && transform.localRotation != Quaternion.identity);
+			} while (Trauma >= 0 && (transform.localPosition != Vector3.zero ||
+									 transform.localRotation != Quaternion.identity));
 
 			IsShaking = false;
 			this.DebugLog("Finished shaking");

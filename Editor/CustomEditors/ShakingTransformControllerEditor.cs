@@ -46,8 +46,24 @@ namespace CommonUtils.Editor.CustomEditors {
 				EditorExtensions.BoxGroup(() => {
 					stress = EditorGUILayout.FloatField("Stress to apply", stress);
 
-					if (GUILayout.Button("Start shaking")) {
+					if (GUILayout.Button("Apply stress")) {
 						shakingTransformController.InduceStress(stress);
+					}
+
+					if (shakingTransformController.Trauma > 0) {
+						if (shakingTransformController.IsPaused) {
+							if (GUILayout.Button("Resume")) {
+								shakingTransformController.Resume();
+							}
+						} else {
+							if (GUILayout.Button("Pause")) {
+								shakingTransformController.Pause();
+							}
+						}
+
+						if (GUILayout.Button("Stop")) {
+							shakingTransformController.Stop();
+						}
 					}
 				}, "Shake tester");
 			}
