@@ -12,7 +12,7 @@ namespace CommonUtils.Editor {
 	public static class EditorExtensions {
 		private static GUIStyle _richTextLabelStyle;
 
-		private static GUIStyle richTextLabelStyle { // TODO Can this be removed and use only GUI.skin.label 
+		private static GUIStyle richTextLabelStyle { // TODO Can this be removed and use only GUI.skin.label
 			get {
 				if (_richTextLabelStyle == null) {
 					_richTextLabelStyle = new GUIStyle(GUI.skin.label) {
@@ -142,9 +142,9 @@ namespace CommonUtils.Editor {
 			if (show) {
 				if (showBox) BoxGroup(contentsDelegate);
 				else contentsDelegate();
-			} 
+			}
 			if(indentContents) EditorGUI.indentLevel--;
-			
+
 			return show;
 		}
 
@@ -156,6 +156,12 @@ namespace CommonUtils.Editor {
 			}
 			contentsDelegate();
 			GUILayout.EndVertical();
+		}
+
+		public static void Disabled(Action contentsDelegate, bool isDisabled = true) {
+			EditorGUI.BeginDisabledGroup(isDisabled);
+			contentsDelegate.Invoke();
+			EditorGUI.EndDisabledGroup();
 		}
 
 		public static void ShowScriptField<T>(this T target, string label = "Script") where T : MonoBehaviour {

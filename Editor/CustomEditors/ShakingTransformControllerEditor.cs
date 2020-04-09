@@ -37,6 +37,13 @@ namespace CommonUtils.Editor.CustomEditors {
                 EditorGUILayout.HelpBox("Enter play mode to test this component.", MessageType.Info);
             } else {
 				EditorExtensions.BoxGroup(() => {
+					EditorExtensions.ReadOnlyLabelField("Seed", shakingTransformController.Seed);
+					EditorExtensions.ReadOnlyLabelField("Trauma", shakingTransformController.Trauma);
+					EditorExtensions.Disabled(() => {
+						EditorGUILayout.Toggle("IsShaking", shakingTransformController.IsShaking);});
+				}, "Debug");
+
+				EditorExtensions.BoxGroup(() => {
 					stress = EditorGUILayout.FloatField("Stress to apply", stress);
 
 					if (GUILayout.Button("Start shaking")) {
