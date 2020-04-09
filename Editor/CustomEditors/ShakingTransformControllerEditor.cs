@@ -1,13 +1,16 @@
-﻿using CommonUtils.Effects;
+﻿using System.Linq;
+using CommonUtils.Effects.ShakingTransform;
 using UnityEditor;
 using UnityEngine;
 
 namespace CommonUtils.Editor.CustomEditors {
     [CustomEditor(typeof(ShakingTransformController))]
     public class ShakingTransformControllerEditor : UnityEditor.Editor {
-		private float stress = 1f;
-
 		private ShakingTransformController shakingTransformController;
+		private float stress = 1f;
+		private int selectedPresetIndex = 0;
+		private bool testCustomPreset = false;
+		private ShakingTransformPreset customPreset;
 
 		private void OnEnable() => shakingTransformController = (ShakingTransformController)target;
 
@@ -41,13 +44,36 @@ namespace CommonUtils.Editor.CustomEditors {
 					EditorExtensions.ReadOnlyLabelField("Trauma", shakingTransformController.Trauma);
 					EditorExtensions.Disabled(() => {
 						EditorGUILayout.Toggle("IsShaking", shakingTransformController.IsShaking);});
+					EditorExtensions.ReadOnlyLabelField("Current Preset", shakingTransformController.CurrentPreset.name);
 				}, "Debug");
 
 				EditorExtensions.BoxGroup(() => {
+					var presetNames = shakingTransformController.Presets.Keys.ToArray();
+					if (!testCustomPreset) {
+						if(presetNames.Length > 0) selectedPresetIndex = EditorGUILayout.Popup("Preset", Mathf.Clamp(selectedPresetIndex, 0, presetNames.Length - 1), presetNames);
+						else EditorGUILayout.HelpBox("No presets have been defined.", MessageType.Warning);
+					}
+					//if(GUILayout.Button("Reload Presets")) shakingTransformController.ReloadPresets();
+
+					testCustomPreset = EditorExtensions.Collapse(testCustomPreset,
+						"Use custom preset",
+						() => {
+							if (customPreset == null) {
+								customPreset = CreateInstance<ShakingTransformPreset>();
+								customPreset.name = "Custom test preset";
+							}
+							customPreset.Intensity = EditorGUILayout.Vector3Field(new GUIContent("Intensity","Defines the maximum translation at each axis."), customPreset.Intensity);
+							customPreset.AngularIntensity = EditorGUILayout.Vector3Field(new GUIContent("Angular Intensity","Defines the maximum rotation at each axis."), customPreset.AngularIntensity);
+							customPreset.Frequency = EditorGUILayout.FloatField(new GUIContent("Frequency","How fast is the shake?"), customPreset.Frequency);
+							customPreset.RecoverySpeed = EditorGUILayout.FloatField(new GUIContent("Recovery Speed","How fast will the shaking end?"), customPreset.RecoverySpeed);
+							customPreset.Magnitude = EditorGUILayout.FloatField(new GUIContent("Magnitude","Multiplier to control the smooth falloff of the shake."), customPreset.Magnitude);
+						});
+
 					stress = EditorGUILayout.FloatField("Stress to apply", stress);
 
 					if (GUILayout.Button("Apply stress")) {
-						shakingTransformController.InduceStress(stress);
+						if(!testCustomPreset) shakingTransformController.InduceStress(stress, presetNames.Length > 0 ? presetNames[selectedPresetIndex] : null);
+						else shakingTransformController.InduceStress(customPreset, stress);
 					}
 
 					if (shakingTransformController.Trauma > 0) {
