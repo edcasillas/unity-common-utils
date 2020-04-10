@@ -5,6 +5,7 @@ namespace CommonUtils {
 	/// <summary>
 	/// Put this component in a SkinnedMeshRenderer to draw its skeleton as gizmos.
 	/// </summary>
+	[AddComponentMenu("Mesh/Skeleton View")]
 	public class SkeletonView : MonoBehaviour { // based on http://answers.unity.com/comments/714888/view.html
 		#if UNITY_EDITOR
 #pragma warning disable 649
