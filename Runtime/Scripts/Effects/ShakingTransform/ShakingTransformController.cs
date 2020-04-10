@@ -10,7 +10,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 	public class ShakingTransformController : MonoBehaviour, IVerbosable { // Based on https://roystan.net/articles/camera-shake.html
 		#region Inspector fields
 #pragma warning disable 649
-		[SerializeField] private ShakingTransformPreset[] presets;
+		[SerializeField] private ScriptableShakingTransformPreset[] presets;
 		[SerializeField] private UnityEvent onShakeFinished;
 		[SerializeField] private bool verbose;
 #pragma warning restore 649
@@ -28,13 +28,13 @@ namespace CommonUtils.Effects.ShakingTransform {
 
 		public bool IsPaused => !IsShaking && Trauma > 0;
 
-		private ShakingTransformPreset currentPreset;
-		public ShakingTransformPreset CurrentPreset {
+		private IShakingTransformPreset currentPreset;
+		public IShakingTransformPreset CurrentPreset {
 			get {
-				if (!currentPreset) {
+				if (currentPreset == null) {
 					if (presets.IsNullOrEmpty()) {
 						Debug.LogWarning($"No shaking transform presets have been defined for {name}. A default preset will be created and used. For better results, assign at least one preset.", this);
-						currentPreset = ScriptableObject.CreateInstance<ShakingTransformPreset>();
+						currentPreset = ScriptableObject.CreateInstance<ScriptableShakingTransformPreset>();
 						currentPreset.name = "Default preset";
 					} else {
 						currentPreset = presets[0];
@@ -46,9 +46,9 @@ namespace CommonUtils.Effects.ShakingTransform {
 			private set => currentPreset = value;
 		}
 
-		private Dictionary<string, ShakingTransformPreset> presetsByName;
+		private Dictionary<string, ScriptableShakingTransformPreset> presetsByName;
 
-		public IReadOnlyDictionary<string, ShakingTransformPreset> Presets {
+		public IReadOnlyDictionary<string, ScriptableShakingTransformPreset> Presets {
 			get {
 				if (presetsByName == null) ReloadPresets();
 				return presetsByName;
@@ -60,7 +60,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 
 		private void Awake() => Seed = Random.value;
 
-		public void InduceStress(ShakingTransformPreset preset, float stress = 1f) {
+		public void InduceStress(IShakingTransformPreset preset, float stress = 1f) {
 			CurrentPreset = preset;
 			InduceStress(stress);
 		}

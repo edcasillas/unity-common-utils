@@ -59,7 +59,7 @@ namespace CommonUtils.Editor.CustomEditors {
 						"Use custom preset",
 						() => {
 							if (customPreset == null) {
-								customPreset = CreateInstance<ShakingTransformPreset>();
+								customPreset = new ShakingTransformPreset();
 								customPreset.name = "Custom test preset";
 							}
 							customPreset.Intensity = EditorGUILayout.Vector3Field(new GUIContent("Intensity","Defines the maximum translation at each axis."), customPreset.Intensity);
