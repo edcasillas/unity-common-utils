@@ -9,37 +9,18 @@ namespace CommonUtils {
 	public class SkeletonView : MonoBehaviour { // based on http://answers.unity.com/comments/714888/view.html
 		#if UNITY_EDITOR
 #pragma warning disable 649
-		[SerializeField] private bool        alwaysShow;
 		[SerializeField] private Color       rootColor = Color.green;
+		[SerializeField] [Range(0.001f, 0.1f)] private float rootSize = 0.05f;
 		[SerializeField] private Color       boneColor = Color.blue;
+		[SerializeField] [Range(0.001f, 0.1f)] private float jointSize = 0.01f;
 		[SerializeField] private Transform   rootNode;
-		[SerializeField] [HideInInspector] private Transform[] childNodes;
 #pragma warning restore 649
 
-		private void OnDrawGizmos()         { if(alwaysShow) drawJoints(); }
-		private void OnDrawGizmosSelected() { if(!alwaysShow) drawJoints(); }
-
-		private void drawJoints() {
-			if (!rootNode && GetComponent<SkinnedMeshRenderer>()) rootNode = GetComponent<SkinnedMeshRenderer>().rootBone;
-			if (!rootNode) return;
-
-			if (childNodes.IsNullOrEmpty()) {
-				PopulateChildren();
-			}
-
-			foreach (Transform child in childNodes) {
-				if (child == rootNode) {
-					Gizmos.color = rootColor;
-					Gizmos.DrawCube(child.position, new Vector3(.1f, .1f, .1f));
-				} else {
-					Gizmos.color = boneColor;
-					Gizmos.DrawLine(child.position, child.parent.position);
-					Gizmos.DrawCube(child.position, new Vector3(.01f, .01f, .01f));
-				}
-			}
-		}
-
-		public void PopulateChildren() => childNodes = rootNode.GetComponentsInChildren<Transform>();
-		#endif
+		public Transform RootNode => rootNode;
+		public Color RootColor => rootColor;
+		public Color BoneColor => boneColor;
+		public float RootSize => rootSize;
+		public float JointSize => jointSize;
+#endif
 	}
 }
