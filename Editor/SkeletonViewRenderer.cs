@@ -8,6 +8,7 @@ namespace CommonUtils.Editor {
 	public static class SkeletonViewRenderer {
 		[DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
 		private static void renderCustomGizmo(SkeletonView skeleton, GizmoType gizmoType) {
+			if(!skeleton.IsEnabled) return;
 			var root = skeleton.RootNode ? skeleton.RootNode : skeleton.transform;
 			var childNodes = root.GetComponentsInChildren<Transform>();
 
