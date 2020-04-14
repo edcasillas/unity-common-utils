@@ -1,13 +1,12 @@
-﻿using CommonUtils.Extensions;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace CommonUtils {
+namespace CommonUtils.SkeletonViewer {
 	/// <summary>
 	/// Put this component in a SkinnedMeshRenderer to draw its skeleton as gizmos.
 	/// </summary>
 	[AddComponentMenu("Mesh/Skeleton View")]
 	public class SkeletonView : MonoBehaviour { // based on http://answers.unity.com/comments/714888/view.html
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
 #pragma warning disable 649
 		[SerializeField] private Color       rootColor = Color.green;
 		[SerializeField] [Range(0.001f, 0.1f)] private float rootSize = 0.05f;

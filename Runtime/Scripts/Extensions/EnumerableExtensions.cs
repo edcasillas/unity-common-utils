@@ -29,6 +29,19 @@ namespace CommonUtils.Extensions {
 		}
 
 		/// <summary>
+		/// Adds all <paramref name="items"/> to the <paramref name="set"/> if they don't exist and omits duplicates.
+		/// </summary>
+		/// <param name="set">Hash set to be updated.</param>
+		/// <param name="items">Collection of items to be added.</param>
+		/// <typeparam name="T">Type of items to be added.</typeparam>
+		public static void SafeAdd<T>(this HashSet<T> set, IEnumerable<T> items) {
+			if (items.IsNullOrEmpty()) return;
+			foreach (var item in items) {
+				SafeAdd(set, item);
+			}
+		}
+
+		/// <summary>
 		/// Removes <paramref name="item"/> from the <paramref name="set"/> if it exists.
 		/// </summary>
 		/// <param name="set">Hash set to be updated.</param>
