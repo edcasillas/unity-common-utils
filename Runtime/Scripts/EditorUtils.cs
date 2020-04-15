@@ -3,19 +3,20 @@ using Object = UnityEngine.Object;
 
 namespace CommonUtils {
     public static class EditorUtils {
-        public static void HighlightAssetOfType<TAsset>(string assetPath) where TAsset : Object {
+        public static bool HighlightAssetOfType<TAsset>(string assetPath) where TAsset : Object {
 #if UNITY_EDITOR
             var instance = (TAsset) Resources.Load(assetPath, typeof(TAsset));
 
             if (!instance) {
                 Debug.LogError($"Asset of type {typeof(TAsset)} could not be found at \"{assetPath}\"");
-                return;
+                return false;
             }
 
             UnityEditor.Selection.objects = new Object[] {instance};
             UnityEditor.EditorGUIUtility.PingObject(instance);
 #endif
-        }
+			return true;
+		}
 
         public static bool SaveAsJsonFile<T>(this T source, string title = null, string defaultDirectory = null, string defaultName = null) {
 #if UNITY_EDITOR
