@@ -8,30 +8,18 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 	/// If scene is valid, provides basic buttons to interact with the scene's role in Build Settings.
 	/// </summary>
 	[CustomPropertyDrawer(typeof(SceneReference))]
-	public class SceneReferencePropertyDrawer : PropertyDrawer {
+	public class SceneReferencePropertyDrawer : AbstractBoxedPropertyDrawer {
 		// The exact name of the asset Object variable in the SceneReference object
-		const string sceneAssetPropertyString = "sceneAsset";
+		private const string sceneAssetPropertyString = "sceneAsset";
 
 		// The exact name of  the scene Path variable in the SceneReference object
-		const string scenePathPropertyString = "scenePath";
-
-		static readonly RectOffset boxPadding   = EditorStyles.helpBox.padding;
-		static readonly float      padSize      = 2f;
-		static readonly float      lineHeight   = EditorGUIUtility.singleLineHeight;
-		static readonly float      paddedLine   = lineHeight + padSize;
-		static readonly float      footerHeight = 10f;
+		private const string scenePathPropertyString = "scenePath";
 
 		/// <summary>
 		/// Drawing the 'SceneReference' property
 		/// </summary>
-		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+		protected override void DrawBoxContents(Rect position, SerializedProperty property, GUIContent label) {
 			var sceneAssetProperty = GetSceneAssetProperty(property);
-
-			// Draw the Box Background
-			position.height -= footerHeight;
-			GUI.Box(EditorGUI.IndentedRect(position), GUIContent.none, EditorStyles.helpBox);
-			position        = boxPadding.Remove(position);
-			position.height = lineHeight;
 
 			// Draw the main Object field
 			label.tooltip = "The actual Scene Asset reference.\nOn serialize this is also stored as the asset's path.";
@@ -54,7 +42,7 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 					GetScenePathProperty(property).stringValue = string.Empty;
 			}
 
-			position.y += paddedLine;
+			position.y += PaddedLine;
 
 			if (buildScene.assetGUID.Empty() == false) {
 				// Draw the Build Settings Info of the selected Scene
@@ -64,16 +52,12 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 			EditorGUI.EndProperty();
 		}
 
-		/// <summary>
-		/// Ensure that what we draw in OnGUI always has the room it needs
-		/// </summary>
-		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
+		protected override int GetLineCount(SerializedProperty property, GUIContent label) {
 			var lines              = 2;
 			var sceneAssetProperty = GetSceneAssetProperty(property);
 			if (sceneAssetProperty.objectReferenceValue == null)
 				lines = 1;
-
-			return boxPadding.vertical + lineHeight * lines + padSize * (lines - 1) + footerHeight;
+			return lines;
 		}
 
 		/// <summary>
@@ -113,9 +97,9 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 
 			// Left status label
 			using (new EditorGUI.DisabledScope(readOnly)) {
-				var labelRect = DrawUtils.GetLabelRect(position);
+				var labelRect = PropertyDrawerUtils.GetLabelRect(position, PadSize);
 				var iconRect  = labelRect;
-				iconRect.width  =  iconContent.image.width + padSize;
+				iconRect.width  =  iconContent.image.width + PadSize;
 				labelRect.width -= iconRect.width;
 				labelRect.x     += iconRect.width;
 				EditorGUI.PrefixLabel(iconRect,  sceneControlID, iconContent);
@@ -123,7 +107,7 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 			}
 
 			// Right context buttons
-			var buttonRect = DrawUtils.GetFieldRect(position);
+			var buttonRect = PropertyDrawerUtils.GetFieldRect(position);
 			buttonRect.width = (buttonRect.width) / 3;
 
 			var tooltipMsg = "";
@@ -136,7 +120,7 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 						"Add this scene to build settings. It will be appended to the end of the build scenes as buildIndex: " +
 						addIndex                                                                                               +
 						"."                                                                                                    + readOnlyWarning;
-					if (DrawUtils.ButtonHelper(buttonRect,
+					if (PropertyDrawerUtils.ButtonHelper(buttonRect,
 											   "Add...",
 											   "Add (buildIndex " + addIndex + ")",
 											   EditorStyles.miniButtonLeft,
@@ -155,7 +139,7 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 									  "It will no longer be included in builds" :
 									  "It will be included in builds") + "." + readOnlyWarning;
 
-					if (DrawUtils.ButtonHelper(buttonRect,
+					if (PropertyDrawerUtils.ButtonHelper(buttonRect,
 											   stateString,
 											   stateString + " In Build",
 											   EditorStyles.miniButtonLeft,
@@ -166,7 +150,7 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 					tooltipMsg =
 						"Completely remove this scene from build settings.\nYou will need to add it again for it to be included in builds!" +
 						readOnlyWarning;
-					if (DrawUtils.ButtonHelper(buttonRect,
+					if (PropertyDrawerUtils.ButtonHelper(buttonRect,
 											   "Remove...",
 											   "Remove from Build",
 											   EditorStyles.miniButtonMid,
@@ -178,7 +162,7 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 			buttonRect.x += buttonRect.width;
 
 			tooltipMsg = "Open the 'Build Settings' Window for managing scenes." + readOnlyWarning;
-			if (DrawUtils.ButtonHelper(buttonRect,
+			if (PropertyDrawerUtils.ButtonHelper(buttonRect,
 									   "Settings",
 									   "Build Settings",
 									   EditorStyles.miniButtonRight,
@@ -188,46 +172,8 @@ namespace CommonUtils.Editor.Inspector.SceneRefs {
 
 		}
 
-		static SerializedProperty GetSceneAssetProperty(SerializedProperty property) {
-			return property.FindPropertyRelative(sceneAssetPropertyString);
-		}
+		private static SerializedProperty GetSceneAssetProperty(SerializedProperty property) => property.FindPropertyRelative(sceneAssetPropertyString);
 
-		static SerializedProperty GetScenePathProperty(SerializedProperty property) {
-			return property.FindPropertyRelative(scenePathPropertyString);
-		}
-
-		private static class DrawUtils {
-			/// <summary>
-			/// Draw a GUI button, choosing between a short and a long button text based on if it fits
-			/// </summary>
-			public static bool ButtonHelper(Rect   position, string msgShort, string msgLong, GUIStyle style,
-											string tooltip = null) {
-				var content = new GUIContent(msgLong);
-				content.tooltip = tooltip;
-
-				var longWidth = style.CalcSize(content).x;
-				if (longWidth > position.width)
-					content.text = msgShort;
-
-				return GUI.Button(position, content, style);
-			}
-
-			/// <summary>
-			/// Given a position rect, get its field portion
-			/// </summary>
-			public static Rect GetFieldRect(Rect position) {
-				position.width -= EditorGUIUtility.labelWidth;
-				position.x     += EditorGUIUtility.labelWidth;
-				return position;
-			}
-
-			/// <summary>
-			/// Given a position rect, get its label portion
-			/// </summary>
-			public static Rect GetLabelRect(Rect position) {
-				position.width = EditorGUIUtility.labelWidth - padSize;
-				return position;
-			}
-		}
+		private static SerializedProperty GetScenePathProperty(SerializedProperty property) => property.FindPropertyRelative(scenePathPropertyString);
 	}
 }

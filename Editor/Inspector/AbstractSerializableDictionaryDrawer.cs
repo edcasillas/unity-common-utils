@@ -1,34 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using CommonUtils.Serializables;
 using UnityEditor;
 using UnityEngine;
 
 namespace CommonUtils.Editor.Inspector {
-	public abstract class AbstractSerializableDictionaryDrawer<TDictionary, TKey,TValue> : PropertyDrawer // Based on this answer: https://forum.unity.com/threads/finally-a-serializable-dictionary-for-unity-extracted-from-system-collections-generic.335797/#post-2173836
+	public abstract class AbstractSerializableDictionaryDrawer<TDictionary, TKey,TValue> : AbstractBoxedPropertyDrawer // Based on this answer: https://forum.unity.com/threads/finally-a-serializable-dictionary-for-unity-extracted-from-system-collections-generic.335797/#post-2173836
 		where TDictionary : AbstractSerializableDictionary<TKey, TValue>, new() {
-		private TDictionary _Dictionary;
-		private bool _Foldout;
-		private const float kButtonWidth = 18f;
 
-		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-			CheckInitialize(property, label);
-			if (_Foldout)
-				return (_Dictionary.Count + 1) * 17f;
-			return 17f;
+		private struct LabelInfo {
+			public GUIContent Label;
+			public float Width => EditorStyles.label.CalcSize(Label).x;
 		}
 
-		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-			CheckInitialize(property, label);
+		private static readonly Dictionary<string, LabelInfo> prefixLabel = new Dictionary<string, LabelInfo> {
+			{ "Key", new LabelInfo{Label = new GUIContent(" Key ")} },
+			{ "Value", new LabelInfo{Label = new GUIContent(" Value ")} },
+		};
 
-			position.height = 17f;
+		private TDictionary dictionary;
+		private bool foldout;
+		private const float kButtonWidth = 18f;
+
+		protected override float FooterHeight => EditorGUIUtility.standardVerticalSpacing;
+
+		protected override int GetLineCount(SerializedProperty property, GUIContent label) {
+			CheckInitialize(property, label);
+			if (foldout && dictionary.Count > 0) return (dictionary.Count + 1);
+			return 1;
+		}
+
+		protected override void DrawBoxContents(Rect position, SerializedProperty property, GUIContent label) {
+			CheckInitialize(property, label);
 
 			var foldoutRect = position;
 			foldoutRect.width -= 2 * kButtonWidth;
+			foldoutRect.x += 10f;
 			EditorGUI.BeginChangeCheck();
-			_Foldout = EditorGUI.Foldout(foldoutRect, _Foldout, label, true);
+
+			label.text += $" ({dictionary.Count} items)";
+			if (dictionary.Count > 0) {
+				foldout = EditorGUI.Foldout(foldoutRect, foldout, label, true);
+			} else {
+				EditorGUI.LabelField(foldoutRect, label);
+			}
 			if (EditorGUI.EndChangeCheck())
-				EditorPrefs.SetBool(label.text, _Foldout);
+				EditorPrefs.SetBool(label.text, foldout);
 
 			var buttonRect = position;
 			buttonRect.x = position.width - kButtonWidth + position.x;
@@ -44,24 +62,25 @@ namespace CommonUtils.Editor.Inspector {
 				ClearDictionary();
 			}
 
-			if (!_Foldout)
+			if (!foldout || dictionary.Count == 0)
 				return;
 
-			foreach (var item in _Dictionary) {
+			foreach (var item in dictionary) {
 				var key = item.Key;
 				var value = item.Value;
 
-				position.y += 17f;
+				position.y += PaddedLine;
 
 				var keyRect = position;
 				keyRect.width /= 2;
 				keyRect.width -= 4;
 				EditorGUI.BeginChangeCheck();
-				var newKey = DoField(keyRect, typeof(TKey), key);
+
+				var newKey = DoField(keyRect, typeof(TKey), key, "Key");
 				if (EditorGUI.EndChangeCheck()) {
 					try {
-						_Dictionary.Remove(key);
-						_Dictionary.Add(newKey, value);
+						dictionary.Remove(key);
+						dictionary.Add(newKey, value);
 					} catch (Exception e) {
 						Debug.Log(e.Message);
 					}
@@ -72,10 +91,11 @@ namespace CommonUtils.Editor.Inspector {
 				var valueRect = position;
 				valueRect.x = position.width / 2 + 15;
 				valueRect.width = keyRect.width - kButtonWidth;
+
 				EditorGUI.BeginChangeCheck();
-				value = DoField(valueRect, typeof(TValue), value);
+				value = DoField(valueRect, typeof(TValue), value, "Value");
 				if (EditorGUI.EndChangeCheck()) {
-					_Dictionary[key] = value;
+					dictionary[key] = value;
 					break;
 				}
 
@@ -89,31 +109,20 @@ namespace CommonUtils.Editor.Inspector {
 			}
 		}
 
-		private void RemoveItem(TKey key) => _Dictionary.Remove(key);
+		private void RemoveItem(TKey key) => dictionary.Remove(key);
 
 		private void CheckInitialize(SerializedProperty property, GUIContent label) {
-			/*
-			 * BEFORE:
-			 *var target = property.serializedObject.targetObject;
-            var dictionary = fieldInfo.GetValue(target) as IDictionary;
-			 *
-			 * AFTER:
-			 * var dictionary = fieldInfo.GetValue(SerializeableCollectionsPropertyHelper.GetParent(property)) as IDictionary;
-			 */
+			if (dictionary != null) return;
+			var target = SerializeableCollectionsPropertyHelper.GetParent(property);
+			dictionary = fieldInfo.GetValue(target) as TDictionary;
 
-			if (_Dictionary != null) return;
-			var target = SerializeableCollectionsPropertyHelper.GetParent(property); //property.serializedObject.targetObject;
-			_Dictionary = fieldInfo.GetValue(target) as TDictionary;
-
-			//_Dictionary = fieldInfo.GetValue(SerializeableCollectionsPropertyHelper.GetParent(property)) as TDictionary;
-
-			if (_Dictionary == null)
+			if (dictionary == null)
 			{
-				_Dictionary = new TDictionary();
-				fieldInfo.SetValue(target, _Dictionary);
+				dictionary = new TDictionary();
+				fieldInfo.SetValue(target, dictionary);
 			}
 
-			_Foldout = EditorPrefs.GetBool(label.text);
+			foldout = EditorPrefs.GetBool(label.text);
 		}
 
 		private static readonly Dictionary<Type, Func<Rect, object, object>> _Fields =
@@ -129,10 +138,12 @@ namespace CommonUtils.Editor.Inspector {
 				{ typeof(Rect), (rect, value) => EditorGUI.RectField(rect, (Rect)value) },
 			};
 
-		private static T DoField<T>(Rect rect, Type type, T value)
-		{
-			Func<Rect, object, object> field;
-			if (_Fields.TryGetValue(type, out field))
+		private static T DoField<T>(Rect rect, Type type, T value, string prefix) {
+			EditorGUI.PrefixLabel(rect, prefixLabel[prefix].Label);
+			rect.x += prefixLabel[prefix].Width;
+			rect.width -= prefixLabel[prefix].Width;
+
+			if (_Fields.TryGetValue(type, out var field))
 				return (T)field(rect, value);
 
 			if (type.IsEnum)
@@ -146,10 +157,9 @@ namespace CommonUtils.Editor.Inspector {
 			return value;
 		}
 
-		private void ClearDictionary() => _Dictionary.Clear();
+		private void ClearDictionary() => dictionary.Clear();
 
-		private void AddNewItem()
-		{
+		private void AddNewItem() {
 			TKey key;
 			if (typeof(TKey) == typeof(string))
 				key = (TKey)(object)"";
@@ -161,12 +171,10 @@ namespace CommonUtils.Editor.Inspector {
 			}
 
 			var value = default(TValue);
-			try
-			{
-				_Dictionary.Add(key, value);
-			}
-			catch(Exception e)
-			{
+			try {
+				dictionary.Add(key, value);
+				foldout = true;
+			} catch (Exception e) {
 				Debug.Log(e.Message);
 			}
 		}
