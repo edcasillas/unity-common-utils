@@ -185,25 +185,5 @@ namespace CommonUtils.Editor.Inspector {
 		}
 
 		private void ClearDictionary() => dictionary.Clear();
-
-		private void AddNewItem() {
-			TKey key;
-			if (typeof(TKey) == typeof(string))
-				key = (TKey)(object)"";
-			else key = default;
-
-			if (key == null) {
-				Debug.LogError($"Sorry, {typeof(TKey)} is not supported as a dictionary key at the moment.");
-				return;
-			}
-
-			var value = default(TValue);
-			try {
-				dictionary.Add(key, value);
-				foldout = true;
-			} catch (Exception e) {
-				Debug.Log(e.Message);
-			}
-		}
 	}
 }
