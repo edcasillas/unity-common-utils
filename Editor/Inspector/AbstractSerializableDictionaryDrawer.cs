@@ -92,9 +92,21 @@ namespace CommonUtils.Editor.Inspector {
 		private void RemoveItem(TKey key) => _Dictionary.Remove(key);
 
 		private void CheckInitialize(SerializedProperty property, GUIContent label) {
+			/*
+			 * BEFORE:
+			 *var target = property.serializedObject.targetObject;
+            var dictionary = fieldInfo.GetValue(target) as IDictionary;
+			 *
+			 * AFTER:
+			 * var dictionary = fieldInfo.GetValue(SerializeableCollectionsPropertyHelper.GetParent(property)) as IDictionary;
+			 */
+
 			if (_Dictionary != null) return;
-			var target = property.serializedObject.targetObject;
+			var target = SerializeableCollectionsPropertyHelper.GetParent(property); //property.serializedObject.targetObject;
 			_Dictionary = fieldInfo.GetValue(target) as TDictionary;
+
+			//_Dictionary = fieldInfo.GetValue(SerializeableCollectionsPropertyHelper.GetParent(property)) as TDictionary;
+
 			if (_Dictionary == null)
 			{
 				_Dictionary = new TDictionary();
