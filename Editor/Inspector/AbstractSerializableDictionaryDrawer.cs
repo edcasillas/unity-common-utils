@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using CommonUtils.Serializables;
 using UnityEditor;
 using UnityEngine;
@@ -27,24 +26,22 @@ namespace CommonUtils.Editor.Inspector {
 
 		protected override int GetLineCount(SerializedProperty property, GUIContent label) {
 			CheckInitialize(property, label);
-			if (foldout && dictionary.Count > 0) return (dictionary.Count + 1);
-			return 1;
+			var lines = 1;
+			if (foldout) lines += 1 + dictionary.Count;
+			return lines;
 		}
 
 		protected override void DrawBoxContents(Rect position, SerializedProperty property, GUIContent label) {
 			CheckInitialize(property, label);
 
+			#region Header foldout and buttons
 			var foldoutRect = position;
 			foldoutRect.width -= 2 * kButtonWidth;
 			foldoutRect.x += 10f;
 			EditorGUI.BeginChangeCheck();
 
 			label.text += $" ({dictionary.Count} items)";
-			if (dictionary.Count > 0) {
-				foldout = EditorGUI.Foldout(foldoutRect, foldout, label, true);
-			} else {
-				EditorGUI.LabelField(foldoutRect, label);
-			}
+			foldout = EditorGUI.Foldout(foldoutRect, foldout, label, true);
 			if (EditorGUI.EndChangeCheck())
 				EditorPrefs.SetBool(label.text, foldout);
 
@@ -52,17 +49,21 @@ namespace CommonUtils.Editor.Inspector {
 			buttonRect.x = position.width - kButtonWidth + position.x;
 			buttonRect.width = kButtonWidth + 2;
 
-			if (GUI.Button(buttonRect, new GUIContent("+", "Add item"), EditorStyles.miniButton)) {
-				AddNewItem();
-			}
-
-			buttonRect.x -= kButtonWidth;
-
 			if (GUI.Button(buttonRect, new GUIContent("X", "Clear dictionary"), EditorStyles.miniButtonRight)) {
 				ClearDictionary();
 			}
+			#endregion
 
-			if (!foldout || dictionary.Count == 0)
+			if (!foldout)
+				return;
+
+			position.y += PaddedLine;
+
+			#region Add
+			drawAddForm(position);
+			#endregion
+
+			if (dictionary.Count == 0)
 				return;
 
 			foreach (var item in dictionary) {
@@ -74,19 +75,10 @@ namespace CommonUtils.Editor.Inspector {
 				var keyRect = position;
 				keyRect.width /= 2;
 				keyRect.width -= 4;
-				EditorGUI.BeginChangeCheck();
 
-				var newKey = DoField(keyRect, typeof(TKey), key, "Key");
-				if (EditorGUI.EndChangeCheck()) {
-					try {
-						dictionary.Remove(key);
-						dictionary.Add(newKey, value);
-					} catch (Exception e) {
-						Debug.Log(e.Message);
-					}
-
-					break;
-				}
+				EditorGUI.BeginDisabledGroup(true);
+				DoField(keyRect, typeof(TKey), key, "Key");
+				EditorGUI.EndDisabledGroup();
 
 				var valueRect = position;
 				valueRect.x = position.width / 2 + 15;
@@ -102,9 +94,44 @@ namespace CommonUtils.Editor.Inspector {
 				var removeRect = valueRect;
 				removeRect.x = valueRect.xMax + 2;
 				removeRect.width = kButtonWidth;
-				if (GUI.Button(removeRect, new GUIContent("x", "Remove item"), EditorStyles.miniButtonRight)) {
+				if (GUI.Button(removeRect, new GUIContent("-", "Remove item"), EditorStyles.miniButtonRight)) {
 					RemoveItem(key);
 					break;
+				}
+			}
+		}
+
+		private TKey newKeyToAdd;
+		private TValue newValueToAdd;
+
+		private void drawAddForm(Rect position) {
+			var keyRect = position;
+			keyRect.width /= 2;
+			keyRect.width -= 4;
+			newKeyToAdd = DoField(keyRect, typeof(TKey), newKeyToAdd, "Key");
+
+			var valueRect = position;
+			valueRect.x = position.width / 2 + 15;
+			valueRect.width = keyRect.width - kButtonWidth;
+			newValueToAdd = DoField(valueRect, typeof(TValue), newValueToAdd, "Value");
+
+			var removeRect = valueRect;
+			removeRect.x = valueRect.xMax + 2;
+			removeRect.width = kButtonWidth;
+			if (GUI.Button(removeRect, new GUIContent("+", "Add item"), EditorStyles.miniButtonRight)) {
+				if (newKeyToAdd == null) {
+					EditorUtility.DisplayDialog("Serializable dictionary", "Key cannot be null.", "Ok");
+					return;
+				}
+				if (dictionary.ContainsKey(newKeyToAdd)) {
+					EditorUtility.DisplayDialog("Serializable dictionary", "Cannot add because the key already exists in the dictionary.", "Ok");
+					return;
+				}
+				try {
+					dictionary.Add(newKeyToAdd, newValueToAdd);
+					foldout = true;
+				} catch (Exception e) {
+					Debug.Log(e.Message);
 				}
 			}
 		}
