@@ -11,6 +11,10 @@ namespace CommonUtils.Serializables { // Based on this answer: http://answers.un
 		[SerializeField]
 		private List<TValue> values = new List<TValue>();
 
+		public AbstractSerializableDictionary() : base() { }
+
+		public AbstractSerializableDictionary(IDictionary<TKey, TValue> source) : base(source) { }
+
 		public void OnBeforeSerialize() {
 			keys.Clear();
 			values.Clear();
@@ -24,8 +28,9 @@ namespace CommonUtils.Serializables { // Based on this answer: http://answers.un
 			Clear();
 
 			while (values.Count > keys.Count) {
-				Debug.LogError($"Value \"{values[values.Count -1]}\" was removed from the serializable dictionary because it had no matching key.");
-				values.RemoveAt(values.Count-1);
+				Debug.LogError(
+					$"Value \"{values[values.Count - 1]}\" was removed from the serializable dictionary because it had no matching key.");
+				values.RemoveAt(values.Count - 1);
 			}
 
 			while (keys.Count > values.Count) {
