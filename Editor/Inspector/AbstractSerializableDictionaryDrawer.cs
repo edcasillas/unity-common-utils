@@ -18,6 +18,19 @@ namespace CommonUtils.Editor.Inspector {
 			{ "Value", new LabelInfo{Label = new GUIContent(" Value ")} },
 		};
 
+		private static readonly Dictionary<Type, Func<Rect, object, object>> fields =
+			new Dictionary<Type,Func<Rect,object,object>>()
+			{
+				{ typeof(int), (rect, value) => EditorGUI.IntField(rect, (int)value) },
+				{ typeof(float), (rect, value) => EditorGUI.FloatField(rect, (float)value) },
+				{ typeof(string), (rect, value) => EditorGUI.TextField(rect, (string)value) },
+				{ typeof(bool), (rect, value) => EditorGUI.Toggle(rect, (bool)value) },
+				{ typeof(Vector2), (rect, value) => EditorGUI.Vector2Field(rect, GUIContent.none, (Vector2)value) },
+				{ typeof(Vector3), (rect, value) => EditorGUI.Vector3Field(rect, GUIContent.none, (Vector3)value) },
+				{ typeof(Bounds), (rect, value) => EditorGUI.BoundsField(rect, (Bounds)value) },
+				{ typeof(Rect), (rect, value) => EditorGUI.RectField(rect, (Rect)value) },
+			};
+
 		private TDictionary dictionary;
 		private bool foldout;
 		private const float kButtonWidth = 18f;
@@ -77,15 +90,17 @@ namespace CommonUtils.Editor.Inspector {
 				keyRect.width -= 4;
 
 				EditorGUI.BeginDisabledGroup(true);
-				DoField(keyRect, typeof(TKey), key, "Key");
+				keyRect = drawPrefixLabel(keyRect, "Key");
+				drawKeyInputField(keyRect, key);
 				EditorGUI.EndDisabledGroup();
 
 				var valueRect = position;
 				valueRect.x = position.width / 2 + 15;
-				valueRect.width = keyRect.width - kButtonWidth;
+				valueRect.width = keyRect.width - kButtonWidth + prefixLabel["Key"].Width;
 
 				EditorGUI.BeginChangeCheck();
-				value = DoField(valueRect, typeof(TValue), value, "Value");
+				valueRect = drawPrefixLabel(valueRect, "Value");
+				value = drawValueInputField(valueRect, value);
 				if (EditorGUI.EndChangeCheck()) {
 					dictionary[key] = value;
 					break;
@@ -108,12 +123,14 @@ namespace CommonUtils.Editor.Inspector {
 			var keyRect = position;
 			keyRect.width /= 2;
 			keyRect.width -= 4;
-			newKeyToAdd = DoField(keyRect, typeof(TKey), newKeyToAdd, "Key");
+			keyRect = drawPrefixLabel(keyRect, "Key");
+			newKeyToAdd = drawKeyInputField(keyRect, newKeyToAdd);
 
 			var valueRect = position;
 			valueRect.x = position.width / 2 + 15;
-			valueRect.width = keyRect.width - kButtonWidth;
-			newValueToAdd = DoField(valueRect, typeof(TValue), newValueToAdd, "Value");
+			valueRect.width = keyRect.width - kButtonWidth + prefixLabel["Key"].Width;
+			valueRect = drawPrefixLabel(valueRect, "Value");
+			newValueToAdd = drawValueInputField(valueRect, newValueToAdd);
 
 			var removeRect = valueRect;
 			removeRect.x = valueRect.xMax + 2;
@@ -152,25 +169,19 @@ namespace CommonUtils.Editor.Inspector {
 			foldout = EditorPrefs.GetBool(label.text);
 		}
 
-		private static readonly Dictionary<Type, Func<Rect, object, object>> _Fields =
-			new Dictionary<Type,Func<Rect,object,object>>()
-			{
-				{ typeof(int), (rect, value) => EditorGUI.IntField(rect, (int)value) },
-				{ typeof(float), (rect, value) => EditorGUI.FloatField(rect, (float)value) },
-				{ typeof(string), (rect, value) => EditorGUI.TextField(rect, (string)value) },
-				{ typeof(bool), (rect, value) => EditorGUI.Toggle(rect, (bool)value) },
-				{ typeof(Vector2), (rect, value) => EditorGUI.Vector2Field(rect, GUIContent.none, (Vector2)value) },
-				{ typeof(Vector3), (rect, value) => EditorGUI.Vector3Field(rect, GUIContent.none, (Vector3)value) },
-				{ typeof(Bounds), (rect, value) => EditorGUI.BoundsField(rect, (Bounds)value) },
-				{ typeof(Rect), (rect, value) => EditorGUI.RectField(rect, (Rect)value) },
-			};
+		protected virtual TKey drawKeyInputField(Rect rect, TKey value) => drawInputField(rect, value);
+		protected virtual TValue drawValueInputField(Rect rect, TValue value) => drawInputField(rect, value);
 
-		private static T DoField<T>(Rect rect, Type type, T value, string prefix) {
+		private static Rect drawPrefixLabel(Rect rect, string prefix) {
 			EditorGUI.PrefixLabel(rect, prefixLabel[prefix].Label);
 			rect.x += prefixLabel[prefix].Width;
 			rect.width -= prefixLabel[prefix].Width;
+			return rect;
+		}
 
-			if (_Fields.TryGetValue(type, out var field))
+		private static T drawInputField<T>(Rect rect, T value) {
+			var type = typeof(T);
+			if (fields.TryGetValue(type, out var field))
 				return (T)field(rect, value);
 
 			if (type.IsEnum)
@@ -180,7 +191,7 @@ namespace CommonUtils.Editor.Inspector {
 				return (T)(object)EditorGUI.ObjectField(rect, (UnityEngine.Object)(object)value, type, true);
 			}
 
-			Debug.Log("Type is not supported: " + type);
+			EditorGUI.HelpBox(rect, $"{type} is not supported", MessageType.Error);
 			return value;
 		}
 
