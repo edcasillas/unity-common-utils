@@ -208,7 +208,7 @@ namespace SubjectNerd.Utilities {
 			if (listData != null)
 			{
 				// Try to show the list
-				if (listData.DoLayoutProperty(property) == false)
+				if (!listData.DoLayoutProperty(property))
 				{
 					EditorGUILayout.PropertyField(property, false);
 					if (property.isExpanded)

@@ -85,7 +85,7 @@ namespace SubjectNerd.Utilities {
 		protected virtual void InitInspector() {
 			if (isInitialized && FORCE_INIT == false)
 				return;
-			
+
 			ReorderableArrayUtils.FindTargetProperties(serializedObject, listIndex, editableIndex, ref hasSortableArrays, ref hasEditable);
 			isInitialized = true;
 			target.GetContextMenuData(contextData);
