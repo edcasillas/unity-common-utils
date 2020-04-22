@@ -119,7 +119,7 @@ namespace SubjectNerd.Utilities
 					// Element height seems to control selected background
 #if UNITY_5_1 || UNITY_5_2
 					if (index == propList.index)
-					{	
+					{
 						// Height might have changed when dealing with serialized class
 						// Call the select callback when height changes to reset the list elementHeight
 						float newHeight = EditorGUI.GetPropertyHeight(targetElement, GUIContent.none, targetElement.isExpanded);
@@ -596,10 +596,7 @@ namespace SubjectNerd.Utilities
 			return true;
 		}
 
-		protected virtual void DrawInspector()
-		{
-			DrawPropertiesAll();
-		}
+		protected virtual void DrawInspector() => DrawPropertiesAll();
 
 		public override void OnInspectorGUI()
 		{
