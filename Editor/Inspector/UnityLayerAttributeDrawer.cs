@@ -1,4 +1,4 @@
-﻿using CommonUtils.Inspector.UnityLayer;
+﻿using CommonUtils.Inspector;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +15,7 @@ namespace CommonUtils.Editor.Inspector {
                 property.intValue = EditorGUI.LayerField(position, property.intValue);
             else
                 EditorGUI.HelpBox(position, "Not an int.", MessageType.Error);
-            
+
             EditorGUI.EndProperty( );
         }
     }
