@@ -40,11 +40,6 @@ namespace SubjectNerd.Utilities {
 		}
 
 		private static void HandleReorderableOptions(ReorderableAttribute arrayAttr, SerializedProperty property, SortableListData data, GUIStyle styleHighlight = null) {
-			// Custom element header
-			if (!string.IsNullOrEmpty(arrayAttr.ElementHeader)) {
-				data.ElementHeaderCallback = i => $"{arrayAttr.ElementHeader} {(arrayAttr.HeaderZeroIndex ? i : i + 1)}";
-			}
-
 			// Draw property as single line
 			if (arrayAttr.ElementSingleLine) {
 				var list = data.GetPropertyList(property);
@@ -292,6 +287,60 @@ namespace SubjectNerd.Utilities {
 				using (new EditorGUI.DisabledScope(isStartProp))
 				{
 					EditorGUILayout.PropertyField(targetProp, targetProp.isExpanded);
+				}
+			}
+		}
+
+		public static void DrawSortableArray(SerializedProperty property) {
+			var reorderableList = GetReorderableList(property);
+			if (reorderableList == null) {
+				Debug.LogError($"Property {property.name} is not a reorderable list.");
+				return;
+			}
+
+			// Draw the header
+			var headerText = $"{property.displayName} [{property.arraySize}]";
+			EditorGUILayout.PropertyField(property, new GUIContent(headerText), false);
+
+			// Save header rect for handling drag and drop
+			Rect dropRect = GUILayoutUtility.GetLastRect();
+
+			// Draw the reorderable list for the property
+			if (property.isExpanded) {
+				int newArraySize = EditorGUILayout.IntField("Size", property.arraySize);
+				if (newArraySize != property.arraySize)
+					property.arraySize = newArraySize;
+				reorderableList.DoLayoutList();
+			}
+
+			// Handle drag and drop into the header
+			Event evt = Event.current;
+			if (evt == null)
+				return;
+
+			if (evt.type == EventType.DragUpdated || evt.type == EventType.DragPerform) {
+				if (dropRect.Contains(evt.mousePosition) == false)
+					return;
+
+				DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+				if (evt.type == EventType.DragPerform) {
+					DragAndDrop.AcceptDrag();
+					//if (propDropHandlers.TryGetValue(property.propertyPath, out Action<SerializedProperty, Object[]> handler)) {
+					//	handler?.Invoke(property, DragAndDrop.objectReferences);
+					//} else {
+						foreach (var dragged_object in DragAndDrop.objectReferences) {
+							if (dragged_object.GetType() != property.GetType())
+								continue;
+
+							int newIndex = property.arraySize;
+							property.arraySize++;
+
+							var target = property.GetArrayElementAtIndex(newIndex);
+							target.objectReferenceInstanceIDValue = dragged_object.GetInstanceID();
+						}
+					//}
+
+					evt.Use();
 				}
 			}
 		}

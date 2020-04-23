@@ -29,9 +29,6 @@ SOFTWARE.*/
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Remoting.Contexts;
-using CommonUtils.Editor;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditorInternal;
@@ -39,7 +36,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace SubjectNerd.Utilities {
-	[CustomEditor(typeof(Object), true, isFallback = true)]
+	//[CustomEditor(typeof(Object), true, isFallback = true)]
 	[CanEditMultipleObjects]
 	public partial class ReorderableArrayInspector : Editor {
 		protected static bool FORCE_INIT = false;

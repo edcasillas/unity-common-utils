@@ -12,7 +12,6 @@ namespace SubjectNerd.Utilities {
 	/// </summary>
 	public class SortableListData {
 		public string Parent { get; }
-		public Func<int, string> ElementHeaderCallback = null;
 
 		private readonly Dictionary<string, ReorderableList> propIndex = new Dictionary<string, ReorderableList>();
 
@@ -36,7 +35,7 @@ namespace SubjectNerd.Utilities {
 				return false;
 
 			// Draw the header
-			string headerText = string.Format("{0} [{1}]", property.displayName, property.arraySize);
+			string headerText = $"{property.displayName} [{property.arraySize}]";
 			EditorGUILayout.PropertyField(property, new GUIContent(headerText), false);
 
 			// Save header rect for handling drag and drop
@@ -64,8 +63,7 @@ namespace SubjectNerd.Utilities {
 					DragAndDrop.AcceptDrag();
 					Action<SerializedProperty, Object[]> handler = null;
 					if (propDropHandlers.TryGetValue(property.propertyPath, out handler)) {
-						if (handler != null)
-							handler(property, DragAndDrop.objectReferences);
+						handler?.Invoke(property, DragAndDrop.objectReferences);
 					} else {
 						foreach (Object dragged_object in DragAndDrop.objectReferences) {
 							if (dragged_object.GetType() != property.GetType())
