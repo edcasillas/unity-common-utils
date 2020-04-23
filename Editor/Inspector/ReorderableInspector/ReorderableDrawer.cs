@@ -36,7 +36,17 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 
 			position.width -= buttonWidth * 3;
 
-			EditorGUI.PropertyField(position, property);
+			//EditorGUI.PropertyField(position, property);
+
+			Rect rect = position;
+			var targetElement = property;
+			bool isExpanded = targetElement.isExpanded;
+			if (isExpanded) rect.width += buttonWidth * 3;
+			rect.height = EditorGUI.GetPropertyHeight(targetElement, GUIContent.none, isExpanded);
+			if (targetElement.hasVisibleChildren)
+				rect.xMin += 10;
+			var propHeader = new GUIContent(targetElement.displayName);
+			EditorGUI.PropertyField(rect, targetElement, propHeader, isExpanded);
 
 			var buttonRect = new Rect(
 				position.x + position.width,

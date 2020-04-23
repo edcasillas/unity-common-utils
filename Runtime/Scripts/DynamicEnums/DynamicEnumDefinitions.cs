@@ -7,7 +7,7 @@ namespace CommonUtils.DynamicEnums {
 	[CreateAssetMenu(menuName = "Dynamic Enum Definitions")]
 	public class DynamicEnumDefinitions : ScriptableObject {
 		#pragma warning disable 649
-		[SerializeField] private DynamicEnum[] enums;
+		[SerializeField] [Reorderable] private DynamicEnum[] enums;
 		#pragma warning restore 649
 
 		private Dictionary<string, DynamicEnum> htEnums;
