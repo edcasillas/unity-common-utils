@@ -6,12 +6,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace CommonUtils.UI {
+namespace CommonUtils.Input {
 	/// <summary>
 	/// Allows simulating button clicks using a key from the keyboard.
 	/// </summary>
 	[RequireComponent(typeof(Button))]
-	[AddComponentMenu("UI/Button from Keyboard")]
+	[AddComponentMenu("Input/Button from Keyboard")]
 	public class ButtonFromKeyboard : MonoBehaviour, IVerbosable {
 		#region Inspector fields
 		#pragma warning disable 649

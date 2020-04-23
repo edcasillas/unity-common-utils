@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using CommonUtils.Editor.Inspector.SceneRefs;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,7 +31,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 
 		private void OnGUI() {
 			EditorGUILayout.HelpBox("The scene you select below will be automatically played when you hit the Play button on the Editor.", MessageType.Info);
-			
+
 			selectedScene = (SceneAsset) EditorGUILayout.ObjectField("Master scene", selectedScene, typeof(SceneAsset), false);
 			if (GUILayout.Button("Select first active scene in build.")) {
 				if (EditorBuildSettings.scenes.Any(s=>s.enabled)) {
@@ -44,13 +43,13 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 					}
 				}
 			}
-			
+
 			loadMasterOnPlay = selectedScene && EditorGUILayout.Toggle("Load this scene on Play", loadMasterOnPlay);
 
 			if (selectedScene && !loadMasterOnPlay) {
 				EditorGUILayout.HelpBox("Your master scene won't be loaded on Play. Check the box above to fix this.", MessageType.Warning);
 			}
-			
+
 			autoSaveOnPlay = loadMasterOnPlay && EditorGUILayout.Toggle("Auto Save on Play", autoSaveOnPlay);
 
 			string selectedScenePath = null;
@@ -62,7 +61,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 				selectedScenePath != SceneAutoLoader.MasterScene      ||
 				loadMasterOnPlay  != SceneAutoLoader.LoadMasterOnPlay ||
 				autoSaveOnPlay    != SceneAutoLoader.AutoSaveOnPlay;
-			
+
 			if (GUILayout.Button("Save changes")) {
 				SceneAutoLoader.MasterScene = selectedScenePath;
 				SceneAutoLoader.LoadMasterOnPlay = loadMasterOnPlay;
