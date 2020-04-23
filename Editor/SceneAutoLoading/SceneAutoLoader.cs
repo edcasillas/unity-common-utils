@@ -26,7 +26,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 		private const string cEditorPrefMasterScene      = "SceneAutoLoader.MasterScene";
 		private const string cEditorPrefPreviousScene    = "SceneAutoLoader.PreviousScene";
 		#endregion
-	
+
 		/// <summary>
 		/// Static constructor binds a playmode-changed callback.
 		/// </summary>
@@ -81,7 +81,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 															"Could not play the game because the current scene is not saved.",
 															"Ok");
 								EditorApplication.isPlaying = false;
-								return;	
+								return;
 							}
 							break;
 						case 1:
@@ -97,7 +97,11 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 						EditorSceneManager.OpenScene(MasterScene);
 					} catch {
 						Debug.LogError($"error: scene not found: {MasterScene}");
-						EditorApplication.isPlaying = false;
+						MasterScene = null;
+						AutoSaveOnPlay = false;
+						LoadMasterOnPlay = false;
+						PreviousScene = null;
+						//EditorApplication.isPlaying = false;
 
 					}
 				} else {
