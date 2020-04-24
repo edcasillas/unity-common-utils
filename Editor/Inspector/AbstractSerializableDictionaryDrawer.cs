@@ -73,7 +73,9 @@ namespace CommonUtils.Editor.Inspector {
 			position.y += PaddedLine;
 
 			#region Add
-			drawAddForm(position);
+			if (drawAddForm(position)) {
+				EditorUtility.SetDirty(property.serializedObject.targetObject);
+			}
 			#endregion
 
 			if (dictionary.Count == 0)
@@ -91,7 +93,7 @@ namespace CommonUtils.Editor.Inspector {
 
 				EditorGUI.BeginDisabledGroup(true);
 				keyRect = drawPrefixLabel(keyRect, "Key");
-				drawKeyInputField(keyRect, key);
+				DrawKeyInputField(keyRect, key);
 				EditorGUI.EndDisabledGroup();
 
 				var valueRect = position;
@@ -100,7 +102,7 @@ namespace CommonUtils.Editor.Inspector {
 
 				EditorGUI.BeginChangeCheck();
 				valueRect = drawPrefixLabel(valueRect, "Value");
-				value = drawValueInputField(valueRect, value);
+				value = DrawValueInputField(valueRect, value);
 				if (EditorGUI.EndChangeCheck()) {
 					dictionary[key] = value;
 					break;
@@ -119,18 +121,18 @@ namespace CommonUtils.Editor.Inspector {
 		private TKey newKeyToAdd;
 		private TValue newValueToAdd;
 
-		private void drawAddForm(Rect position) {
+		private bool drawAddForm(Rect position) {
 			var keyRect = position;
 			keyRect.width /= 2;
 			keyRect.width -= 4;
 			keyRect = drawPrefixLabel(keyRect, "Key");
-			newKeyToAdd = drawKeyInputField(keyRect, newKeyToAdd);
+			newKeyToAdd = DrawKeyInputField(keyRect, newKeyToAdd);
 
 			var valueRect = position;
 			valueRect.x = position.width / 2 + 15;
 			valueRect.width = keyRect.width - kButtonWidth + prefixLabel["Key"].Width;
 			valueRect = drawPrefixLabel(valueRect, "Value");
-			newValueToAdd = drawValueInputField(valueRect, newValueToAdd);
+			newValueToAdd = DrawValueInputField(valueRect, newValueToAdd);
 
 			var removeRect = valueRect;
 			removeRect.x = valueRect.xMax + 2;
@@ -138,19 +140,22 @@ namespace CommonUtils.Editor.Inspector {
 			if (GUI.Button(removeRect, new GUIContent("+", "Add item"), EditorStyles.miniButtonRight)) {
 				if (newKeyToAdd == null) {
 					EditorUtility.DisplayDialog("Serializable dictionary", "Key cannot be null.", "Ok");
-					return;
+					return false;
 				}
 				if (dictionary.ContainsKey(newKeyToAdd)) {
 					EditorUtility.DisplayDialog("Serializable dictionary", "Cannot add because the key already exists in the dictionary.", "Ok");
-					return;
+					return false;
 				}
 				try {
 					dictionary.Add(newKeyToAdd, newValueToAdd);
 					foldout = true;
+					return true;
 				} catch (Exception e) {
 					Debug.Log(e.Message);
 				}
 			}
+
+			return false;
 		}
 
 		private void RemoveItem(TKey key) => dictionary.Remove(key);
@@ -160,8 +165,7 @@ namespace CommonUtils.Editor.Inspector {
 			var target = SerializeableCollectionsPropertyHelper.GetParent(property);
 			dictionary = fieldInfo.GetValue(target) as TDictionary;
 
-			if (dictionary == null)
-			{
+			if (dictionary == null) {
 				dictionary = new TDictionary();
 				fieldInfo.SetValue(target, dictionary);
 			}
@@ -169,8 +173,8 @@ namespace CommonUtils.Editor.Inspector {
 			foldout = EditorPrefs.GetBool(label.text);
 		}
 
-		protected virtual TKey drawKeyInputField(Rect rect, TKey value) => drawInputField(rect, value);
-		protected virtual TValue drawValueInputField(Rect rect, TValue value) => drawInputField(rect, value);
+		protected virtual TKey DrawKeyInputField(Rect rect, TKey value) => drawInputField(rect, value);
+		protected virtual TValue DrawValueInputField(Rect rect, TValue value) => drawInputField(rect, value);
 
 		private static Rect drawPrefixLabel(Rect rect, string prefix) {
 			EditorGUI.PrefixLabel(rect, prefixLabel[prefix].Label);
