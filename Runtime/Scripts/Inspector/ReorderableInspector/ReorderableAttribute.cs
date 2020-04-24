@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
-namespace CommonUtils.Inspector.ReorderableInspector
-{
+namespace CommonUtils.Inspector.ReorderableInspector {
 	/// <summary>
 	/// Display a List/Array as a sortable list in the inspector
 	/// </summary>
