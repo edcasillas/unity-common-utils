@@ -64,6 +64,7 @@ namespace CommonUtils.Editor.Inspector {
 
 			if (GUI.Button(buttonRect, new GUIContent("X", "Clear dictionary"), EditorStyles.miniButtonRight)) {
 				ClearDictionary();
+				EditorUtility.SetDirty(property.serializedObject.targetObject);
 			}
 			#endregion
 
@@ -105,6 +106,7 @@ namespace CommonUtils.Editor.Inspector {
 				value = DrawValueInputField(valueRect, value);
 				if (EditorGUI.EndChangeCheck()) {
 					dictionary[key] = value;
+					EditorUtility.SetDirty(property.serializedObject.targetObject);
 					break;
 				}
 
@@ -113,6 +115,7 @@ namespace CommonUtils.Editor.Inspector {
 				removeRect.width = kButtonWidth;
 				if (GUI.Button(removeRect, new GUIContent("-", "Remove item"), EditorStyles.miniButtonRight)) {
 					RemoveItem(key);
+					EditorUtility.SetDirty(property.serializedObject.targetObject);
 					break;
 				}
 			}
