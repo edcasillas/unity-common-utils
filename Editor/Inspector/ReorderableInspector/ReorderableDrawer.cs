@@ -1,6 +1,8 @@
-﻿using SubjectNerd.Utilities;
+﻿using System.Linq;
+using CommonUtils.DynamicEnums;
+using CommonUtils.Inspector.ReorderableInspector;
+using SubjectNerd.Utilities;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace CommonUtils.Editor.Inspector.ReorderableInspector {
@@ -30,8 +32,6 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 
 				var parent = SerializedPropExtension.GetParentProp(property);
 
-				if(indexInArray >= parent.arraySize) Debug.LogError("HERE!!!");
-
 				position.width -= buttonWidth * 3;
 
 				Rect rect = position;
@@ -42,7 +42,9 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 				if (targetElement.hasVisibleChildren)
 					rect.xMin += 10;
 				var propHeader = new GUIContent(targetElement.displayName);
-				EditorGUI.PropertyField(rect, targetElement, propHeader, isExpanded);
+
+				if(!tryDrawDynamicEnumField(targetElement, parent, rect, propHeader))
+					EditorGUI.PropertyField(rect, targetElement, propHeader, isExpanded);
 
 				var buttonRect = new Rect(position.x + position.width,
 					position.y,
@@ -78,6 +80,19 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 			}
 		}
 
+		private static bool tryDrawDynamicEnumField(SerializedProperty property, SerializedProperty parent, Rect rect, GUIContent propHeader) {
+			if ((property.propertyType == SerializedPropertyType.Integer || property.propertyType == SerializedPropertyType.String)) {
+				var parentParent = SerializedPropExtension.GetParentProp(parent);
+				var dynamicEnumAttribute = parentParent.GetAttributes<DynamicEnumAttribute>().First() as DynamicEnumAttribute;
+				if (dynamicEnumAttribute != null) {
+					DynamicEnumDrawer.DrawDynamicEnumField(rect, property, propHeader, dynamicEnumAttribute);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		private static int getIndexInArray(SerializedProperty property) {
 			var indexInArrayAsString = property.propertyPath.Substring(property.propertyPath.LastIndexOf("["))
 				.Replace("[", "")
@@ -85,5 +100,7 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 			var indexInArray = int.Parse(indexInArrayAsString);
 			return indexInArray;
 		}
+
+
 	}
 }

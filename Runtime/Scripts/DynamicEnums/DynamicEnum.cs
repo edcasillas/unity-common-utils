@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CommonUtils.Inspector.ReorderableInspector;
 using SubjectNerd.Utilities;
 using UnityEngine;
 
