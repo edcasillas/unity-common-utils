@@ -56,7 +56,7 @@ namespace CommonUtils.Editor.Inspector {
 			label.text += $" ({dictionary.Count} items)";
 			foldout = EditorGUI.Foldout(foldoutRect, foldout, label, true);
 			if (EditorGUI.EndChangeCheck())
-				EditorPrefs.SetBool(label.text, foldout);
+				EditorPrefs.SetBool($"{property.propertyPath}-foldout", foldout);
 
 			var buttonRect = position;
 			buttonRect.x = position.width - kButtonWidth + position.x;
@@ -164,7 +164,11 @@ namespace CommonUtils.Editor.Inspector {
 		private void RemoveItem(TKey key) => dictionary.Remove(key);
 
 		private void CheckInitialize(SerializedProperty property, GUIContent label) {
-			if (dictionary != null) return;
+			/*if (dictionary != null) {
+				Debug.Log($"NOT Initializing {property.propertyPath}");
+				return;
+			}*/
+			//Debug.Log($"Initializing {property.propertyPath}");
 			var target = SerializeableCollectionsPropertyHelper.GetParent(property);
 			dictionary = fieldInfo.GetValue(target) as TDictionary;
 
@@ -173,7 +177,7 @@ namespace CommonUtils.Editor.Inspector {
 				fieldInfo.SetValue(target, dictionary);
 			}
 
-			foldout = EditorPrefs.GetBool(label.text);
+			foldout = EditorPrefs.GetBool($"{property.propertyPath}-foldout");
 		}
 
 		protected virtual TKey DrawKeyInputField(Rect rect, TKey value) => drawInputField(rect, value);
