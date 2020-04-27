@@ -15,6 +15,7 @@ namespace CommonUtils.Editor {
 		private static ButtonFromKeyboard[] buttonsFromKeyboard;
 		private static IEnumerable<Button> unmappedButtons;
 		private static object context;
+		private Vector2 scroll;
 
 		[MenuItem("Window/Buttons from Keyboard... #&%k")]
 		private static void OpenActiveWindow() {
@@ -31,6 +32,7 @@ namespace CommonUtils.Editor {
 			if(hasContextChanged() || GUILayout.Button("Refresh")) refresh();
 
 			try {
+				scroll = EditorGUILayout.BeginScrollView(scroll);
 				EditorExtensions.RichLabelField("<b>Mappings</b>");
 				if (buttonsFromKeyboard.IsNullOrEmpty()) {
 					EditorGUILayout.HelpBox("No button from keyboard mappings have been found in the current scene.", MessageType.Info);
@@ -58,6 +60,7 @@ namespace CommonUtils.Editor {
 						EditorGUILayout.EndHorizontal();
 					}
 				}
+				EditorGUILayout.EndScrollView();
 			} catch { }
 		}
 
