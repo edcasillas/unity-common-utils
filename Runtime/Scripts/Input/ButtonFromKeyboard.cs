@@ -46,6 +46,11 @@ namespace CommonUtils.Input {
 			}
 		}
 
+		public KeyCode KeyCode {
+			get => keyCode;
+			set => keyCode = value;
+		}
+
 		public bool IsVerbose => verbose;
 		#endregion
 

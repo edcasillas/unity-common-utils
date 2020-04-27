@@ -168,7 +168,7 @@ namespace CommonUtils.Editor.Inspector {
 				Debug.Log($"NOT Initializing {property.propertyPath}");
 				return;
 			}*/
-			//Debug.Log($"Initializing {property.propertyPath}");
+			
 			var target = SerializeableCollectionsPropertyHelper.GetParent(property);
 			dictionary = fieldInfo.GetValue(target) as TDictionary;
 
