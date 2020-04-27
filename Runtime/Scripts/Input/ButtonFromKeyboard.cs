@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.ReorderableInspector;
-using SubjectNerd.Utilities;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+#if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 namespace CommonUtils.Input {
 	/// <summary>
 	/// Allows simulating button clicks using a key from the keyboard.
@@ -92,3 +92,4 @@ namespace CommonUtils.Input {
 		}
 	}
 }
+#endif
