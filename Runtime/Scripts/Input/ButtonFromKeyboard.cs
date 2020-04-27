@@ -65,12 +65,13 @@ namespace CommonUtils.Input {
 				var pointer = new PointerEventData(EventSystem.current); // pointer event for Execute
 
 				if (UnityEngine.Input.GetKeyDown(keyCode)) {
+					this.DebugLog($"{name} was pressed using key {keyCode}");
 					ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerEnterHandler);
 					ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
-					button.OnSelect(pointer);
 				}
 
-				if (UnityEngine.Input.GetKeyUp(keyCode) && EventSystem.current.currentSelectedGameObject == gameObject) {
+				if (UnityEngine.Input.GetKeyUp(keyCode)) {
+					this.DebugLog($"{name} was unpressed using key {keyCode}");
 					ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerUpHandler);
 					button.onClick.Invoke();
 				}
