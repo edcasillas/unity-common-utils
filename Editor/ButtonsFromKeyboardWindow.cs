@@ -2,6 +2,7 @@
 using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.Input;
+using CommonUtils.Input.ButtonExternalControllers;
 using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
