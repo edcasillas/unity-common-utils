@@ -14,7 +14,7 @@ namespace CommonUtils.Editor {
 		private static IEnumerable<Button> unmappedButtons;
 		private static Scene currentScene;
 
-		[MenuItem("Window/Buttons from Keyboard... #%k")]
+		[MenuItem("Window/Buttons from Keyboard... #&%k")]
 		private static void OpenActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<ButtonsFromKeyboardWindow>();
