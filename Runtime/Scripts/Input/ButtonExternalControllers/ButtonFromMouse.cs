@@ -4,6 +4,7 @@ using UnityEngine;
 namespace CommonUtils.Input.ButtonExternalControllers {
 	[AddComponentMenu("Input/Button from Mouse")]
 	public class ButtonFromMouse : AbstractButtonExternalController {
+#if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 		#region Inspector fields
 #pragma warning disable 649
 		[Tooltip("Mouse Button used to simulate button click.")]
@@ -32,4 +33,5 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			}
 		}
 	}
+#endif
 }

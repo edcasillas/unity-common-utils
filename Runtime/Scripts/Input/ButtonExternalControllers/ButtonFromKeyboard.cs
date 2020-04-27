@@ -1,13 +1,13 @@
 using CommonUtils.Extensions;
 using UnityEngine;
 
-#if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 namespace CommonUtils.Input.ButtonExternalControllers {
 	/// <summary>
 	/// Allows simulating button clicks using a key from the keyboard.
 	/// </summary>
 	[AddComponentMenu("Input/Button from Keyboard")]
 	public class ButtonFromKeyboard : AbstractButtonExternalController {
+#if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 		#region Inspector fields
 #pragma warning disable 649
 		[Tooltip("Key used to simulate button click.")]
@@ -36,5 +36,5 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			}
 		}
 	}
-}
 #endif
+}
