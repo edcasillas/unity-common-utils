@@ -19,14 +19,14 @@ namespace CommonUtils.Extensions {
 			var sizeDelta           = rectTransform.sizeDelta;
 			var rectTransformWidth  = sizeDelta.x * rectTransform.lossyScale.x;
 			var rectTransformHeight = sizeDelta.y * rectTransform.lossyScale.y;
-
+			
 			var position = rectTransform.position;
 			return new Rect(position.x - rectTransformWidth  / 2f,
 							position.y - rectTransformHeight / 2f,
 							rectTransformWidth,
 							rectTransformHeight);
 		}
-		
+
 		public static Rect ToScreenSpace(this RectTransform transform) // TODO This might be a duplicate of RectTransformExtensions.WorldRect
 		{
 			Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);

@@ -16,7 +16,7 @@ namespace CommonUtils.Extensions {
 			if (where == null) where = o => true;
 
 			var count = 0;
-			
+
 			foreach (Transform child in transform) {
 				if (where(child)) {
 #if UNITY_EDITOR
@@ -25,7 +25,7 @@ namespace CommonUtils.Extensions {
 					} else {
 						GameObject.Destroy(child.gameObject);
 					}
-					#else
+#else
 					GameObject.Destroy(child.gameObject);
 #endif
 					count++;
@@ -34,5 +34,7 @@ namespace CommonUtils.Extensions {
 
 			return count;
 		}
+
+		public static int Depth(this Transform transform) => TransformDepthCalculator.Instance.GetDepth(transform);
 	}
 }
