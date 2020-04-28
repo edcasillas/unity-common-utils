@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using CommonUtils.DynamicEnums;
 using CommonUtils.Inspector.ReorderableInspector;
 using SubjectNerd.Utilities;
@@ -75,8 +76,8 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 				}
 
 				EditorGUI.EndProperty();
-			} catch {
-				Debug.LogError("Exception here!");
+			} catch(Exception ex) {
+				Debug.LogError($"Exception occured in the reorderable drawer: {ex.Message}");
 			}
 		}
 
