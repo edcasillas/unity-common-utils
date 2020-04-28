@@ -7,7 +7,7 @@ namespace CommonUtils.Extensions {
 		public static Coroutine InvokeNextFrame(this MonoBehaviour target, Action action) => target.StartCoroutine(invokeNextFrame(action));
 
 		private static IEnumerator invokeNextFrame(Action action) {
-			yield return new WaitForEndOfFrame();
+			yield return null;
 			action.Invoke();
 		}
 	}
