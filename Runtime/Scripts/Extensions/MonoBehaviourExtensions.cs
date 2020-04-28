@@ -11,7 +11,7 @@ namespace CommonUtils.Extensions {
 			action.Invoke();
 		}
 
-		public static Coroutine WaitUntil(MonoBehaviour target, Func<bool> condition, Action action) => target.StartCoroutine(waitUntil(condition, action));
+		public static Coroutine WaitUntil(this MonoBehaviour target, Func<bool> condition, Action action) => target.StartCoroutine(waitUntil(condition, action));
 
 		private static IEnumerator waitUntil(Func<bool> condition, Action action) {
 			yield return new WaitUntil(condition);
