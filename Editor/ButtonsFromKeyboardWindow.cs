@@ -18,6 +18,10 @@ namespace CommonUtils.Editor {
 		private static object context;
 		private Vector2 scroll;
 
+		/*
+		 * TODO Subscribe to scene and prefab stage change events to reload automatically.
+		 */
+
 		[MenuItem("Window/Buttons from Keyboard... #&%k")]
 		private static void OpenActiveWindow() {
 			if (!instance) {
@@ -39,6 +43,7 @@ namespace CommonUtils.Editor {
 					EditorGUILayout.HelpBox("No button from keyboard mappings have been found in the current scene.", MessageType.Info);
 				} else {
 					foreach (var buttonFromKeyboard in buttonsFromKeyboard) {
+						Undo.RecordObject(buttonFromKeyboard,"change button key mapping.");
 						EditorGUILayout.BeginHorizontal();
 						EditorGUILayout.ObjectField(buttonFromKeyboard, typeof(ButtonFromKeyboard));
 						buttonFromKeyboard.KeyCode = (KeyCode)EditorGUILayout.EnumPopup(buttonFromKeyboard.KeyCode);
@@ -54,7 +59,7 @@ namespace CommonUtils.Editor {
 						EditorGUILayout.BeginHorizontal();
 						EditorGUILayout.ObjectField(button, typeof(Button));
 						if (GUILayout.Button("Add mapping")) {
-							button.gameObject.AddComponent<ButtonFromKeyboard>();
+							Undo.AddComponent<ButtonFromKeyboard>(button.gameObject);
 							refresh();
 						}
 
