@@ -14,6 +14,7 @@ namespace CommonUtils.Editor {
 	public class ButtonsFromKeyboardWindow : EditorWindow {
 		private static ButtonsFromKeyboardWindow instance = null;
 		private static ButtonFromKeyboard[] buttonsFromKeyboard;
+		private static ButtonFromMouse[] buttonsFromMouse;
 		private static IEnumerable<Button> unmappedButtons;
 		private static object context;
 		private Vector2 scroll;
@@ -38,18 +39,33 @@ namespace CommonUtils.Editor {
 
 			try {
 				scroll = EditorGUILayout.BeginScrollView(scroll);
-				EditorExtensions.RichLabelField("<b>Mappings</b>");
+				EditorExtensions.RichLabelField("<b>Key Mappings</b>");
 				if (buttonsFromKeyboard.IsNullOrEmpty()) {
 					EditorGUILayout.HelpBox("No button from keyboard mappings have been found in the current scene.", MessageType.Info);
 				} else {
 					foreach (var buttonFromKeyboard in buttonsFromKeyboard) {
 						Undo.RecordObject(buttonFromKeyboard,"change button key mapping.");
 						EditorGUILayout.BeginHorizontal();
-						EditorGUILayout.ObjectField(buttonFromKeyboard, typeof(ButtonFromKeyboard));
+						EditorGUILayout.ObjectField(buttonFromKeyboard.Button, typeof(Button), true);
 						buttonFromKeyboard.KeyCode = (KeyCode)EditorGUILayout.EnumPopup(buttonFromKeyboard.KeyCode);
 						EditorGUILayout.EndHorizontal();
 					}
 				}
+				EditorGUILayout.Space();
+
+				EditorExtensions.RichLabelField("<b>Mouse Button Mappings</b>");
+				if (buttonsFromMouse.IsNullOrEmpty()) {
+					EditorGUILayout.HelpBox("No button from mouse mappings have been found in the current scene.", MessageType.Info);
+				} else {
+					foreach (var buttonFromKeyboard in buttonsFromMouse) {
+						Undo.RecordObject(buttonFromKeyboard,"change button key mapping.");
+						EditorGUILayout.BeginHorizontal();
+						EditorGUILayout.ObjectField(buttonFromKeyboard.Button, typeof(Button), true);
+						buttonFromKeyboard.MouseButton = EditorGUILayout.IntField(buttonFromKeyboard.MouseButton);
+						EditorGUILayout.EndHorizontal();
+					}
+				}
+				EditorGUILayout.Space();
 
 				EditorExtensions.RichLabelField("<b>Unmapped Buttons</b>");
 				if (unmappedButtons.IsNullOrEmpty()) {
@@ -57,8 +73,12 @@ namespace CommonUtils.Editor {
 				} else {
 					foreach (var button in unmappedButtons) {
 						EditorGUILayout.BeginHorizontal();
-						EditorGUILayout.ObjectField(button, typeof(Button));
-						if (GUILayout.Button("Add mapping")) {
+						EditorGUILayout.ObjectField(button, typeof(Button), true);
+						if (GUILayout.Button("Add mouse button mapping")) {
+							Undo.AddComponent<ButtonFromMouse>(button.gameObject);
+							refresh();
+						}
+						if (GUILayout.Button("Add key mapping")) {
 							Undo.AddComponent<ButtonFromKeyboard>(button.gameObject);
 							refresh();
 						}
@@ -76,12 +96,14 @@ namespace CommonUtils.Editor {
 				//Debug.Log("In prefab");
 				context = prefabStage;
 				buttonsFromKeyboard = prefabStage.stageHandle.FindComponentsOfType<ButtonFromKeyboard>();
-				unmappedButtons = prefabStage.stageHandle.FindComponentsOfType<Button>().Where(b => !b.GetComponent<ButtonFromKeyboard>());
+				buttonsFromMouse = prefabStage.stageHandle.FindComponentsOfType<ButtonFromMouse>();
+				unmappedButtons = prefabStage.stageHandle.FindComponentsOfType<Button>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
 			} else {
 				//Debug.Log("In scene");
 				context = SceneManager.GetActiveScene();
 				buttonsFromKeyboard = FindObjectsOfType<ButtonFromKeyboard>();
-				unmappedButtons = FindObjectsOfType<Button>().Where(b => !b.GetComponent<ButtonFromKeyboard>());
+				buttonsFromMouse = FindObjectsOfType<ButtonFromMouse>();
+				unmappedButtons = FindObjectsOfType<Button>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
 			}
 		}
 

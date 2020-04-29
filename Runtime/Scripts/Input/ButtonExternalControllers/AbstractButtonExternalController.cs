@@ -22,7 +22,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#region Properties
 		private Button button;
 
-		protected Button Button {
+		public Button Button {
 			get {
 				if (!button) {
 					button = GetComponent<Button>();
