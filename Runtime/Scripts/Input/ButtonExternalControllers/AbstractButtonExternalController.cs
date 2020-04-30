@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
-	[RequireComponent(typeof(Button))]
+	[RequireComponent(typeof(Selectable))]
 	public abstract class AbstractButtonExternalController : MonoBehaviour, IVerbosable {
 #pragma warning disable 649
 		/// <summary>
@@ -20,14 +20,14 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 #pragma warning restore 649
 
 		#region Properties
-		private Button button;
+		private Selectable button;
 
-		public Button Button {
+		public Selectable Button {
 			get {
 				if (!button) {
-					button = GetComponent<Button>();
+					button = GetComponent<Selectable>();
 					if (!button) {
-						Debug.LogError($"\"{name}\" doesn't have a required component of type '{nameof(UnityEngine.UI.Button)}'.");
+						Debug.LogError($"\"{name}\" doesn't have a required component of type '{nameof(Selectable)}'.");
 						enabled = false;
 					}
 				}

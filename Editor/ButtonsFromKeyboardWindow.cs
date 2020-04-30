@@ -15,7 +15,7 @@ namespace CommonUtils.Editor {
 		private static ButtonsFromKeyboardWindow instance = null;
 		private static ButtonFromKeyboard[] buttonsFromKeyboard;
 		private static ButtonFromMouse[] buttonsFromMouse;
-		private static IEnumerable<Button> unmappedButtons;
+		private static IEnumerable<Selectable> unmappedButtons;
 		private static object context;
 		private Vector2 scroll;
 
@@ -44,6 +44,7 @@ namespace CommonUtils.Editor {
 					EditorGUILayout.HelpBox("No button from keyboard mappings have been found in the current scene.", MessageType.Info);
 				} else {
 					foreach (var buttonFromKeyboard in buttonsFromKeyboard) {
+						if(!buttonFromKeyboard) continue;
 						Undo.RecordObject(buttonFromKeyboard,"change button key mapping.");
 						EditorGUILayout.BeginHorizontal();
 						EditorGUILayout.ObjectField(buttonFromKeyboard.Button, typeof(Button), true);
@@ -71,15 +72,15 @@ namespace CommonUtils.Editor {
 				if (unmappedButtons.IsNullOrEmpty()) {
 					EditorGUILayout.HelpBox("No unmapped buttons have been found in the current scene.", MessageType.Info);
 				} else {
-					foreach (var button in unmappedButtons) {
+					foreach (var selectable in unmappedButtons) {
 						EditorGUILayout.BeginHorizontal();
-						EditorGUILayout.ObjectField(button, typeof(Button), true);
+						EditorGUILayout.ObjectField(selectable, typeof(Selectable), true);
 						if (GUILayout.Button("Add mouse button mapping")) {
-							Undo.AddComponent<ButtonFromMouse>(button.gameObject);
+							Undo.AddComponent<ButtonFromMouse>(selectable.gameObject);
 							refresh();
 						}
 						if (GUILayout.Button("Add key mapping")) {
-							Undo.AddComponent<ButtonFromKeyboard>(button.gameObject);
+							Undo.AddComponent<ButtonFromKeyboard>(selectable.gameObject);
 							refresh();
 						}
 
@@ -97,13 +98,13 @@ namespace CommonUtils.Editor {
 				context = prefabStage;
 				buttonsFromKeyboard = prefabStage.stageHandle.FindComponentsOfType<ButtonFromKeyboard>();
 				buttonsFromMouse = prefabStage.stageHandle.FindComponentsOfType<ButtonFromMouse>();
-				unmappedButtons = prefabStage.stageHandle.FindComponentsOfType<Button>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
+				unmappedButtons = prefabStage.stageHandle.FindComponentsOfType<Selectable>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
 			} else {
 				//Debug.Log("In scene");
 				context = SceneManager.GetActiveScene();
 				buttonsFromKeyboard = FindObjectsOfType<ButtonFromKeyboard>();
 				buttonsFromMouse = FindObjectsOfType<ButtonFromMouse>();
-				unmappedButtons = FindObjectsOfType<Button>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
+				unmappedButtons = FindObjectsOfType<Selectable>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
 			}
 		}
 
