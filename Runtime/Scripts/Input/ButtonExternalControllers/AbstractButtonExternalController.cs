@@ -59,7 +59,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		public void Release() {
 			var pointer = new PointerEventData(EventSystem.current); // pointer event for Execute
 			ExecuteEvents.Execute(Button.gameObject, pointer, ExecuteEvents.pointerUpHandler);
-			Button.onClick.Invoke();
+			ExecuteEvents.Execute(gameObject, pointer, ExecuteEvents.pointerClickHandler);
 		}
 
 		/// <summary>
