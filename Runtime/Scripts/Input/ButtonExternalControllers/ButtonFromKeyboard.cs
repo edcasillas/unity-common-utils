@@ -35,6 +35,6 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 				}
 			}
 		}
-	}
 #endif
+	}
 }
