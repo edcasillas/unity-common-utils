@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 [assembly: InternalsVisibleTo("com.ecasillas.commonutils.editor.tests")]
 
@@ -55,7 +56,12 @@ namespace CommonUtils.Heaps {
 				indexOf.Remove(result);
 			}
 
-			indexOf[Data[0]] = 0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
+			// TODO ArgumentOutOfRangeException have been reported in the following line.
+			try {
+				indexOf[Data[0]] = 0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
+			} catch (Exception ex) {
+				Debug.LogException(ex); // For now, log the exception but allow returning the result.
+			}
 
 			return result;
 		}
@@ -64,7 +70,7 @@ namespace CommonUtils.Heaps {
 		/// Determines whether an element is in the queue.
 		/// </summary>
 		/// <param name="item">The object to locate in the queue.</param>
-		/// <returns><c>true</c> if <paramref name="item"/> is found in the queue; othwewise, <c>false</c>.</returns>
+		/// <returns><c>true</c> if <paramref name="item"/> is found in the queue; otherwise, <c>false</c>.</returns>
 		public bool Contains(T item) => indexOf.ContainsKey(item);
 
 		/// <summary>
