@@ -9,19 +9,19 @@ using UnityEditor;
 // Modified by: Ed Casillas
 //
 // A wrapper that provides the means to safely serialize Scene Asset References.
-// 
+//
 // Internally we serialize an Object to the SceneAsset which only exists at editor time.
 // Any time the object is serialized, we store the path provided by this Asset (assuming it was valid).
-// 
-// This means that, come build time, the string path of the scene asset is always already stored, which if 
+//
+// This means that, come build time, the string path of the scene asset is always already stored, which if
 // the scene was added to the build settings means it can be loaded.
-// 
+//
 // It is up to the user to ensure the scene exists in the build settings so it is loadable at runtime.
 // To help with this, a custom PropertyDrawer displays the scene build settings state.
-// 
+//
 // Known issues:
-//     -   When reverting back to a prefab which has the asset stored as null, Unity will show the property 
-//         as modified despite having just reverted. This only happens the fist time, and reverting again 
+//     -   When reverting back to a prefab which has the asset stored as null, Unity will show the property
+//         as modified despite having just reverted. This only happens the fist time, and reverting again
 //         fixes it. Under the hood the state is still always valid, and serialized correctly regardless.
 
 namespace CommonUtils.Inspector.SceneRefs {
@@ -31,10 +31,10 @@ namespace CommonUtils.Inspector.SceneRefs {
     [System.Serializable]
     public class SceneReference : ISerializationCallbackReceiver {
 #if UNITY_EDITOR
-
+#pragma warning disable 649
         // What we use in editor to select the scene
-        [SerializeField]
-        private Object sceneAsset;
+        [SerializeField] private Object sceneAsset;
+#pragma warning restore 649
 
         private bool IsValidSceneAsset => sceneAsset != null && sceneAsset.GetType().Equals(typeof(SceneAsset));
 #endif
@@ -63,7 +63,7 @@ namespace CommonUtils.Inspector.SceneRefs {
 #endif
             }
         }
-        
+
         [SerializeField]
         private int buildIndex;
 
