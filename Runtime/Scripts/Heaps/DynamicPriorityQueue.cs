@@ -56,13 +56,7 @@ namespace CommonUtils.Heaps {
 				indexOf.Remove(result);
 			}
 
-			// TODO ArgumentOutOfRangeException have been reported in the following line.
-			try {
-				indexOf[Data[0]] = 0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
-			} catch (Exception ex) {
-				Debug.LogException(ex); // For now, log the exception but allow returning the result.
-			}
-
+			if (!IsEmpty) indexOf[Data[0]] = 0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
 			return result;
 		}
 

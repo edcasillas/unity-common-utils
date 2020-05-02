@@ -24,6 +24,19 @@ namespace CommonUtils.Tests.Editor.Heaps {
 		}
 
 		[Test]
+		public void EnqueueDequeueOne() {
+			// Arrange
+			var heap = new DynamicPriorityQueue<Queueable>();
+			var queueable = new Queueable {Id = 0, Priority = 0};
+
+			// Act-Assert
+			heap.Enqueue(queueable);
+			var result = heap.Dequeue();
+
+			Assert.AreEqual(queueable, result);
+		}
+
+		[Test]
 		public void RandomlyInsertedItemsWithPrioritiesChanged() {
 			// Arrange
 			var heap = new DynamicPriorityQueue<Queueable>();
@@ -40,54 +53,25 @@ namespace CommonUtils.Tests.Editor.Heaps {
 				new Queueable{Id = 9, Priority = UnityEngine.Random.Range(int.MinValue, int.MaxValue)},
 			};
 
-			// Act
+			var expectedOutputIndices = new[] {9, 7, 5, 3, 1, 0, 2, 4, 6, 8}; // Priorities will be set into this order.
+
+			// Act - Enqueue values
 			foreach (var queueable in queueables) {
 				heap.Enqueue(queueable);
 			}
 
 			// Update priorities
-			queueables[0].Priority = 6;
-			heap.Enqueue(queueables[0]);
-
-			queueables[1].Priority = 5;
-			heap.Enqueue(queueables[1]);
-
-			queueables[2].Priority = 7;
-			heap.Enqueue(queueables[2]);
-
-			queueables[3].Priority = 4;
-			heap.Enqueue(queueables[3]);
-
-			queueables[4].Priority = 8;
-			heap.Enqueue(queueables[4]);
-
-			queueables[5].Priority = 3;
-			heap.Enqueue(queueables[5]);
-
-			queueables[6].Priority = 9;
-			heap.Enqueue(queueables[6]);
-
-			queueables[7].Priority = 2;
-			heap.Enqueue(queueables[7]);
-
-			queueables[8].Priority = 10;
-			heap.Enqueue(queueables[8]);
-
-			queueables[9].Priority = 1;
-			heap.Enqueue(queueables[9]);
+			for (int i = 0; i < expectedOutputIndices.Length; i++) {
+				queueables[expectedOutputIndices[i]].Priority = i + 1;
+				heap.Enqueue(queueables[expectedOutputIndices[i]]); // Call enqueue again to inform it's priority changed.
+			}
 
 			// Assert
-			Assert.AreEqual(queueables[9], heap.Dequeue());
-			Assert.AreEqual(queueables[7], heap.Dequeue());
-			Assert.AreEqual(queueables[5], heap.Dequeue());
-			Assert.AreEqual(queueables[3], heap.Dequeue());
-			Assert.AreEqual(queueables[1], heap.Dequeue());
-			Assert.AreEqual(queueables[0], heap.Dequeue());
-			Assert.AreEqual(queueables[2], heap.Dequeue());
-			Assert.AreEqual(queueables[4], heap.Dequeue());
-			Assert.AreEqual(queueables[6], heap.Dequeue());
-			Assert.AreEqual(queueables[8], heap.Dequeue());
-			Assert.IsTrue(heap.IsEmpty);
+			for (var i = 0; i < expectedOutputIndices.Length; i++) { // Check items come out in the selected priority.
+				var dequeued = heap.Dequeue();
+				Assert.AreEqual(queueables[expectedOutputIndices[i]], dequeued);
+			}
+			Assert.IsTrue(heap.IsEmpty); // In the end, the queue must be empty.
 		}
 
 		[Test]
@@ -278,7 +262,7 @@ namespace CommonUtils.Tests.Editor.Heaps {
 				reader.Close();
 			}
 
-			Debug.Log($"{e}/{u}/{d}");
+			//Debug.Log($"{e}/{u}/{d}");
 			Assert.AreEqual(added.Count, heap.Count);
 		}
 
