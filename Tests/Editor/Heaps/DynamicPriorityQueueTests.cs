@@ -34,6 +34,7 @@ namespace CommonUtils.Tests.Editor.Heaps {
 			var result = heap.Dequeue();
 
 			Assert.AreEqual(queueable, result);
+			Assert.AreEqual(0, heap.Count);
 		}
 
 		[Test]
@@ -248,9 +249,14 @@ namespace CommonUtils.Tests.Editor.Heaps {
 
 					}
 
-					if (!isValidHeap(heap.UnderlyingData)) {
+					try {
+						if (!isValidHeap(heap)) {
+							Debug.Log($"{e}/{u}/{d}");
+							Assert.Fail($"Heap became invalid after \"{line}\".");
+						}
+					} catch (Exception ex) {
 						Debug.Log($"{e}/{u}/{d}");
-						Assert.Fail($"Heap became invalid after \"{line}\".");
+						Assert.Fail($"Heap validation failed at line {line} with exception: {ex.Message}");
 					}
 
 					if (!indicesAreValid(heap)) {
@@ -264,6 +270,22 @@ namespace CommonUtils.Tests.Editor.Heaps {
 
 			//Debug.Log($"{e}/{u}/{d}");
 			Assert.AreEqual(added.Count, heap.Count);
+		}
+
+		private bool isValidHeap(PriorityQueue<Queueable> heap, int index = 0) {
+			if (heap.IsEmpty || index > heap.Count) return true;
+			var leftIndex = PriorityQueue<Queueable>.GetLeftChildIndex(index);
+			var rightIndex = leftIndex + 1;
+
+			if (leftIndex < heap.Count) {
+				if (heap.UnderlyingData[leftIndex].Priority < heap.UnderlyingData[index].Priority || !isValidHeap(heap, leftIndex)) return false;
+			}
+
+			if (rightIndex < heap.Count) {
+				if (heap.UnderlyingData[rightIndex].Priority < heap.UnderlyingData[index].Priority || !isValidHeap(heap, rightIndex)) return false;
+			}
+
+			return true;
 		}
 
 		private bool isValidHeap(IReadOnlyList<Queueable> arr, int index = 0) {
@@ -283,8 +305,8 @@ namespace CommonUtils.Tests.Editor.Heaps {
 		}
 
 		private bool indicesAreValid(DynamicPriorityQueue<Queueable> queue) {
-			if (queue.UnderlyingData.Count != queue.IndexOf.Count) return false;
-			for (var i = 0; i < queue.UnderlyingData.Count; i++) {
+			if (queue.Count != queue.IndexOf.Count) return false;
+			for (var i = 0; i < queue.Count; i++) {
 				if (queue.IndexOf[queue.UnderlyingData[i]] != i) return false;
 			}
 

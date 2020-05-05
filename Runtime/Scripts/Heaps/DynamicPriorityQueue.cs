@@ -26,7 +26,7 @@ namespace CommonUtils.Heaps {
 		/// <exception cref="ArgumentException">An item in <paramref name="source"/> is repeated.</exception>
 		public DynamicPriorityQueue(IEnumerable<T> source = null) : base(source) {
 			indexOf = source.IsNullOrEmpty() ? new Dictionary<T, int>() : new Dictionary<T, int>(source.Count());
-			for (var i = 0; i < Data.Count; i++) {
+			for (var i = 0; i < Count; i++) {
 				if (indexOf.ContainsKey(Data[i]))
 					throw new ArgumentException($"Elements in a {nameof(DynamicPriorityQueue<T>)} cannot be repeated.");
 
@@ -46,7 +46,7 @@ namespace CommonUtils.Heaps {
 		/// <param name="item">The object to add or update into the queue.</param>
 		public override void Enqueue(T item) {
 			if (!indexOf.ContainsKey(item)) {
-				indexOf.Add(item, Data.Count);
+				indexOf.Add(item, Count);
 				base.Enqueue(item);
 			}
 			else {
