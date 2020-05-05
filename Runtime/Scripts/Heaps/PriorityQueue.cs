@@ -35,8 +35,18 @@ namespace CommonUtils.Heaps {
 		/// </summary>
 		/// <param name="source">The collection whose elements are copied to the new <see cref="PriorityQueue{T}"/>.</param>
 		public PriorityQueue(IEnumerable<T> source = null) {
-			Data = source == null ? new List<T>() : new List<T>(source);
+			Data = source.IsNullOrEmpty() ? new List<T>() : new List<T>(source);
 			for (var i = Data.Count / 2 - 1; i >= 0; i--) heapifyDown(i);
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PriorityQueue{T}"/> class with the specified <paramref name="capacity"/>.
+		/// </summary>
+		/// <param name="capacity">Capacity of the queue.</param>
+		/// <exception cref="ArgumentOutOfRangeException">Capacity is less than zero.</exception>
+		public PriorityQueue(int capacity) {
+			if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
+			Data = new List<T>(capacity);
 		}
 
 		/// <summary>

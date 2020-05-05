@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using UnityEngine;
+using CommonUtils.Extensions;
 
 [assembly: InternalsVisibleTo("com.ecasillas.commonutils.editor.tests")]
 
@@ -12,7 +13,7 @@ namespace CommonUtils.Heaps {
 	/// </summary>
 	/// <typeparam name="T">Specifies the type of elements in the queue.</typeparam>
 	public class DynamicPriorityQueue<T> : PriorityQueue<T> where T : IComparable<T> {
-		private readonly Dictionary<T,int> indexOf = new Dictionary<T, int>();
+		private readonly Dictionary<T,int> indexOf;
 
 		public IReadOnlyDictionary<T, int> IndexOf => indexOf;
 
@@ -24,6 +25,7 @@ namespace CommonUtils.Heaps {
 		/// <param name="source">The collection whose elements are copied to the new <see cref="DynamicPriorityQueue{T}"/>.</param>
 		/// <exception cref="ArgumentException">An item in <paramref name="source"/> is repeated.</exception>
 		public DynamicPriorityQueue(IEnumerable<T> source = null) : base(source) {
+			indexOf = source.IsNullOrEmpty() ? new Dictionary<T, int>() : new Dictionary<T, int>(source.Count());
 			for (var i = 0; i < Data.Count; i++) {
 				if (indexOf.ContainsKey(Data[i]))
 					throw new ArgumentException($"Elements in a {nameof(DynamicPriorityQueue<T>)} cannot be repeated.");
@@ -31,6 +33,12 @@ namespace CommonUtils.Heaps {
 				indexOf.Add(Data[i], i);
 			}
 		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DynamicPriorityQueue{T}"/> class with the specified <paramref name="capacity"/>.
+		/// </summary>
+		/// <param name="capacity"></param>
+		public DynamicPriorityQueue(int capacity) : base(capacity) => indexOf = new Dictionary<T, int>(capacity);
 
 		/// <summary>
 		/// Adds an object to the queue. If the object already exists, checks and fixes the priority of the queue.
