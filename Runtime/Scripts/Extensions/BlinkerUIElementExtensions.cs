@@ -70,7 +70,6 @@ namespace CommonUtils.Extensions {
 			//Debug.Log($"Setting alpha to {restore}");
 			foreach (var g in blinkerElement.BlinkerGraphics) {
 				if (blinkerElement.OriginalAlphaValues == null) {
-					Debug.Log(":D " + ((MonoBehaviour)blinkerElement).gameObject.name);
 					continue;
 				}
  				var c = g.color;
