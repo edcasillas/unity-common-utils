@@ -67,8 +67,14 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		/// </summary>
 		/// <returns><c>true</c> when any of the blockers is active, otherwise <c>false</c>.</returns>
 		protected bool IsBlocked() {
-			if (IsBlockedBy.IsNullOrEmpty()) return false;
-			var activeBlocker = IsBlockedBy.FirstOrDefault(blocker => blocker.activeInHierarchy);
+			if (IsBlockedBy == null) return false;
+			GameObject activeBlocker = null;
+			for (int i = 0; i < IsBlockedBy.Count; i++) {
+				if (IsBlockedBy[i].activeInHierarchy) {
+					activeBlocker = IsBlockedBy[i];
+					break;
+				}
+			}
 			if (activeBlocker) {
 				this.DebugLog($"Button \"{name}\" is being blocked by {activeBlocker.name}");
 				return true;
