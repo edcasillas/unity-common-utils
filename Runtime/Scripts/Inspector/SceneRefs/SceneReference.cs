@@ -39,9 +39,10 @@ namespace CommonUtils.Inspector.SceneRefs {
         private bool IsValidSceneAsset => sceneAsset != null && sceneAsset.GetType().Equals(typeof(SceneAsset));
 #endif
 
+#pragma warning disable 649
         // This should only ever be set during serialization/deserialization!
-        [SerializeField]
-        private string scenePath = string.Empty;
+        [SerializeField] private string scenePath = string.Empty;
+#pragma warning restore 649
 
         // Use this when you want to actually have the scene path
         public string ScenePath {
@@ -64,8 +65,9 @@ namespace CommonUtils.Inspector.SceneRefs {
             }
         }
 
-        [SerializeField]
-        private int buildIndex;
+#pragma warning disable 649
+        [SerializeField] private int buildIndex;
+#pragma warning	restore 649
 
         public int BuildIndex => buildIndex;
 
