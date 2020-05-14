@@ -15,6 +15,17 @@ namespace CommonUtils.Extensions {
 			where TVerbosable : Object, IVerbosable {
 			if (verbosable.IsVerbose) Debug.Log(message, verbosable);
 		}
+		
+		/// <summary>
+		/// Writes a <paramref name="message"/> to the console if the <paramref name="verbosable"/> has its <see cref="IVerbosable.IsVerbose"/> property set to true.
+		/// </summary>
+		/// <param name="verbosable">Verbosable component writing the message.</param>
+		/// <param name="message">Message to be sent to the console.</param>
+		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
+		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, object message)
+			where TVerbosable : Object, IVerbosable {
+			if (verbosable.IsVerbose) Debug.Log(message, verbosable);
+		}
 
 		/// <summary>
 		/// Writes a <paramref name="message"/> to the console if the <paramref name="verbosable"/> has its <see cref="IVerbosable.IsVerbose"/> property set to true.
