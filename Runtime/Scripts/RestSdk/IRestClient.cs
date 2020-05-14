@@ -11,6 +11,13 @@ namespace CommonUtils.RestSdk {
 		/// Gets the URL of the API this client will connect to.
 		/// </summary>
 		string ApiUrl { get; }
+
+		/// <summary>
+		/// Creates a GET request to the specified <paramref name="actionRelativePath"/> and receives a response without data in <paramref name="callback"/>.
+		/// </summary>
+		/// <param name="actionRelativePath">Action path to be called in the API.</param>
+		/// <param name="callback">Method to receive the response.</param>
+		void Ping(string actionRelativePath, Action<RestResponse> callback);
 		
 		/// <summary>
 		/// Creates a GET request to the specified <paramref name="actionRelativePath"/> and receives a response of type <typeparamref name="TResult"/> in <paramref name="callback"/>.

@@ -27,8 +27,15 @@ namespace CommonUtils.RestSdk {
 		/// <param name="apiUrl">URL of the API this client will connect to, without trailing slash.</param>
 		public RestClient(string apiUrl) => ApiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
 
-		#region GET
+		#region PING
+		public void Ping(string actionRelativePath, Action<RestResponse> callback) {
+			var url = $"{ApiUrl}{(!string.IsNullOrWhiteSpace(actionRelativePath) ? $"/{actionRelativePath}" : string.Empty)}";
+			var www = UnityWebRequest.Get(url);
+			Coroutiner.StartCoroutine(SendRequest(www, callback));
+		}
+		#endregion
 
+		#region GET
 		/// <summary>
 		/// Executes a GET request to obtain a collection of results.
 		/// </summary>
