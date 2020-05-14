@@ -70,7 +70,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			if (IsBlockedBy == null) return false;
 			GameObject activeBlocker = null;
 			for (int i = 0; i < IsBlockedBy.Count; i++) {
-				if (IsBlockedBy[i].activeInHierarchy) {
+				if (IsBlockedBy[i] && IsBlockedBy[i].activeInHierarchy) {
 					activeBlocker = IsBlockedBy[i];
 					break;
 				}
