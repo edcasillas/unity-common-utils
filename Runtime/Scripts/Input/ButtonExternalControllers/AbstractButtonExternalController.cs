@@ -2,6 +2,7 @@
 using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.ReorderableInspector;
+using ExaGames.Common.SceneLoader;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 	[RequireComponent(typeof(Selectable))]
 	public abstract class AbstractButtonExternalController : MonoBehaviour, IVerbosable {
 #pragma warning disable 649
+		[SerializeField] private bool isBlockedBySceneLoader = true;
 		/// <summary>
 		/// Objects that can block this button when they're active.
 		/// </summary>
@@ -67,6 +69,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		/// </summary>
 		/// <returns><c>true</c> when any of the blockers is active, otherwise <c>false</c>.</returns>
 		protected bool IsBlocked() {
+			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
 			if (IsBlockedBy == null) return false;
 			GameObject activeBlocker = null;
 			for (int i = 0; i < IsBlockedBy.Count; i++) {
