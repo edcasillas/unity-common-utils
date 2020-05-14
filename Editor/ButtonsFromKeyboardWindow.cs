@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
-using CommonUtils.Input;
 using CommonUtils.Input.ButtonExternalControllers;
 using UnityEditor;
 using UnityEditor.Experimental.SceneManagement;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -102,9 +101,9 @@ namespace CommonUtils.Editor {
 			} else {
 				//Debug.Log("In scene");
 				context = SceneManager.GetActiveScene();
-				buttonsFromKeyboard = FindObjectsOfType<ButtonFromKeyboard>();
-				buttonsFromMouse = FindObjectsOfType<ButtonFromMouse>();
-				unmappedButtons = FindObjectsOfType<Selectable>().Where(b => !b.GetComponent<AbstractButtonExternalController>());
+				buttonsFromKeyboard = getAllObjectsOnlyInScene<ButtonFromKeyboard>();
+				buttonsFromMouse = getAllObjectsOnlyInScene<ButtonFromMouse>();
+				unmappedButtons = getAllObjectsOnlyInScene<Selectable>(b => !b.GetComponent<AbstractButtonExternalController>());
 			}
 		}
 
@@ -122,5 +121,10 @@ namespace CommonUtils.Editor {
 
 			return true;
 		}
+
+		private static T[] getAllObjectsOnlyInScene<T>(Func<T,bool> additionalConstraints = null) where T:MonoBehaviour 
+			=> (Resources.FindObjectsOfTypeAll(typeof(T)) as T[])
+			   .Where(obj => !EditorUtility.IsPersistent(obj.transform.root.gameObject) && !(obj.hideFlags == HideFlags.NotEditable || obj.hideFlags == HideFlags.HideAndDontSave) && (additionalConstraints == null || additionalConstraints(obj)))
+			   .ToArray();
 	}
 }
