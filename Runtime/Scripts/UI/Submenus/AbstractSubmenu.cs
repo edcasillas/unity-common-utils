@@ -1,9 +1,11 @@
 ﻿using System.Collections;
+using CommonUtils.Extensions;
 using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
     [RequireComponent(typeof(RectTransform), typeof(AudioSource))]
-	public abstract class AbstractSubmenu : MonoBehaviour {
+	public abstract class AbstractSubmenu : MonoBehaviour , IVerbosable{
+#pragma warning disable 649
 		[Tooltip("Ease animation type when showing the submenu.")]
 		public iTween.EaseType EaseIn;
 		[Tooltip("Ease animation type when hiding the submenu.")]
@@ -15,6 +17,10 @@ namespace CommonUtils.UI.Submenus {
 		public bool PlayFeedbackOnHide;
 		[Range(0, 20)]
 		public int AutoHide = 0;
+		[SerializeField] private bool verbose;
+#pragma warning restore 649
+
+		public bool IsVerbose => verbose;
 
 		protected RectTransform RectTransform;
 		protected AudioSource AudioSource;
@@ -31,7 +37,7 @@ namespace CommonUtils.UI.Submenus {
 		public virtual void Show() {
 			init();
 			if(hideCoroutine != null) {
-				Debug.Log("Stopping hide coroutine.", this);
+				this.DebugLog("Stopping hide coroutine.");
 				StopCoroutine(hideCoroutine);
 				if(IsOpen && AutoHide > 0) {
 					hideCoroutine = StartCoroutine(waitAndHide());
@@ -60,10 +66,9 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Virtual Methods
-
 		protected virtual void OnShown() {
 			if(AutoHide > 0) {
-				Debug.Log("Starting hide coroutine.", this);
+				this.DebugLog("Starting hide coroutine.");
 				hideCoroutine = StartCoroutine(waitAndHide());
 			}
 		}
@@ -114,7 +119,7 @@ namespace CommonUtils.UI.Submenus {
 
 		private IEnumerator waitAndHide() {
 			yield return new WaitForSeconds(AutoHide);
-			Debug.Log("Hiding", this);
+			this.DebugLog("Hiding");
 			Hide();
 			hideCoroutine = null;
 		}

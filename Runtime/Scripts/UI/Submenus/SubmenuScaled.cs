@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+﻿using CommonUtils.Extensions;
+using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
 	[AddComponentMenu("UI/Animated Submenu/Scaled Submenu")]
 	public class SubmenuScaled : AbstractSubmenu {
 		public override void OnAnimationUpdated(Vector2 updatedValue) {
-			Debug.Log(updatedValue);
+			this.DebugLog(updatedValue.ToString);
 			RectTransform.localScale = new Vector3(updatedValue.x, updatedValue.y, 1f);
 		}
 
