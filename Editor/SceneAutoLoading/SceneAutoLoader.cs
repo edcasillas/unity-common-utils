@@ -1,6 +1,7 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CommonUtils.Editor.SceneAutoLoading {
 	/// <summary>
@@ -64,7 +65,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 
 			if (!EditorApplication.isPlaying && EditorApplication.isPlayingOrWillChangePlaymode) {
 				// User pressed play -- autoload master scene.
-				PreviousScene = EditorSceneManager.GetActiveScene().path;
+				PreviousScene = SceneManager.GetActiveScene().path;
 
 				if (string.IsNullOrWhiteSpace(PreviousScene)) {
 					var userSelection = EditorUtility.DisplayDialogComplex("Scene Autoloader",
@@ -92,6 +93,9 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 					}
 				}
 
+				if (PreviousScene == MasterScene)
+					return;
+
 				if ((AutoSaveOnPlay && EditorSceneManager.SaveOpenScenes()) || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
 					try {
 						EditorSceneManager.OpenScene(MasterScene);
@@ -112,6 +116,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 
 			// isPlaying check required because cannot OpenScene while playing
 			if (!EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode && !string.IsNullOrWhiteSpace(PreviousScene)) {
+				if(SceneManager.GetActiveScene().path == PreviousScene) return;
 				// User pressed stop -- reload previous scene.
 				try {
 					EditorSceneManager.OpenScene(PreviousScene);
