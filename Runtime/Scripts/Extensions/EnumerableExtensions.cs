@@ -50,5 +50,17 @@ namespace CommonUtils.Extensions {
 		public static void SafeRemove<T>(this HashSet<T> set, T item) {
 			if (set.Contains(item)) set.Remove(item);
 		}
+
+		/// <summary>
+		/// Gets the index with the minimum value from this <paramref name="collection"/>.
+		/// </summary>
+		public static int IndexOfMin(this IEnumerable<int> collection) {
+			var minIndex = 0;
+			for (var i = 1; i < collection.Count(); i++) {
+				if (collection.ElementAt(i) < collection.ElementAt(minIndex)) minIndex = i;
+			}
+
+			return minIndex;
+		}
 	}
 }
