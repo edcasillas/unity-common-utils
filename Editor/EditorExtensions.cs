@@ -62,12 +62,10 @@ namespace CommonUtils.Editor {
 				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName} ({dictionary.Count})"), true);
 				if (fold) {
 					EditorGUI.indentLevel++;
-					EditorGUI.BeginDisabledGroup(true);
 					foreach (var kvp in dictionary) {
 						ReadOnlyLabelField(kvp.Key.ToString(), kvp.Value.ToString());
 					}
 
-					EditorGUI.EndDisabledGroup();
 					EditorGUI.indentLevel--;
 				}
 			}
@@ -84,7 +82,6 @@ namespace CommonUtils.Editor {
 				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName} ({enumerable.Count()})"), true);
 				if (fold) {
 					EditorGUI.indentLevel++;
-					EditorGUI.BeginDisabledGroup(true);
 
 					var i = 0;
 					foreach (var item in enumerable) {
@@ -92,7 +89,6 @@ namespace CommonUtils.Editor {
 						i++;
 					}
 
-					EditorGUI.EndDisabledGroup();
 					EditorGUI.indentLevel--;
 				}
 			}
