@@ -1,8 +1,9 @@
-﻿using CommonUtils.Extensions;
+﻿using System;
+using CommonUtils.Extensions;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
-	[AddComponentMenu("Input/Button from Mouse")]
+	[Obsolete("Please replace usages of this component with " + nameof(ButtonFromKeyboard))]
 	public class ButtonFromMouse : AbstractButtonExternalController {
 #if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 		#region Inspector fields
