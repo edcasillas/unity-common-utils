@@ -12,12 +12,15 @@ using UnityEngine.UI;
 namespace CommonUtils.Editor {
 	public class UIKeyboardBindingsWindow : EditorWindow {
 		private const string EditorPrefKey_ShowInScene = "CommonUtils.UIKeyboardBindingsWindow.ShowInScene";
+		private const string EditorPrefKey_ShowInSceneTextColor = "CommonUtils.UIKeyboardBindingsWindow.ShowInSceneTextColor";
 
 		private static UIKeyboardBindingsWindow instance = null;
 		private static ButtonFromKeyboard[] bindings;
 		private static IEnumerable<Selectable> unmappedButtons;
 		private static object context;
 		private Vector2 scroll;
+
+		private static Color textColorInScene = Color.black;
 
 		private static bool showInScene {
 			get => EditorPrefs.GetBool(EditorPrefKey_ShowInScene, false);
@@ -55,9 +58,11 @@ namespace CommonUtils.Editor {
 		}
 
 		private void OnGUI() {
-			var newShowInSceneValue  = EditorGUILayout.Toggle("Show in Scene View", showInScene);
+			var oldShowInSceneValue = showInScene;
+			var newShowInSceneValue  = EditorGUILayout.Toggle("Show in Scene View", oldShowInSceneValue);
+			textColorInScene = EditorGUILayout.ColorField("Text Color", textColorInScene);
 			EditorGUILayout.HelpBox("After enabling or disabling Show in Scene View, it takes a few seconds to refresh the Scene View. Please move your mouse around in the Scene View to refresh it.", MessageType.Info);
-			if (newShowInSceneValue != showInScene) {
+			if (newShowInSceneValue != oldShowInSceneValue) {
 				showInScene = newShowInSceneValue;
 				OnSceneGUI(null); // Force to repaint when the value changes.
 			}
@@ -106,8 +111,10 @@ namespace CommonUtils.Editor {
 			if(hasContextChanged() || GUILayout.Button("Refresh")) refresh();
 			if (bindings.IsNullOrEmpty()) return;
 
+			var style = new GUIStyle {normal = {textColor = textColorInScene}};
+
 			foreach (var binding in bindings) {
-				if(binding.gameObject.activeInHierarchy && binding.IsInteractable()) Handles.Label(binding.transform.position, binding.KeyCode.ToString());
+				if(binding.gameObject.activeInHierarchy && binding.IsInteractable()) Handles.Label(binding.transform.position, binding.KeyCode.ToString(), style);
 			}
 		}
 
