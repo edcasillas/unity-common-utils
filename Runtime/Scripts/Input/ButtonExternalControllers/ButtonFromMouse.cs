@@ -13,13 +13,6 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 #pragma warning restore 649
 		#endregion
 
-		#region Properties
-		public int MouseButton {
-			get => mouseButton;
-			set => mouseButton = value;
-		}
-		#endregion
-
 		private void Update() {
 			if (Button.IsInteractable() && !IsBlocked()) {
 				if (UnityEngine.Input.GetMouseButtonDown(mouseButton)) {

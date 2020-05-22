@@ -23,7 +23,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#endregion
 
 		private void Update() {
-			if (Button.IsInteractable() && !IsBlocked()) {
+			if (IsInteractable()) {
 				if (UnityEngine.Input.GetKeyDown(keyCode)) {
 					this.DebugLog($"{name} was pressed using key {keyCode}");
 					Press();

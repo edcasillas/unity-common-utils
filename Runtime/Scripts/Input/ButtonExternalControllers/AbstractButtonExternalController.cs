@@ -64,6 +64,8 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			ExecuteEvents.Execute(gameObject, pointer, ExecuteEvents.pointerClickHandler);
 		}
 
+		public bool IsInteractable() => Button.IsInteractable() && !IsBlocked();
+
 		/// <summary>
 		/// Gets a value indicating whether any of the blockers are active or not.
 		/// </summary>
