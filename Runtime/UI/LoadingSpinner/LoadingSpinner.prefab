@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 224989769766768894}
   - component: {fileID: 222914029236685358}
   - component: {fileID: 562782820}
-  - component: {fileID: 95081866022774986}
+  - component: {fileID: 562782823}
   m_Layer: 5
   m_Name: LoadingSpinner
   m_TagString: Untagged
@@ -64,7 +64,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a56e9c3363c4e40b8949aaa445e3c4ab, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 71fa75ee9ff0d47f982a18d73693d73b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -73,22 +73,16 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
---- !u!95 &95081866022774986
-Animator:
-  serializedVersion: 3
+--- !u!114 &562782823
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1885670435344216}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 4b2c3072f165743ce8ecbc3e4e6eb62a, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b1592d85db034f81b09c8905d00c4ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 300
