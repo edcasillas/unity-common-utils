@@ -5,7 +5,8 @@ namespace CommonUtils.UI.Submenus {
 	public class SubmenuSlideIn : AbstractSubmenu {
 		public enum SlideInDirections {
 			LeftToRight,
-			RightToLeft
+			RightToLeft,
+			BottomUp
 		}
 
 		public SlideInDirections Direction;
@@ -15,18 +16,18 @@ namespace CommonUtils.UI.Submenus {
 			switch(Direction) {
 			case SlideInDirections.LeftToRight:
 				hiddenValue = new Vector2(-RectTransform.rect.width, RectTransform.anchoredPosition.y);
-				shownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
 				break;
 			case SlideInDirections.RightToLeft:
 				hiddenValue = new Vector2(RectTransform.rect.width, RectTransform.anchoredPosition.y);
-				shownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
+				break;
+			case SlideInDirections.BottomUp:
+				hiddenValue = new Vector2(RectTransform.anchoredPosition.x, -RectTransform.rect.height);
 				break;
 			}
+			shownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
 			OnAnimationUpdated(hiddenValue);
 		}
 
-		public override void OnAnimationUpdated(Vector2 updatedValue) {
-			RectTransform.anchoredPosition = updatedValue;
-		}
+		public override void OnAnimationUpdated(Vector2 updatedValue) => RectTransform.anchoredPosition = updatedValue;
 	}
 }

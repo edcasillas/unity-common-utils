@@ -35,7 +35,8 @@ namespace CommonUtils.UI.Submenus {
 		#region Public Methods
 
 		public virtual void Show() {
-			init();
+			this.DebugLog(() => $"Will show {name}");
+			Init();
 			if(hideCoroutine != null) {
 				this.DebugLog("Stopping hide coroutine.");
 				StopCoroutine(hideCoroutine);
@@ -51,6 +52,10 @@ namespace CommonUtils.UI.Submenus {
 		}
 
 		public virtual void Hide() {
+			if (!IsInited) {
+				Debug.LogError($"Cannot hide this submenu before is initialized. Please call Init(); first.");
+			}
+			this.DebugLog($"Will hide {name}");
 			IsOpen = false;
 			animate(shownValue, hiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
@@ -81,7 +86,7 @@ namespace CommonUtils.UI.Submenus {
 
 		#region Private Methods
 
-		private void init() {
+		public void Init() {
 			if(!IsInited) {
 				RectTransform = GetComponent<RectTransform>();
 				AudioSource = GetComponent<AudioSource>();
