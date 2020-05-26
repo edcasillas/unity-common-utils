@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
@@ -44,9 +44,26 @@ namespace CommonUtils.Editor {
 
 		// Window has been selected
 		private void OnFocus() {
+#if UNITY_2019_1_OR_NEWER
+            // Remove delegate listener if it has previously
+			// been assigned.
+            SceneView.duringSceneGui  -= this.OnSceneGUI;
+
+			// Add (or re-add) the delegate.
+			SceneView.duringSceneGui  += this.OnSceneGUI;
+#else
+            // Remove delegate listener if it has previously
+            // been assigned.
+            SceneView.onSceneGUIDelegate -= this.OnSceneGUI;
+
+            // Add (or re-add) the delegate.
+            SceneView.onSceneGUIDelegate += this.OnSceneGUI;
+#endif
+
 			// Remove delegate listener if it has previously
 			// been assigned.
-			SceneView.onSceneGUIDelegate -= this.OnSceneGUI;
+            SceneView.onSceneGUIDelegate -= this.OnSceneGUI;
+
 			// Add (or re-add) the delegate.
 			SceneView.onSceneGUIDelegate += this.OnSceneGUI;
 		}
