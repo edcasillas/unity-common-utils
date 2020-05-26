@@ -64,7 +64,11 @@ namespace CommonUtils.Editor {
 		private void OnDestroy() {
 			// When the window is destroyed, remove the delegate
 			// so that it will no longer do any drawing.
+			#if UNITY_2019_1_OR_NEWER
+			SceneView.duringSceneGui -= this.OnSceneGUI;
+			#else
 			SceneView.onSceneGUIDelegate -= this.OnSceneGUI;
+			#endif
 		}
 
 		private void OnGUI() {
