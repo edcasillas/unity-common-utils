@@ -59,13 +59,6 @@ namespace CommonUtils.Editor {
             // Add (or re-add) the delegate.
             SceneView.onSceneGUIDelegate += this.OnSceneGUI;
 #endif
-
-			// Remove delegate listener if it has previously
-			// been assigned.
-            SceneView.onSceneGUIDelegate -= this.OnSceneGUI;
-
-			// Add (or re-add) the delegate.
-			SceneView.onSceneGUIDelegate += this.OnSceneGUI;
 		}
 
 		private void OnDestroy() {
