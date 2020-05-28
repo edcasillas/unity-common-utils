@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
 using CommonUtils.Inspector.ReorderableInspector;
-using SubjectNerd.Utilities;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CommonUtils.DynamicEnums {
-	[CreateAssetMenu(menuName = "Dynamic Enum Definitions")]
+	[CreateAssetMenu(menuName = "Common Utils/Dynamic Enum Definitions")]
 	public class DynamicEnumDefinitions : ScriptableObject {
 		#pragma warning disable 649
 		[SerializeField] [Reorderable] private DynamicEnum[] enums;

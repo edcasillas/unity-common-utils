@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace CommonUtils.UI {
+namespace CommonUtils.UI.PromoBadges {
 	/// <summary>
 	/// A component that can be used to create a button that links to a random application (picked from its configuration.) using platform-dependent URLs.
 	/// </summary>
@@ -21,6 +21,8 @@ namespace CommonUtils.UI {
 		}
 
 		public Image BadgeImage;
+		[SerializeField] private string remoteConfigUrl;
+		[SerializeField] private AppDataCollection testConfig;
 		public ApplicationData[] Apps;
 		
 		private ApplicationData appShown;

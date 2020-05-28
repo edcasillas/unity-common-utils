@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace CommonUtils.Effects.ShakingTransform {
-	[CreateAssetMenu(menuName = "Shaking Transform Preset")]
+	[CreateAssetMenu(menuName = "Common Utils/Shaking Transform Preset")]
 	public class ScriptableShakingTransformPreset : ScriptableObject, IShakingTransformPreset {
 		#region Inspector fields
 		[Tooltip("Defines the maximum translation at each axis.")]

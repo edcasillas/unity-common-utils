@@ -1,10 +1,7 @@
-﻿using System;
+using CommonUtils.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using CommonUtils.Extensions;
-
-[assembly: InternalsVisibleTo("com.ecasillas.commonutils.editor.tests")]
 
 namespace CommonUtils.Heaps {
 	/// <summary>
