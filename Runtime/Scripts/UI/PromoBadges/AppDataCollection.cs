@@ -1,9 +1,9 @@
+using System;
 using CommonUtils.Inspector.ReorderableInspector;
-using UnityEngine;
 
 namespace CommonUtils.UI.PromoBadges {
-	[CreateAssetMenu(menuName = "Common Utils/UI/Promo Badge App Data Collection", fileName = "PromoBadgeApps")]
-	internal class AppDataCollection : ScriptableObject {
+	[Serializable]
+	internal class AppDataCollection {
 		[Reorderable] public AppData[] Apps;
 	}
 }

@@ -5,29 +5,35 @@ using UnityEditor;
 using UnityEngine;
 
 namespace CommonUtils.Editor {
-	[CustomEditor(typeof(AppDataCollection))]
+	[CustomEditor(typeof(AppDataCollectionConfigurator))]
 	public class PromoBadgeAppDataCollectionEditor : UnityEditor.Editor {
-		private AppDataCollection appDataCollection;
+		private SerializedProperty appList;
 
-		private void OnEnable() => appDataCollection = (AppDataCollection)target;
+		private void OnEnable() => appList = serializedObject.FindProperty(nameof(AppDataCollectionConfigurator.AppData)).FindPropertyRelative(nameof(AppDataCollection.Apps));
 
 		public override void OnInspectorGUI() {
 			if (GUILayout.Button("Save JSON")) {
-				var path = EditorUtility.SaveFilePanel("Save PromoBadge app data collection", "", "promoBadgeData.json", "json");
-				if (!string.IsNullOrWhiteSpace(path)) {
-					var jsonContents = JsonUtility.ToJson(appDataCollection);
-					try {
-						File.WriteAllText(path, jsonContents);
-						Debug.Log($"PromoBadge app data collection file was saved at {path}");
-					} catch (Exception ex) {
-						Debug.LogError($"Could not save the PromoBadge app data collection file: {ex.Message}");
-					}
-				} else {
-					Debug.Log("Save cancelled");
-				}
+				saveJson();
 			}
 
-			DrawDefaultInspector();
+			EditorGUILayout.PropertyField(appList);
+			serializedObject.ApplyModifiedProperties();
+		}
+
+		private void saveJson() {
+			var path = EditorUtility.SaveFilePanel("Save PromoBadge app data collection", "", "promoBadgeData.json", "json");
+			if (!string.IsNullOrWhiteSpace(path)) {
+				var appDataCollection = (AppDataCollectionConfigurator)target;
+				var jsonContents = JsonUtility.ToJson(appDataCollection.AppData);
+				try {
+					File.WriteAllText(path, jsonContents);
+					Debug.Log($"PromoBadge app data collection file was saved at {path}");
+				} catch (Exception ex) {
+					Debug.LogError($"Could not save the PromoBadge app data collection file: {ex.Message}");
+				}
+			} else {
+				Debug.Log("Save cancelled");
+			}
 		}
 	}
 }

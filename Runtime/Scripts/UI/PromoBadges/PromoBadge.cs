@@ -17,7 +17,7 @@ namespace CommonUtils.UI.PromoBadges {
 		[SerializeField] private GameObject loadingOverlay;
 		[SerializeField] private Image badgeImage;
 		[SerializeField] private string remoteConfigUrl;
-		[SerializeField] private AppDataCollection testConfig;
+		[SerializeField] private AppDataCollectionConfigurator testConfig;
 #pragma warning restore 649
 		#endregion
 
@@ -51,13 +51,13 @@ namespace CommonUtils.UI.PromoBadges {
 					Debug.Log("GOT SOME DATA");
 				});
 
-			if(testConfig?.Apps == null || testConfig.Apps.Length == 0) {
+			if(!testConfig || testConfig.AppData?.Apps == null || testConfig.AppData.Apps.Length == 0) {
 				Debug.LogWarning($"{nameof(PromoBadge)} '{name}' doesn't have any apps set.", this);
 				gameObject.SetActive(false);
 				return;
 			}
 
-			var newAppShown = testConfig.Apps.PickRandom();
+			var newAppShown = testConfig.AppData.Apps.PickRandom();
 			targetUrl = newAppShown.UrlPerPlatform.ContainsKey(Application.platform) ? newAppShown.UrlPerPlatform[Application.platform] : newAppShown.FallbackUrl;
 			if (string.IsNullOrEmpty(targetUrl)) {
 				gameObject.SetActive(false);
