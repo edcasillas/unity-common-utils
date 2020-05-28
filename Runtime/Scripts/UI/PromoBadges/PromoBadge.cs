@@ -18,6 +18,7 @@ namespace CommonUtils.UI.PromoBadges {
 		[SerializeField] private Image badgeImage;
 		[SerializeField] private string remoteConfigUrl;
 		[SerializeField] private AppDataCollectionConfigurator testConfig;
+		[SerializeField] private bool debugUseTestConfig;
 #pragma warning restore 649
 		#endregion
 
@@ -28,6 +29,16 @@ namespace CommonUtils.UI.PromoBadges {
 			get {
 				if (!_button) _button = GetComponent<Button>();
 				return _button;
+			}
+		}
+
+		private bool UseTestConfig {
+			get {
+				#if UNITY_EDITOR
+				return debugUseTestConfig;
+				#else
+				return false;
+				#endif
 			}
 		}
 		#endregion
@@ -42,24 +53,34 @@ namespace CommonUtils.UI.PromoBadges {
 			badgeContainer.SetActive(false);
 			button.interactable = false;
 
+			if (UseTestConfig) return;
+
+			if (string.IsNullOrEmpty(remoteConfigUrl)) {
+				Debug.LogError("A URL to fetch PromoBadge remote configuration has not been set.");
+				gameObject.SetActive(false);
+				return;
+			}
 			restClient = new RestClient(remoteConfigUrl);
 		}
 
 		private void Start() {
-			restClient.Get<AppDataCollection>(string.Empty,
-				result => {
-					if (!result.IsSuccess) {
-						gameObject.SetActive(false);
-						return;
-					}
-					showApp(result.Data.Apps.PickRandom());
-				});
-
-			//if(!testConfig || testConfig.AppData?.Apps == null || testConfig.AppData.Apps.Length == 0) {
-			//	Debug.LogWarning($"{nameof(PromoBadge)} '{name}' doesn't have any apps set.", this);
-			//	gameObject.SetActive(false);
-			//	return;
-			//}
+			if (!UseTestConfig) {
+				restClient.Get<AppDataCollection>(string.Empty,
+					result => {
+						if (!result.IsSuccess) {
+							gameObject.SetActive(false);
+							return;
+						}
+						showApp(result.Data.Apps.PickRandom());
+					});
+			} else {
+				if(!testConfig || testConfig.AppData?.Apps == null || testConfig.AppData.Apps.Length == 0) {
+					Debug.LogWarning($"{nameof(PromoBadge)} '{name}' doesn't have any apps set.", this);
+					gameObject.SetActive(false);
+					return;
+				}
+				showApp(testConfig.AppData.Apps.PickRandom());
+			}
 		}
 
 		private void showApp(AppData appToShow) {
