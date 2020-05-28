@@ -1,7 +1,7 @@
 using CommonUtils.Extensions;
+using CommonUtils.RestSdk;
 using CommonUtils.WebResources;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace CommonUtils.UI.PromoBadges {
@@ -20,9 +20,8 @@ namespace CommonUtils.UI.PromoBadges {
 		[SerializeField] private AppDataCollection testConfig;
 #pragma warning restore 649
 		#endregion
-		
-		private string targetUrl;
 
+		#region Properties and backing fields
 		private Button _button;
 
 		private Button button {
@@ -31,14 +30,27 @@ namespace CommonUtils.UI.PromoBadges {
 				return _button;
 			}
 		}
+		#endregion
+
+		#region Private fields
+		private string targetUrl;
+		private IRestClient restClient;
+		#endregion
 
 		private void Awake() {
 			loadingOverlay.SetActive(true);
 			badgeContainer.SetActive(false);
 			button.interactable = false;
+
+			restClient = new RestClient(remoteConfigUrl);
 		}
 
 		private void Start() {
+			restClient.Get<AppDataCollection>(string.Empty,
+				result => {
+					Debug.Log("GOT SOME DATA");
+				});
+
 			if(testConfig?.Apps == null || testConfig.Apps.Length == 0) {
 				Debug.LogWarning($"{nameof(PromoBadge)} '{name}' doesn't have any apps set.", this);
 				gameObject.SetActive(false);
