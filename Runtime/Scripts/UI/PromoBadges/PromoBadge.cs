@@ -48,27 +48,35 @@ namespace CommonUtils.UI.PromoBadges {
 		private void Start() {
 			restClient.Get<AppDataCollection>(string.Empty,
 				result => {
-					Debug.Log("GOT SOME DATA");
+					if (!result.IsSuccess) {
+						gameObject.SetActive(false);
+						return;
+					}
+					showApp(result.Data.Apps.PickRandom());
 				});
 
-			if(!testConfig || testConfig.AppData?.Apps == null || testConfig.AppData.Apps.Length == 0) {
-				Debug.LogWarning($"{nameof(PromoBadge)} '{name}' doesn't have any apps set.", this);
-				gameObject.SetActive(false);
-				return;
-			}
+			//if(!testConfig || testConfig.AppData?.Apps == null || testConfig.AppData.Apps.Length == 0) {
+			//	Debug.LogWarning($"{nameof(PromoBadge)} '{name}' doesn't have any apps set.", this);
+			//	gameObject.SetActive(false);
+			//	return;
+			//}
+		}
 
-			var newAppShown = testConfig.AppData.Apps.PickRandom();
-			targetUrl = newAppShown.UrlPerPlatform.ContainsKey(Application.platform) ? newAppShown.UrlPerPlatform[Application.platform] : newAppShown.FallbackUrl;
+		private void showApp(AppData appToShow) {
+			targetUrl = appToShow.UrlPerPlatform.ContainsKey(Application.platform) ? appToShow.UrlPerPlatform[Application.platform] : appToShow.FallbackUrl;
 			if (string.IsNullOrEmpty(targetUrl)) {
 				gameObject.SetActive(false);
 				return;
 			}
 
-			WebLoader.LoadWebTexture(newAppShown.ImageUrl,
+			WebLoader.LoadWebTexture(appToShow.ImageUrl,
 				response => {
 					loadingOverlay.SetActive(false);
 					if (!response.IsSuccess || !(response.Data is Texture2D tex)) return;
-					badgeImage.sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+					badgeImage.sprite = Sprite.Create(tex,
+						new Rect(0.0f, 0.0f, tex.width, tex.height),
+						new Vector2(0.5f, 0.5f),
+						100.0f);
 					badgeContainer.SetActive(true);
 					button.interactable = true;
 				});
