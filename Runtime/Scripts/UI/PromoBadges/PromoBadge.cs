@@ -1,5 +1,6 @@
 using System;
 using CommonUtils.Extensions;
+using CommonUtils.WebResources;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -9,7 +10,7 @@ namespace CommonUtils.UI.PromoBadges {
 	/// A component that can be used to create a button that links to a random application (picked from its configuration.) using platform-dependent URLs.
 	/// </summary>
 	[AddComponentMenu("UI/Promo Badge")]
-	[RequireComponent(typeof(Button), typeof(Image))]
+	[RequireComponent(typeof(Button))]
 	public class PromoBadge : MonoBehaviour {
 		[Serializable]
 		public class ApplicationData {
@@ -20,12 +21,34 @@ namespace CommonUtils.UI.PromoBadges {
 			public StringPerPlatformDictionary UrlPerPlatform;
 		}
 
-		public Image BadgeImage;
+		#region Inspector fields
+		#pragma warning disable 649
+		[SerializeField] private GameObject badgeContainer;
+		[SerializeField] private GameObject loadingOverlay;
+		[FormerlySerializedAs("BadgeImage")]
+		[SerializeField] private Image badgeImage;
 		[SerializeField] private string remoteConfigUrl;
 		[SerializeField] private AppDataCollection testConfig;
 		public ApplicationData[] Apps;
+		#pragma warning restore 649
+		#endregion
 		
 		private ApplicationData appShown;
+
+		private Button _button;
+
+		private Button button {
+			get {
+				if (!_button) _button = GetComponent<Button>();
+				return _button;
+			}
+		}
+
+		private void Awake() {
+			loadingOverlay.SetActive(true);
+			badgeContainer.SetActive(false);
+			button.interactable = false;
+		}
 
 		private void Start() {
 			if(Apps == null || Apps.Length == 0) {
@@ -34,8 +57,16 @@ namespace CommonUtils.UI.PromoBadges {
 				return;
 			}
 
-			appShown = Apps.PickRandom();
-			BadgeImage.sprite = Apps.PickRandom().SourceImage;
+			var newAppShown = testConfig.Apps.PickRandom();
+			WebLoader.LoadWebTexture(newAppShown.ImageUrl,
+				response => {
+					loadingOverlay.SetActive(false);
+					if (!response.IsSuccess || !(response.Data is Texture2D tex)) return;
+					appShown = new ApplicationData {FallbackUrl = newAppShown.FallbackUrl, UrlPerPlatform = newAppShown.UrlPerPlatform};
+					badgeImage.sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100.0f);
+					badgeContainer.SetActive(true);
+					button.interactable = true;
+				});
 		}
 
 		public void Go() {
