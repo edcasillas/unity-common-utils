@@ -121,7 +121,7 @@ namespace CommonUtils.Editor {
 		}
 
 		private void OnSceneGUI(SceneView scnView) {
-			if (!showInScene) return;
+			if (!showInScene || Event.current.type != EventType.Repaint) return;
 			if(hasContextChanged() || GUILayout.Button("Refresh")) refresh();
 			if (bindings.IsNullOrEmpty()) return;
 
