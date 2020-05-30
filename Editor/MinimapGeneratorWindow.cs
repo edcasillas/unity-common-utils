@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 namespace CommonUtils.Editor {
@@ -19,6 +20,7 @@ namespace CommonUtils.Editor {
 		private bool editingBounds;
 		private Bounds minimapBounds = new Bounds(Vector3.zero, Vector3.one * 10);
 		private string savePath;
+		private string minimapName;
 
 		private Vector3 camPosition => new Vector3(minimapBounds.center.x, minimapBounds.center.y + minimapBounds.extents.y, minimapBounds.center.z);
 
@@ -106,6 +108,8 @@ namespace CommonUtils.Editor {
 				savePath = newSavePath;
 			}
 
+			minimapName = EditorGUILayout.TextField("Minimap name", string.IsNullOrEmpty(minimapName) ? SceneManager.GetActiveScene().name : minimapName).Trim();
+
 			if (!string.IsNullOrWhiteSpace(savePath)) {
 				EditorGUILayout.Space();
 				if (GUILayout.Button("Generate minimap")) {
@@ -132,7 +136,6 @@ namespace CommonUtils.Editor {
 		}
 
 		private void generateMinimap() {
-			var sceneName = SceneManager.GetActiveScene().name;
 			if (string.IsNullOrEmpty(savePath) || !savePath.Contains(Application.dataPath)) return;
 			var relativePath = getSaveRelativePath();
 
@@ -188,24 +191,20 @@ namespace CommonUtils.Editor {
 
 			var bytes = virtualPhoto.EncodeToPNG();
 
-			if (!Directory.Exists($"{savePath}/{sceneName}_Minimap")) {
-				Directory.CreateDirectory($"{savePath}/{sceneName}_Minimap");
-			}
-
-			var textureSavePath = $"{savePath}/{sceneName}_Minimap/{sceneName}_Minimap.png";
+			var textureSavePath = $"{savePath}/{minimapName}.png";
 
 			File.WriteAllBytes(textureSavePath, bytes);
 
 			DestroyImmediate(newCamera.gameObject);
 
 			var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
-			go.name = "MinimapTexture (Generated)";
+			go.name = minimapName;
 			go.layer = minimapLayer;
 			go.transform.position = new Vector3(boundsCenter.x, minimapBounds.center.y - minimapBounds.extents.y, boundsCenter.y);
 			go.transform.localScale = new Vector3(boundsOG.x, boundsOG.y, 1);
 			go.transform.rotation = Quaternion.Euler(90, 0, 0);
 
-			var materialPath = $"{relativePath}/{sceneName}_Minimap/{sceneName}_Minimap.mat";
+			var materialPath = $"{relativePath}/{minimapName}.mat";
 			var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
 			if (material == null) {
 				material = new Material(Shader.Find("Unlit/Texture"));
@@ -214,11 +213,14 @@ namespace CommonUtils.Editor {
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
-			material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{relativePath}/{sceneName}_Minimap/{sceneName}_Minimap.png");
+			material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{relativePath}/{minimapName}.png");
 
-			go.GetComponent<MeshRenderer>().sharedMaterial = material;
+			var meshRenderer = go.GetComponent<MeshRenderer>();
+			meshRenderer.sharedMaterial = material;
+			meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+			meshRenderer.receiveShadows = false;
 
-			Debug.Log("created map texture at path : " + textureSavePath);
+			EditorUtility.DisplayDialog("Success!", "Minimap was successfully generated.", "Ok");
 		}
 
 		private Camera createCamera() {
