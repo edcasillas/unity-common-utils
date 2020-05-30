@@ -30,7 +30,7 @@ namespace CommonUtils.Editor {
 			instance.Show();
 			instance.Focus();
 		}
-/*
+
 		// Window has been selected
 		private void OnFocus() {
 #if UNITY_2019_1_OR_NEWER
@@ -59,7 +59,7 @@ namespace CommonUtils.Editor {
 			SceneView.onSceneGUIDelegate -= this.onSceneGUI;
 #endif
 		}
-*/
+
 		private void OnGUI() {
 			minimapLayer = EditorGUILayout.LayerField("Minimap Layer", minimapLayer);
 			maxTextureWidth = EditorGUILayout.IntField("Max Texture Width", maxTextureWidth);
@@ -83,8 +83,8 @@ namespace CommonUtils.Editor {
 			}
 
 			if (GUILayout.Button("Create preview camera")) {
-				/*var previewCam = createCamera();
-				previewCam.name = "MinimapPreviewCamera";*/
+				var previewCam = createCamera();
+				previewCam.name = "MinimapPreviewCamera";
 			}
 
 			EditorGUILayout.Space();
@@ -92,7 +92,7 @@ namespace CommonUtils.Editor {
 				//generateMinimap();
 			}
 		}
-/*
+
 		private void onSceneGUI(SceneView sceneView) {
 			if(!editingBounds) return;
 			Handles.PositionHandle(camPosition, camRotation);
@@ -123,6 +123,6 @@ namespace CommonUtils.Editor {
 			result.transform.rotation = camRotation;
 			return result;
 		}
-		*/
+
 	}
 }
