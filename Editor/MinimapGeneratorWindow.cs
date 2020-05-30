@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -48,10 +49,10 @@ namespace CommonUtils.Editor {
 #else
 			// Remove delegate listener if it has previously
 			// been assigned.
-			SceneView.onSceneGUIDelegate -= this.onSceneGUI;
+			SceneView.onSceneGUIDelegate -= onSceneGUI;
 
 			// Add (or re-add) the delegate.
-			SceneView.onSceneGUIDelegate += this.onSceneGUI;
+			SceneView.onSceneGUIDelegate += onSceneGUI;
 #endif
 		}
 
@@ -61,7 +62,7 @@ namespace CommonUtils.Editor {
 #if UNITY_2019_1_OR_NEWER
 			SceneView.duringSceneGui -= this.onSceneGUI;
 #else
-			SceneView.onSceneGUIDelegate -= this.onSceneGUI;
+			SceneView.onSceneGUIDelegate -= onSceneGUI;
 #endif
 		}
 
@@ -105,9 +106,11 @@ namespace CommonUtils.Editor {
 				savePath = newSavePath;
 			}
 
-			EditorGUILayout.Space();
-			if (GUILayout.Button("Generate minimap")) {
-				generateMinimap();
+			if (!string.IsNullOrWhiteSpace(savePath)) {
+				EditorGUILayout.Space();
+				if (GUILayout.Button("Generate minimap")) {
+					generateMinimap();
+				}
 			}
 		}
 
@@ -129,7 +132,93 @@ namespace CommonUtils.Editor {
 		}
 
 		private void generateMinimap() {
+			var sceneName = SceneManager.GetActiveScene().name;
+			if (string.IsNullOrEmpty(savePath) || !savePath.Contains(Application.dataPath)) return;
+			var relativePath = getSaveRelativePath();
 
+			var b = minimapBounds;
+			var boundsOG = new Vector2((b.center.x + b.extents.x) - (b.center.x - b.extents.x), (b.center.z + b.extents.z) - (b.center.z - b.extents.z));
+			var bounds = boundsOG;
+			var boundsCenter = new Vector2((b.center.x - b.extents.x) + bounds.x * 0.5f, (b.center.z - b.extents.z) + bounds.y * 0.5f);
+
+			var maxTextureWidthToUse = maxTextureWidth;
+
+			if (upsample2x) {
+				maxTextureWidthToUse *= 2;
+			}
+
+			if (bounds.x > bounds.y) {
+				bounds.y = bounds.y / bounds.x * maxTextureWidthToUse;
+				bounds.x = maxTextureWidthToUse;
+			} else {
+				bounds.x = bounds.x / bounds.y * maxTextureWidthToUse;
+				bounds.y = maxTextureWidthToUse;
+			}
+
+			var intBounds = new Vector2Int((int)bounds.x, (int)bounds.y);
+
+			var rt = new RenderTexture(intBounds.x, intBounds.y, 24);
+
+			var newCamera = createCamera();
+			newCamera.targetTexture = rt;
+
+			int oldMaxLODLevel = QualitySettings.maximumLODLevel;
+			var oldShadowsValue = QualitySettings.shadows;
+			QualitySettings.maximumLODLevel = 0;
+			QualitySettings.shadows = ShadowQuality.Disable;
+			newCamera.Render();
+			QualitySettings.maximumLODLevel = oldMaxLODLevel;
+			QualitySettings.shadows = oldShadowsValue;
+
+			RenderTexture.active = rt;
+			Texture2D virtualPhoto = new Texture2D(intBounds.x, intBounds.y, TextureFormat.RGB24, false);
+
+			// false, meaning no need for mipmaps
+			virtualPhoto.ReadPixels(new Rect(0, 0, intBounds.x, intBounds.y), 0, 0); // you get the center section
+
+			if (upsample2x) {
+				Vector2Int newBounds = new Vector2Int(intBounds.x / 2, intBounds.y / 2);
+				Debug.Log("bilinear scale to " + newBounds);
+				TextureScale.Bilinear(virtualPhoto, newBounds.x, newBounds.y);
+			}
+
+			RenderTexture.active = null; // "just in case"
+			newCamera.targetTexture = null;
+			DestroyImmediate(rt);
+
+			var bytes = virtualPhoto.EncodeToPNG();
+
+			if (!Directory.Exists($"{savePath}/{sceneName}_Minimap")) {
+				Directory.CreateDirectory($"{savePath}/{sceneName}_Minimap");
+			}
+
+			var textureSavePath = $"{savePath}/{sceneName}_Minimap/{sceneName}_Minimap.png";
+
+			File.WriteAllBytes(textureSavePath, bytes);
+
+			DestroyImmediate(newCamera.gameObject);
+
+			var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			go.name = "MinimapTexture (Generated)";
+			go.layer = minimapLayer;
+			go.transform.position = new Vector3(boundsCenter.x, minimapBounds.center.y - minimapBounds.extents.y, boundsCenter.y);
+			go.transform.localScale = new Vector3(boundsOG.x, boundsOG.y, 1);
+			go.transform.rotation = Quaternion.Euler(90, 0, 0);
+
+			var materialPath = $"{relativePath}/{sceneName}_Minimap/{sceneName}_Minimap.mat";
+			var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+			if (material == null) {
+				material = new Material(Shader.Find("Unlit/Texture"));
+				AssetDatabase.CreateAsset(material, materialPath);
+			}
+
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+			material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{relativePath}/{sceneName}_Minimap/{sceneName}_Minimap.png");
+
+			go.GetComponent<MeshRenderer>().sharedMaterial = material;
+
+			Debug.Log("created map texture at path : " + textureSavePath);
 		}
 
 		private Camera createCamera() {
