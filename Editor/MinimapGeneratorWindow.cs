@@ -1,6 +1,8 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CommonUtils.Editor {
 	public class MinimapGeneratorWindow : EditorWindow {
@@ -15,6 +17,7 @@ namespace CommonUtils.Editor {
 
 		private bool editingBounds;
 		private Bounds minimapBounds = new Bounds(Vector3.zero, Vector3.one * 10);
+		private string savePath;
 
 		private Vector3 camPosition => new Vector3(minimapBounds.center.x, minimapBounds.center.y + minimapBounds.extents.y, minimapBounds.center.z);
 
@@ -24,7 +27,9 @@ namespace CommonUtils.Editor {
 				Debug.Log("creating");
 				instance = GetWindow<MinimapGeneratorWindow>();
 				instance.titleContent = new GUIContent("Minimap Generator");
-				instance.minSize = new Vector2(300,220);
+				instance.minSize = new Vector2(300,300);
+				instance.savePath = Application.dataPath;
+
 				// TODO instance.maxSize
 			}
 			instance.Show();
@@ -88,8 +93,21 @@ namespace CommonUtils.Editor {
 			}
 
 			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Save to:", getSaveRelativePath());
+			if (GUILayout.Button("Select save location")) {
+				var newSavePath = EditorUtility.SaveFolderPanel("Choose save location", savePath, SceneManager.GetActiveScene().name);
+				if(string.IsNullOrEmpty(newSavePath)) return;
+				if (!newSavePath.Contains(Application.dataPath)) {
+					EditorUtility.DisplayDialog("Error", "Save location must be within the Assets folder of this project", "Ok");
+					return;
+				}
+
+				savePath = newSavePath;
+			}
+
+			EditorGUILayout.Space();
 			if (GUILayout.Button("Generate minimap")) {
-				//generateMinimap();
+				generateMinimap();
 			}
 		}
 
@@ -124,5 +142,12 @@ namespace CommonUtils.Editor {
 			return result;
 		}
 
+		private string getSaveRelativePath() {
+			try {
+				return !string.IsNullOrEmpty(savePath) ? savePath.Substring(savePath.IndexOf("/Assets", StringComparison.Ordinal) +1) : string.Empty;
+			} catch {
+				return savePath;
+			}
+		}
 	}
 }
