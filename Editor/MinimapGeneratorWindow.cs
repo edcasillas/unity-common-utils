@@ -12,7 +12,7 @@ namespace CommonUtils.Editor {
 		private static MinimapGeneratorWindow instance = null;
 
 		private static LayerMask cullingMask = ~0;
-		private static CameraClearFlags clearFlags;
+		private static CameraClearFlags clearFlags = CameraClearFlags.SolidColor;
 		private static Color backgroundColor = new Color(.2f, .3f, .47f, 0f);
 		private static int minimapLayer;
 		private static int maxTextureWidth = 2048;
@@ -204,6 +204,7 @@ namespace CommonUtils.Editor {
 			DestroyImmediate(newCamera.gameObject);
 
 			var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			DestroyImmediate(go.GetComponent<MeshCollider>());
 			go.name = minimapName;
 			go.layer = minimapLayer;
 			go.transform.position = new Vector3(boundsCenter.x, minimapBounds.center.y - minimapBounds.extents.y, boundsCenter.y);
