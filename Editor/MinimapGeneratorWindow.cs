@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -10,6 +11,7 @@ namespace CommonUtils.Editor {
 	public class MinimapGeneratorWindow : EditorWindow {
 		private static MinimapGeneratorWindow instance = null;
 
+		private static LayerMask cullingMask = ~0;
 		private static int minimapLayer;
 		private static int maxTextureWidth = 2048;
 		private static bool upsample2x;
@@ -69,13 +71,12 @@ namespace CommonUtils.Editor {
 		}
 
 		private void OnGUI() {
-			minimapLayer = EditorGUILayout.LayerField("Minimap Layer", minimapLayer);
+			cullingMask = EditorGUILayout.MaskField(new GUIContent("Culling Mask", "Culling mask to be used by the camera that will take the picture of the map."),  InternalEditorUtility.LayerMaskToConcatenatedLayersMask(cullingMask), InternalEditorUtility.layers);
+			minimapLayer = EditorGUILayout.LayerField(new GUIContent("Minimap Layer", "Layer to be applied to the minimap."), minimapLayer);
 			maxTextureWidth = EditorGUILayout.IntField("Max Texture Width", maxTextureWidth);
 			upsample2x = EditorGUILayout.Toggle("Upsample 2x", upsample2x);
 
 			EditorGUI.BeginChangeCheck();
-			//camPosition = EditorGUILayout.Vector3Field("Camera position", camPosition);
-			//camRotation = Quaternion.Euler(EditorGUILayout.Vector3Field("Camera rotation", camRotation.eulerAngles));
 			minimapBounds = EditorGUILayout.BoundsField("Bounds", minimapBounds);
 
 			var boundsSource = (Renderer)EditorGUILayout.ObjectField("Copy bounds from object", null, typeof(Renderer), true);
@@ -228,6 +229,7 @@ namespace CommonUtils.Editor {
 			result.orthographic = true;
 			result.farClipPlane = minimapBounds.size.y;
 			result.orthographicSize = minimapBounds.extents.z; //as orthographic size is based on height of camera frustum
+			result.cullingMask = cullingMask;
 			result.transform.position = camPosition;
 			result.transform.rotation = camRotation;
 			return result;
