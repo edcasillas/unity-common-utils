@@ -12,6 +12,8 @@ namespace CommonUtils.Editor {
 		private static MinimapGeneratorWindow instance = null;
 
 		private static LayerMask cullingMask = ~0;
+		private static CameraClearFlags clearFlags;
+		private static Color backgroundColor = new Color(.2f, .3f, .47f, 0f);
 		private static int minimapLayer;
 		private static int maxTextureWidth = 2048;
 		private static bool upsample2x;
@@ -71,6 +73,8 @@ namespace CommonUtils.Editor {
 		}
 
 		private void OnGUI() {
+			clearFlags = (CameraClearFlags)EditorGUILayout.EnumPopup("Clear Flags", clearFlags);
+			backgroundColor = EditorGUILayout.ColorField("Background color", backgroundColor);
 			cullingMask = EditorGUILayout.MaskField(new GUIContent("Culling Mask", "Culling mask to be used by the camera that will take the picture of the map."),  InternalEditorUtility.LayerMaskToConcatenatedLayersMask(cullingMask), InternalEditorUtility.layers);
 			minimapLayer = EditorGUILayout.LayerField(new GUIContent("Minimap Layer", "Layer to be applied to the minimap."), minimapLayer);
 			maxTextureWidth = EditorGUILayout.IntField("Max Texture Width", maxTextureWidth);
@@ -230,6 +234,8 @@ namespace CommonUtils.Editor {
 			result.farClipPlane = minimapBounds.size.y;
 			result.orthographicSize = minimapBounds.extents.z; //as orthographic size is based on height of camera frustum
 			result.cullingMask = cullingMask;
+			result.clearFlags = clearFlags;
+			result.backgroundColor = backgroundColor;
 			result.transform.position = camPosition;
 			result.transform.rotation = camRotation;
 			return result;
