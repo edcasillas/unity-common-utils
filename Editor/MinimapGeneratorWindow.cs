@@ -31,7 +31,6 @@ namespace CommonUtils.Editor {
 		[MenuItem("Tools/Generate minimap...")]
 		private static void OpenActiveWindow() {
 			if (!instance) {
-				Debug.Log("creating");
 				instance = GetWindow<MinimapGeneratorWindow>();
 				instance.titleContent = new GUIContent("Minimap Generator");
 				instance.minSize = new Vector2(300,300);
@@ -186,7 +185,7 @@ namespace CommonUtils.Editor {
 
 			if (upsample2x) {
 				Vector2Int newBounds = new Vector2Int(intBounds.x / 2, intBounds.y / 2);
-				Debug.Log("bilinear scale to " + newBounds);
+				//Debug.Log("bilinear scale to " + newBounds);
 				TextureScale.Bilinear(virtualPhoto, newBounds.x, newBounds.y);
 			}
 
