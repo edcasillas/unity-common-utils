@@ -19,5 +19,26 @@ namespace CommonUtils.Extensions {
 
 			return dest;
 		}
+
+		/// <summary>
+		/// Performs a binary search in the <paramref name="source"/> array looking for the <paramref name="target"/> value.
+		/// If found, returns its index; if not found, returns the closest index to the left of that value.
+		/// </summary>
+		public static int BinarySearchClosestLowerIndex(this float[] source, float target) {
+			var start = 0;
+			var end = source.Length;
+
+			while (start < end - 1) {
+				var mid = (start + end) / 2;
+				if (target == source[mid]) {
+					return mid;
+				}
+
+				if (target < source[mid]) end = mid;
+				else start = mid;
+			}
+
+			return start;
+		}
 	}
 }
