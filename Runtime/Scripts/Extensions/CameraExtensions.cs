@@ -2,32 +2,28 @@ using UnityEngine;
 
 namespace CommonUtils.Extensions {
 	public static class CameraExtensions {
-		public static void LayerCullingShow(this Camera cam, int layerMask) => cam.cullingMask |= layerMask;
+		public static void ShowLayer(this Camera cam, int layerIndex) => cam.cullingMask |= (1 << layerIndex);
 
-		public static void LayerCullingShow(this Camera cam, string layer) => LayerCullingShow(cam, 1 << LayerMask.NameToLayer(layer));
+		public static void ShowLayer(this Camera cam, string layerName) => ShowLayer(cam, LayerMask.NameToLayer(layerName));
 
-		public static void LayerCullingHide(this Camera cam, int layerMask) => cam.cullingMask &= ~layerMask;
+		public static void HideLayer(this Camera cam, int layerIndex) => cam.cullingMask &= ~(1 << layerIndex);
 
-		public static void LayerCullingHide(this Camera cam, string layer) => LayerCullingHide(cam, 1 << LayerMask.NameToLayer(layer));
+		public static void HideLayer(this Camera cam, string layerName) => HideLayer(cam, LayerMask.NameToLayer(layerName));
 
-		public static void LayerCullingToggle(this Camera cam, int layerMask) => cam.cullingMask ^= layerMask;
+		public static void ToggleLayerVisibility(this Camera cam, int layerIndex) => cam.cullingMask ^= (1 << layerIndex);
 
-		public static void LayerCullingToggle(this Camera cam, string layer) => LayerCullingToggle(cam, 1 << LayerMask.NameToLayer(layer));
+		public static void ToggleLayerVisibility(this Camera cam, string layerName) => ToggleLayerVisibility(cam, LayerMask.NameToLayer(layerName));
 
-		public static bool LayerCullingIncludes(this Camera cam, int layerMask) => (cam.cullingMask & layerMask) > 0;
+		public static bool IsLayerShown(this Camera cam, int layerIndex) => (cam.cullingMask & (1 << layerIndex)) > 0;
 
-		public static bool LayerCullingIncludes(this Camera cam, string layer) => LayerCullingIncludes(cam, 1 << LayerMask.NameToLayer(layer));
+		public static bool IsLayerShown(this Camera cam, string layerName) => IsLayerShown(cam, LayerMask.NameToLayer(layerName));
 
-		public static void LayerCullingToggle(this Camera cam, int layerMask, bool isOn) {
-			var included = LayerCullingIncludes(cam, layerMask);
-			if (isOn && !included) {
-				LayerCullingShow(cam, layerMask);
-			} else if (!isOn && included) {
-				LayerCullingHide(cam, layerMask);
-			}
+		public static void SetLayerVisibility(this Camera cam, int layerIndex, bool show) {
+			if(show) cam.ShowLayer(layerIndex);
+			else cam.HideLayer(layerIndex);
 		}
 
-		public static void LayerCullingToggle(this Camera cam, string layer, bool isOn) => LayerCullingToggle(cam, 1 << LayerMask.NameToLayer(layer), isOn);
+		public static void SetLayerVisibility(this Camera cam, string layerName, bool show) => cam.SetLayerVisibility(LayerMask.NameToLayer(layerName), show);
 
 		/// <summary>
 		/// Gets a value indicating whether the specified <paramref name="worldPosition"/> is inside the frustum of the <paramref name="camera"/>.
