@@ -17,5 +17,12 @@ namespace CommonUtils.Extensions {
 			yield return new WaitUntil(condition);
 			action.Invoke();
 		}
+
+		public static Coroutine WaitForSeconds(this MonoBehaviour target, float seconds, Action action) => target.StartCoroutine(waitForSeconds(seconds, action));
+
+		private static IEnumerator waitForSeconds(float seconds, Action action) {
+			yield return new WaitForSeconds(seconds);
+			action.Invoke();
+		}
 	}
 }
