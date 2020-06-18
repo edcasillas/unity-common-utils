@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using System.Collections.Generic;
-using CommonUtils;
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.ReorderableInspector;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-namespace ExaGames.Common.SceneLoader {
+namespace CommonUtils {
 	[AddComponentMenu("UI/Scene Loader")]
 	public class SceneLoader : MonoBehaviour, IVerbosable {
 		#region Static access members
@@ -46,6 +45,14 @@ namespace ExaGames.Common.SceneLoader {
 			instance.load(sceneIndex, onReadyToActivate);
 		}
 
+		public static void LoadScene(string scenePath, Action<AsyncOperation> onReadyToActivate) {
+			if (!instance) {
+				Coroutiner.StartCoroutine(loadWithoutInstance(scenePath, onReadyToActivate));
+				return;
+			}
+			instance.load(scenePath, onReadyToActivate);
+		}
+
 		private static IEnumerator loadWithoutInstance(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
 			var asyncLoad = SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Single);
 			asyncLoad.allowSceneActivation = false;
@@ -54,8 +61,17 @@ namespace ExaGames.Common.SceneLoader {
 			}
 			onReadyToActivate(asyncLoad);
 		}
+
+		private static IEnumerator loadWithoutInstance(string scenePath, Action<AsyncOperation> onReadyToActivate) {
+			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
+			asyncLoad.allowSceneActivation = false;
+			while(asyncLoad.progress < 0.9f) {
+				yield return null;
+			}
+			onReadyToActivate(asyncLoad);
+		}
 		#endregion
-		
+
 		#region Inspector fields
 #pragma warning disable 649
 		[FormerlySerializedAs("SuggestionsLabel")]
@@ -138,6 +154,17 @@ namespace ExaGames.Common.SceneLoader {
 			Coroutiner.StartCoroutine(doLoad(sceneIndex, onReadyToActivate), "Loading scene");
 		}
 
+		/// <summary>
+		/// Loads the scene with the specified <paramref name="scenePath"/> and executes the <paramref name="onReadyToActivate"/> callback when it's fully loaded and ready to activate.
+		/// </summary>
+		/// <param name="scenePath">Build index of the scene to load.</param>
+		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
+		private void load(string scenePath, Action<AsyncOperation> onReadyToActivate) {
+			gameObject.SetActive(true);
+			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			Coroutiner.StartCoroutine(doLoad(scenePath, onReadyToActivate), "Loading scene");
+		}
+
 		private IEnumerator doLoad(int sceneIndex) {
 			var asyncLoad = SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Single);
 			while(!asyncLoad.isDone) {
@@ -148,6 +175,18 @@ namespace ExaGames.Common.SceneLoader {
 
 		private IEnumerator doLoad(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
 			var asyncLoad = SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Single);
+			asyncLoad.allowSceneActivation = false;
+			while(asyncLoad.progress < 0.9f) {
+				if(progressSlider) progressSlider.value = asyncLoad.progress;
+				yield return null;
+			}
+
+			progressSlider.value = 1f;
+			onReadyToActivate(asyncLoad);
+		}
+
+		private IEnumerator doLoad(string scenePath, Action<AsyncOperation> onReadyToActivate) {
+			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
 			asyncLoad.allowSceneActivation = false;
 			while(asyncLoad.progress < 0.9f) {
 				if(progressSlider) progressSlider.value = asyncLoad.progress;
