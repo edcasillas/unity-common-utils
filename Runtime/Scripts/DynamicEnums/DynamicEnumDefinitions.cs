@@ -21,8 +21,6 @@ namespace CommonUtils.DynamicEnums {
 
 		public DynamicEnum this[string enumName] => Enums.TryGetValue(enumName, out var result) ? result : null;
 
-		public void Reload() {
-			htEnums = enums.ToDictionary(e => e.Name, e => e);
-		}
+		public void Reload() => htEnums = enums.ToDictionary(e => e.Name, e => e);
 	}
 }
