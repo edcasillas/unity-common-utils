@@ -87,7 +87,7 @@ namespace CommonUtils {
 			}
 
 			if(throwErrorOnEmpty) throw new Exception("No values available");
-			return default(T);
+			return default;
 		}
 
 		/// <summary>
