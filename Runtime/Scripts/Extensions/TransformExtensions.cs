@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CommonUtils.Extensions {
@@ -54,5 +55,36 @@ namespace CommonUtils.Extensions {
 		}
 
 		public static int Depth(this Transform transform) => TransformDepthCalculator.Instance.GetDepth(transform);
+
+		#region Temporary reset transforms
+		private class transformData {
+			public Vector3 Position;
+			public Quaternion Rotation;
+		}
+
+		private static readonly Dictionary<Transform, transformData> temporaryStoredTransformData = new Dictionary<Transform, transformData>();
+
+		public static void TemporaryResetTransform(this Transform transform) {
+			if (!temporaryStoredTransformData.ContainsKey(transform)) {
+				temporaryStoredTransformData.Add(transform, new transformData());
+			}
+			temporaryStoredTransformData[transform].Position = transform.localPosition;
+			temporaryStoredTransformData[transform].Rotation = transform.localRotation;
+			transform.localPosition = Vector3.zero;
+			transform.localRotation = Quaternion.identity;
+		}
+
+		public static void TemporaryUnResetTransform(this Transform transform) {
+			if (!temporaryStoredTransformData.ContainsKey(transform)) {
+				Debug.LogError($"There's no data stored for transform in Game Object '{transform.name}' to be reset.", transform);
+				return;
+			}
+
+			transform.localPosition = temporaryStoredTransformData[transform].Position;
+			transform.localRotation = temporaryStoredTransformData[transform].Rotation;
+
+			temporaryStoredTransformData.Remove(transform);
+		}
+		#endregion
 	}
 }
