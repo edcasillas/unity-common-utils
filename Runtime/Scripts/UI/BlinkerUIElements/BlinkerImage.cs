@@ -13,9 +13,9 @@ namespace CommonUtils.UI.BlinkerUIElements {
         [SerializeField] private bool autoStart;
 		#pragma warning restore 649
 
-        public float BlinkingRate => blinkingRate;
+        public float BlinkingRate { get; set; }
 
-        private IEnumerable<Graphic> graphics;
+		private IEnumerable<Graphic> graphics;
 
         public IEnumerable<Graphic> BlinkerGraphics => graphics ?? (graphics = new[] {GetComponent<Image>()});
 
@@ -23,6 +23,8 @@ namespace CommonUtils.UI.BlinkerUIElements {
 
         public IReadOnlyDictionary<Graphic, float> OriginalAlphaValues => originalAlphaValues ??
                                                                           (originalAlphaValues = BlinkerGraphics.ToDictionary(g => g, g => g.color.a));
+
+		private void Awake() => BlinkingRate = blinkingRate;
 
 		private void OnEnable() {
 			if(autoStart) this.StartBlinking();
