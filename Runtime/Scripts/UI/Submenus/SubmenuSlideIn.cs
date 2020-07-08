@@ -6,7 +6,8 @@ namespace CommonUtils.UI.Submenus {
 		public enum SlideInDirections {
 			LeftToRight,
 			RightToLeft,
-			BottomUp
+			BottomUp,
+			TopDown
 		}
 
 		public SlideInDirections Direction;
@@ -22,6 +23,9 @@ namespace CommonUtils.UI.Submenus {
 				break;
 			case SlideInDirections.BottomUp:
 				hiddenValue = new Vector2(RectTransform.anchoredPosition.x, -RectTransform.rect.height);
+				break;
+			case SlideInDirections.TopDown:
+				hiddenValue = new Vector2(RectTransform.anchoredPosition.x, RectTransform.rect.height);
 				break;
 			}
 			shownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
