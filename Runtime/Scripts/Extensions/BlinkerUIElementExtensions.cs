@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using CommonUtils.UI.BlinkerUIElements;
 using CommonUtils.UnityComponents;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace CommonUtils.Extensions {
 	public static class BlinkerUIElementExtensions {
@@ -15,8 +12,6 @@ namespace CommonUtils.Extensions {
 		}
 
 		private static readonly ConcurrentDictionary<IBlinkerUIElement, blinkCoroutineInfo> coroutines = new ConcurrentDictionary<IBlinkerUIElement, blinkCoroutineInfo>();
-
-		public static IReadOnlyDictionary<Graphic, float> GetOriginalAlphaValues(this IBlinkerUIElement blinkerElement) => blinkerElement.BlinkerGraphics.ToDictionary(g => g, g => g.color.a);
 
 		public static void StartBlinking(this IBlinkerUIElement blinkerElement) {
 			if (!blinkerElement.IsValid()) {
@@ -31,8 +26,7 @@ namespace CommonUtils.Extensions {
 			}
 
 			coroutines.TryAdd(blinkerElement, new blinkCoroutineInfo());
-			coroutines[blinkerElement].Coroutiner =
-				Coroutiner.StartCoroutine(blink(blinkerElement), $"UIBlinkingCoroutiner - {blinkerElement.name}");
+			coroutines[blinkerElement].Coroutiner = Coroutiner.StartCoroutine(blink(blinkerElement), $"UIBlinkingCoroutiner - {blinkerElement.name}");
 		}
 
 		public static void StopBlinking(this IBlinkerUIElement blinkerElement) {
@@ -68,13 +62,7 @@ namespace CommonUtils.Extensions {
 
 		private static void setAlpha(this IBlinkerUIElement blinkerElement, bool restore) {
 			//Debug.Log($"Setting alpha to {restore}");
-			foreach (var g in blinkerElement.BlinkerGraphics) {
-				if (blinkerElement.OriginalAlphaValues == null) {
-					continue;
-				}
- 				var c = g.color;
-				g.color = new Color(c.r, c.g, c.b, restore ? blinkerElement.OriginalAlphaValues[g] : 0f);
-			}
+			blinkerElement.CanvasGroup.alpha = restore ? 1f : 0f;
 		}
 	}
 }

@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using CommonUtils.UnityComponents;
-using UnityEngine.UI;
+using UnityEngine;
 
 namespace CommonUtils.UI.BlinkerUIElements {
 	public interface IBlinkerUIElement : IUnityComponent {
 		float BlinkingRate { get; }
-		IEnumerable<Graphic> BlinkerGraphics { get; }
-		IReadOnlyDictionary<Graphic, float> OriginalAlphaValues { get; }
+		CanvasGroup CanvasGroup { get; }
 	}
 }
