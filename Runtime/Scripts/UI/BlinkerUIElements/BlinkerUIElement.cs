@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace CommonUtils.UI.BlinkerUIElements {
 	[AddComponentMenu("UI/Blinker UI Element")]
-    [RequireComponent(typeof(Image), typeof(CanvasGroup))]
+    [RequireComponent(typeof(CanvasGroup))]
     public class BlinkerUIElement : MonoBehaviour, IBlinkerUIElement {
 		#pragma warning disable 649
         [SerializeField] private float blinkingRate;
