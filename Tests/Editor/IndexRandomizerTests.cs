@@ -17,11 +17,16 @@ namespace CommonUtils.Tests.Editor {
 
 			for (var i = 0; i < indexCount; i++) counts.Add(i, 0);
 
-			// Act
+			// Act-Assert
 			for (int i = 0; i < passes; i++) {
 				var result = indexRandomizer.Take(toTake);
+				var taken = new HashSet<int>();
 				for (int j = 0; j < result.Length; j++) {
 					counts[result[j]]++;
+
+					// Check the indices are not repeated.
+					Assert.IsFalse(taken.Contains(result[j]), $"Returned repeated indices: [{string.Join(", ", result)}]");
+					taken.Add(result[j]);
 				}
 			}
 

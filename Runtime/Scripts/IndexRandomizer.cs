@@ -24,7 +24,7 @@ namespace CommonUtils {
 
 			for (var i = 0; i < n; i++) {
 				var randomIndex = randomList.Pop((uint)i); // Pop a random index from the random list, excluding those that are already selected.
-				randomList.Push(i); // Push it again so the index is available the next round.
+				randomList.Push(randomIndex); // Push it again so the index is available the next round.
 				output[i] = randomIndex;
 			}
 		}

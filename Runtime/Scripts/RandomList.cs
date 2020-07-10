@@ -115,5 +115,16 @@ namespace CommonUtils {
 			node.Next = node.Previous = null;
 			Count--;
 		}
+
+		internal IEnumerable<T> AsEnumerable() {
+			var p = start;
+			var result = new List<T>();
+			while (p != null) {
+				result.Add(p.Data);
+				p = p.Next;
+			}
+
+			return result;
+		}
 	}
 }
