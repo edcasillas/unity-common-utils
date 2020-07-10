@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using CommonUtils.Extensions;
 using NUnit.Framework;
 using UnityEngine;
@@ -8,8 +9,9 @@ namespace CommonUtils.Tests.Editor {
 		[Test]
 		public void CheckResults_NoAssert() {
 			// Arrange
-			var indexCount = 18;
+			var indexCount = 5;
 			var passes = indexCount * 2;
+			var toTake = 2;
 			var indexRandomizer = new IndexRandomizer(indexCount);
 			var counts = new Dictionary<int, int>();
 
@@ -17,14 +19,16 @@ namespace CommonUtils.Tests.Editor {
 
 			// Act
 			for (int i = 0; i < passes; i++) {
-				var result = indexRandomizer.Take(3);
+				var result = indexRandomizer.Take(toTake);
 				for (int j = 0; j < result.Length; j++) {
 					counts[result[j]]++;
 				}
 			}
 
 			// Check (requires visual check)
+			Debug.Log($"Executed {passes} times with an array of {indexCount} items taking {toTake}");
 			Debug.Log(counts.AsJsonString());
+			Assert.AreEqual(toTake * passes, counts.Sum(kvp => kvp.Value));
 		}
 	}
 }
