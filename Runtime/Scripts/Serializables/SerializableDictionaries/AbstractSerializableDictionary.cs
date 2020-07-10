@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CommonUtils.Serializables { // Based on this answer: http://answers.unity.com/answers/809221/view.html
+namespace CommonUtils.Serializables.SerializableDictionaries { // Based on this answer: http://answers.unity.com/answers/809221/view.html
 	[Serializable]
 	public abstract class AbstractSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver {
 		[SerializeField]

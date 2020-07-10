@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CommonUtils.Serializables;
+using CommonUtils.Serializables.SerializableDictionaries;
 using UnityEditor;
 using UnityEngine;
 

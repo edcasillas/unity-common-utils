@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace CommonUtils.Randomizables {
+namespace CommonUtils.Serializables.Randomizables {
 	[Serializable]
 	public abstract class AbstractRandomizable<T> {
 #pragma warning disable 649
