@@ -18,6 +18,12 @@ namespace CommonUtils.Extensions {
 				Debug.LogError($"{nameof(BlinkerUIElementExtensions)}.{nameof(StartBlinking)} was called with a null or invalid argument.");
 				return;
 			}
+
+			if (!blinkerElement.CanvasGroup) {
+				Debug.LogError($"Cannot start blinking on {blinkerElement.name} because it doesn't have a required reference to a {nameof(CanvasGroup)}");
+				return;
+			}
+
 			//Debug.Log("Start");
 			if (coroutines.ContainsKey(blinkerElement)) { // Already blinking
 				//	Debug.Log("Already blinking");
