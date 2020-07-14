@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using CommonUtils.Serializables;
 using CommonUtils.Serializables.SerializableDictionaries;
 using UnityEditor;
 using UnityEngine;
@@ -169,7 +168,7 @@ namespace CommonUtils.Editor.Inspector {
 				Debug.Log($"NOT Initializing {property.propertyPath}");
 				return;
 			}*/
-			
+
 			var target = SerializeableCollectionsPropertyHelper.GetParent(property);
 			dictionary = fieldInfo.GetValue(target) as TDictionary;
 
