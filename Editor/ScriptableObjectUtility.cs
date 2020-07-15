@@ -10,11 +10,25 @@ namespace CommonUtils.Editor {
 		/// <summary>
 		/// Creates a new ScriptableObject via the default Save File panel
 		/// </summary>
-		public static ScriptableObject CreateAssetWithSavePrompt(Type type, string path)
-		{
+		public static ScriptableObject CreateAssetWithSavePrompt(Type type, string path) {
 			path = EditorUtility.SaveFilePanelInProject("Save ScriptableObject", "New " + type.Name + ".asset", "asset", "Enter a file name for the ScriptableObject.", path);
 			if (path == "") return null;
-			ScriptableObject asset = ScriptableObject.CreateInstance(type);
+			var asset = ScriptableObject.CreateInstance(type);
+			AssetDatabase.CreateAsset(asset, path);
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+			AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+			EditorGUIUtility.PingObject(asset);
+			return asset;
+		}
+
+		/// <summary>
+		/// Creates a new ScriptableObject via the default Save File panel
+		/// </summary>
+		public static T CreateAssetWithSavePrompt<T>(string path) where T: ScriptableObject{
+			path = EditorUtility.SaveFilePanelInProject("Save ScriptableObject", "New " + typeof(T).Name + ".asset", "asset", "Enter a file name for the ScriptableObject.", path);
+			if (path == "") return null;
+			var asset = ScriptableObject.CreateInstance<T>();
 			AssetDatabase.CreateAsset(asset, path);
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
