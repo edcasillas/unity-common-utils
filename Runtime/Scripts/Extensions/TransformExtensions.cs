@@ -56,6 +56,25 @@ namespace CommonUtils.Extensions {
 
 		public static int Depth(this Transform transform) => TransformDepthCalculator.Instance.GetDepth(transform);
 
+		/// <summary>
+		/// Returns a value indicating whether the specified <paramref name="transform"/> is nearly looking at the direction where the specified <paramref name="point"/> is.
+		/// </summary>
+		/// <param name="transform">Transform to perform the check with.</param>
+		/// <param name="point">Point to be tested.</param>
+		/// <param name="angleCos">
+		/// A value between 0 and 1 indicating the cosine of the angle between the transform's forward vector and the direction to the point.
+		/// Higher values mean the forward transform should be closer to looking at the exact direction of the point.
+		/// Negative values expect the point to be behind the transform.
+		/// </param>
+		/// <param name="projectOnSamePlane">Indicates whether this check should be done in 2D, ignoring the Y axis.</param>
+		public static bool IsNearlyFacingTowards(this Transform transform, Vector3 point, float angleCos = 0.95f, bool projectOnSamePlane = false) {
+			var transformPosition = transform.position;
+			if (projectOnSamePlane) point = new Vector3(point.x, transformPosition.y, point.z);
+			var directionToPoint = point - transformPosition;
+			var dotProduct = Vector3.Dot(transform.forward, directionToPoint.normalized);
+			return dotProduct >= angleCos;
+		}
+
 		#region Temporary reset transforms
 		private class transformData {
 			public Vector3 Position;
