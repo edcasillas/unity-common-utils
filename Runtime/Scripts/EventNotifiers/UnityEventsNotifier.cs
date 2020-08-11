@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace CommonUtils {
+namespace CommonUtils.EventNotifiers {
 	/// <summary>
 	/// A component that allows other GameObjects be notified when a Unity Event happens to this one.
 	/// </summary>
