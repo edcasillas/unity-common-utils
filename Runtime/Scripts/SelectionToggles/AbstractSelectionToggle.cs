@@ -20,11 +20,11 @@ namespace CommonUtils.SelectionToggles {
 		/// <param name="selectionValue">Value to be passed as argument of the <paramref name="onSelected"/> callback when the toggle is selected.</param>
 		/// <param name="labelText">Text to be shown in the toggle.</param>
 		/// <param name="onSelected">Callback to be executed when the toggle is selected.</param>
-		public void Init(TSelectionValue selectionValue, string labelText, Action<TSelectionValue> onSelected) {
-			label.text = labelText;
+		public void Init(ISelectionToggleConfiguration<TSelectionValue> configuration, Action<TSelectionValue> onSelected) {
+			label.text = configuration.SelectionToggleText;
 			toggle.onValueChanged.RemoveAllListeners();
 			toggle.onValueChanged.AddListener(val => {
-				if (val) onSelected(selectionValue);
+				if (val) onSelected(configuration.SelectionToggleValue);
 			});
 		}
 
