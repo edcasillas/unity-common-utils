@@ -17,6 +17,9 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		[Tooltip("Objects that can block this button when they're active.")]
 		[SerializeField] [Reorderable] protected List<GameObject> IsBlockedBy;
 
+		[Tooltip("Disable the functionality of this binding when Unity Remote is connected.")]
+		[SerializeField] private bool disableWithUnityRemote;
+
 		[SerializeField] private bool verbose;
 #pragma warning restore 649
 
@@ -40,6 +43,13 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#endregion
 
 		private void Awake() {
+			#if UNITY_EDITOR
+			if (UnityEditor.EditorApplication.isRemoteConnected && disableWithUnityRemote) {
+				Destroy(this);
+				return;
+			}
+			#endif
+
 			if (IsBlockedBy.Any(blocker => !blocker)) {
 				Debug.LogWarning($"\"{name}\" is being blocked by an invalid object.");
 			}

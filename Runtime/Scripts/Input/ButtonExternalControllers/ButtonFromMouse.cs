@@ -3,7 +3,7 @@ using CommonUtils.Extensions;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
-	[Obsolete("Please replace usages of this component with " + nameof(ButtonFromKeyboard))]
+	[Obsolete("Please replace usages of this component with " + nameof(ButtonFromKeyboard), true)]
 	public class ButtonFromMouse : AbstractButtonExternalController {
 #if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
 		#region Inspector fields
