@@ -8,7 +8,7 @@ namespace CommonUtils.ComponentCaching {
 		public IEnumerable<GameObject> CachedObjects => cachedObjects.Keys;
 
 		public T GetComponentFrom<T>(GameObject go) {
-			if (!go) return default(T);
+			if (!go) return default;
 
 			var t = typeof(T);
 

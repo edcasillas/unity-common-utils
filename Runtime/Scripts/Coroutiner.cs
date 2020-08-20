@@ -9,10 +9,9 @@ namespace CommonUtils {
 	/// </summary>
 	/// <author>Sebastiaan Fehr (Seb@TheBinaryMill.com)</author>
 	/// <description>
-	/// Classes that do not inherit from MonoBehaviour, or static functions within MonoBehaviours are inertly unable to
-	/// call StartCoroutene, as this function is not static and does not exist on Object. This Class creates a proxy though
-	/// does not exist on Object. This Class creates a proxy though which StartCoroutene can be called, and destroys it when
-	/// no longer needed.
+	/// Classes that do not inherit from MonoBehaviour, or static methods within MonoBehaviours are inertly unable to
+	/// call StartCoroutine, as this method is not static and does not exist on Object.This Class creates a proxy
+	/// through which StartCoroutine can be called.
 	/// </description>
 	/// <modified_by>Ed Casillas</modified_by>
 	public static class Coroutiner {
