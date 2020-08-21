@@ -1,7 +1,7 @@
 ﻿using UnityEngine.UI;
 
 namespace CommonUtils.UI.SettingsFields {
-	public abstract class AbstractToggleController : AbstractSettingsFieldController<bool, Toggle> {
+	public abstract class AbstractToggleFieldController : AbstractSettingsFieldController<bool, Toggle> {
 		protected override void Start() {
 			Field.isOn = DefaultValue;
 			if (AutoSave) Field.onValueChanged.AddListener(onValueChanged);
