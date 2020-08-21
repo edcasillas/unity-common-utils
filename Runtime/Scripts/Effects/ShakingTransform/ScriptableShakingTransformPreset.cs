@@ -13,6 +13,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 		[Tooltip("How fast is the shake?")]
 		[SerializeField] private float frequency = 25; // noise
 
+		[Tooltip("How fast will the shake stop? The higher the value, the faster it will stop.")]
 		[SerializeField] private float recoverySpeed = 1.5f;
 
 		[Tooltip("Multiplier to control the smooth falloff of the shake.")]
