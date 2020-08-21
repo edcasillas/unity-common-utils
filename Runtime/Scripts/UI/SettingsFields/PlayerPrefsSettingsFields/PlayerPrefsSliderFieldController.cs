@@ -6,7 +6,12 @@ namespace CommonUtils.UI.SettingsFields.PlayerPrefsSettingsFields {
 		[SerializeField] private string playerPrefsKey;
 		[SerializeField] private float defaultValue;
 #pragma warning restore 649
+
 		protected override float DefaultValue => PlayerPrefs.GetFloat(playerPrefsKey, defaultValue);
-		protected override void Save(float value) => PlayerPrefs.SetFloat(playerPrefsKey, value);
+
+		protected override void Save(float value) {
+			PlayerPrefs.SetFloat(playerPrefsKey, value);
+			PlayerPrefs.Save();
+		}
 	}
 }

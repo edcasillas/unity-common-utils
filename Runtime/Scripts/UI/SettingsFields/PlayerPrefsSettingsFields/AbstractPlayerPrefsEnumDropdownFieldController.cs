@@ -9,7 +9,12 @@ namespace CommonUtils.UI.SettingsFields.PlayerPrefsSettingsFields {
 		[SerializeField] private string playerPrefsKey;
 		[SerializeField] private TEnum defaultValue;
 #pragma warning restore 649
+
 		protected override TEnum DefaultValue => PlayerPrefs.GetInt(playerPrefsKey, defaultValue.ToInt()).ToEnumValue<TEnum>();
-		protected override void Save(TEnum value) => PlayerPrefs.SetInt(playerPrefsKey, value.ToInt());
+
+		protected override void Save(TEnum value) {
+			PlayerPrefs.SetInt(playerPrefsKey, value.ToInt());
+			PlayerPrefs.Save();
+		}
 	}
 }

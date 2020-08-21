@@ -8,6 +8,10 @@ namespace CommonUtils.UI.SettingsFields.PlayerPrefsSettingsFields {
 #pragma warning restore 649
 
 		protected override bool DefaultValue => PlayerPrefs.GetInt(playerPrefsKey, defaultValue ? 1 : 0) > 0;
-		protected override void Save(bool value) => PlayerPrefs.SetInt(playerPrefsKey, value ? 1 : 0);
+
+		protected override void Save(bool value) {
+			PlayerPrefs.SetInt(playerPrefsKey, value ? 1 : 0);
+			PlayerPrefs.Save();
+		}
 	}
 }
