@@ -18,7 +18,7 @@ namespace CommonUtils.Editor.CustomEditors {
 			if (!Application.isPlaying) {
 				var helpBoxType = shakingTransformController.transform.parent ? MessageType.Info : MessageType.Warning;
 				EditorGUILayout.HelpBox(
-					"Please make sure this Game Object is a children of another one to preserve the original position and rotation when and after shaking.",
+					"Please make sure this Game Object is a child of another one to preserve the original position and rotation when and after shaking.",
 					helpBoxType);
 
 				if (GUILayout.Button("Create parent")) {

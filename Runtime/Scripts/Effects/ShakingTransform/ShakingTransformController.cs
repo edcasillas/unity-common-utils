@@ -7,6 +7,7 @@ using UnityEngine.Events;
 
 namespace CommonUtils.Effects.ShakingTransform {
 	[AddComponentMenu("Effects/Shaking Transform Controller")]
+	[HelpURL("https://github.com/edcasillas/unity-common-utils/wiki/Shaking-Transform")]
 	public class ShakingTransformController : MonoBehaviour, IVerbosable { // Based on https://roystan.net/articles/camera-shake.html
 		#region Inspector fields
 #pragma warning disable 649
