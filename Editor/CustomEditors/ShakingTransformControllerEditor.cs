@@ -22,15 +22,38 @@ namespace CommonUtils.Editor.CustomEditors {
 					helpBoxType);
 
 				if (GUILayout.Button("Create parent")) {
-					var parent = new GameObject("ShakingTransformParent");
-					parent.transform.position = shakingTransformController.transform.position;
-					parent.transform.rotation = shakingTransformController.transform.rotation;
+					GameObject parent;
+					var rectTransform = shakingTransformController.transform as RectTransform;
+					if (rectTransform) {
+						parent = new GameObject("ShakingTransformParent", typeof(RectTransform));
+						var parentRectTransform = parent.GetComponent<RectTransform>();
+						parentRectTransform.anchorMin = rectTransform.anchorMin;
+						parentRectTransform.anchorMax = rectTransform.anchorMax;
+						parentRectTransform.pivot = rectTransform.pivot;
+						parentRectTransform.anchoredPosition = rectTransform.anchoredPosition;
+						parentRectTransform.sizeDelta = rectTransform.sizeDelta;
+						parentRectTransform.offsetMin = rectTransform.offsetMin;
+						parentRectTransform.offsetMax = rectTransform.offsetMax;
+					} else {
+						parent = new GameObject("ShakingTransformParent");
+						parent.transform.position = shakingTransformController.transform.position;
+						parent.transform.rotation = shakingTransformController.transform.rotation;
+					}
 					Undo.RegisterCreatedObjectUndo(parent, "create ShakingTransformParent");
 					if (shakingTransformController.transform.parent)
 						Undo.SetTransformParent(parent.transform,
 							shakingTransformController.transform.parent,
 							"set new parent");
 					Undo.SetTransformParent(shakingTransformController.transform, parent.transform, "set new parent");
+
+					if (rectTransform) {
+						Undo.RecordObject(rectTransform, $"resize {rectTransform.name}");
+						rectTransform.anchorMin = Vector2.zero;
+						rectTransform.anchorMax = Vector2.one;
+						rectTransform.pivot = new Vector2(0.5f,0.5f);
+						rectTransform.anchoredPosition = Vector2.zero;
+						rectTransform.offsetMin = rectTransform.offsetMax = Vector2.zero;
+					}
 				}
 
 				EditorGUILayout.Space();
