@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using ExaGames.RestSdk;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -12,10 +11,10 @@ namespace CommonUtils.RestSdk {
 	/// </summary>
 	public class RestClient : IRestClient {
 		/// <summary>
-		/// Gets the URL of the API this client will connect to. 
+		/// Gets the URL of the API this client will connect to.
 		/// </summary>
 		public string ApiUrl { get; }
-		
+
 		/// <summary>
 		/// When <c>true</c>, this client will log its activity to the console.
 		/// </summary>
@@ -99,11 +98,11 @@ namespace CommonUtils.RestSdk {
 			var postData = JsonUtility.ToJson(data);
 			ExecutePost(url, postData, callback);
 		}
-		
+
 		/// <summary>
 		/// Sends a POST request to the specified <paramref name="actionRelativePath"/> of the API to publish the specified <paramref name="data"/> and retrieves results
 		/// of type <typeparamref name="TResult"/> in the specified <paramref name="callback"/>.
-		/// Data will be sent as a www-form. 
+		/// Data will be sent as a www-form.
 		/// </summary>
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
 		/// <param name="data">Data to be sent.</param>
@@ -116,10 +115,10 @@ namespace CommonUtils.RestSdk {
 			#endregion
 
 			var url      = $"{ApiUrl}/{actionRelativePath}";
-			
+
 			var form = new WWWForm();
 			foreach (var kvp in data) {
-				form.AddField(kvp.Key, kvp.Value.ToString());	
+				form.AddField(kvp.Key, kvp.Value.ToString());
 			}
 			var www = UnityWebRequest.Post(url, form);
 			Coroutiner.StartCoroutine(SendRequest(www, callback, true), $"REST POST {url}");
@@ -279,7 +278,7 @@ namespace CommonUtils.RestSdk {
 			#endregion
 
 			debugLog($"Sending {request.method} {request.url}");
-			
+
 			RestResponse<TResult> response = null;
 
 			using (request) {
@@ -311,7 +310,7 @@ namespace CommonUtils.RestSdk {
 			#endregion
 
 			debugLog($"Sending {request.method} {request.url}");
-			
+
 			RestResponse response = null;
 
 			using (request) {
@@ -354,7 +353,7 @@ namespace CommonUtils.RestSdk {
 
 			return result;
 		}
-		
+
 		/// <summary>
 		/// Extracts and deserializes a response from a finished <see cref="UnityWebRequest"/> and converts it to <see cref="RestResponse"/>.
 		/// </summary>

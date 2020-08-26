@@ -11,7 +11,7 @@ namespace CommonUtils.RestSdk {
 		};
 
 		/// <summary>
-		/// Gets or sets the response status code.
+		/// Gets or sets the response status code. (See: https://httpstatuses.com/)
 		/// </summary>
 		public long StatusCode{ get; set; }
 
@@ -32,7 +32,7 @@ namespace CommonUtils.RestSdk {
 		public bool IsSuccess => successResponseTypes.Contains(ResponseClass);
 
 		/// <summary>
-		/// Gets the class of this response.
+		/// Gets the class of this response. (See: https://httpstatuses.com/)
 		/// </summary>
 		public RestResponseClass ResponseClass {
 			get {

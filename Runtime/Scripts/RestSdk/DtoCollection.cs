@@ -1,25 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace ExaGames.RestSdk {
+namespace CommonUtils.RestSdk {
 	/// <summary>
-	/// Wrapper para colecciones de DTOs obtenidas desde un servicio REST.
+	/// Wrapper for collections of DTOs retrieved from a REST service.
 	/// </summary>
 	/// <remarks>
-	/// Por convención de Unity (y limitaciones de JsonUtility) se debe wrappear las colecciones en DTOs de esta manera
-	/// Referencia: https://forum.unity3d.com/threads/how-to-load-an-array-with-jsonutility.375735/
+	/// By convention (and because of limitations in the JsonUtility), in Unity DTO collections must be wrapped inside an
+	/// object. This class provides a generic object to wrap them.
+	/// See: https://forum.unity3d.com/threads/how-to-load-an-array-with-jsonutility.375735/
 	/// </remarks>
 	public class DtoCollection<TDto> : IEnumerable<TDto> {
 		/// <summary>
-		/// Colección interna de items.
+		/// Internal collection of items.
 		/// </summary>
 		public TDto[] Items;
 
 		/// <summary>
-		/// Obtiene o establece el item en el índice especificado.
+		/// Gets or sets the item in the specified index of the collection.
 		/// </summary>
-		/// <param name="index">Índice de la colección.</param>
-		/// <exception cref="KeyNotFoundException">Cuando el índice especificado no existe en la colección.</exception>
+		/// <param name="index">Index in the internal collection of items.</param>
+		/// <exception cref="KeyNotFoundException">When the specified index doesn't exist in the internal collection.</exception>
 		public TDto this[int index] {
 			get {
 				if(Items != null && index >= 0 && index < Items.Length) {
@@ -43,12 +44,8 @@ namespace ExaGames.RestSdk {
 			return Items.GetEnumerator();
 		}
 
-		public int Count() {
-			return Items != null ? Items.Length : 0;
-		}
+		public int Count() => Items?.Length ?? 0;
 
-		public override string ToString() {
-			return string.Format("DtoCollection: {0} -> {1}", typeof(TDto), Count());
-		}
+		public override string ToString() => $"DtoCollection: {typeof(TDto)} -> {Count()}";
 	}
 }

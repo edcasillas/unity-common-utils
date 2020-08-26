@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using ExaGames.RestSdk;
 
 namespace CommonUtils.RestSdk {
 	/// <summary>
@@ -18,7 +17,7 @@ namespace CommonUtils.RestSdk {
 		/// <param name="actionRelativePath">Action path to be called in the API.</param>
 		/// <param name="callback">Method to receive the response.</param>
 		void Ping(string actionRelativePath, Action<RestResponse> callback);
-		
+
 		/// <summary>
 		/// Creates a GET request to the specified <paramref name="actionRelativePath"/> and receives a response of type <typeparamref name="TResult"/> in <paramref name="callback"/>.
 		/// </summary>
@@ -56,7 +55,7 @@ namespace CommonUtils.RestSdk {
 		/// <summary>
 		/// Sends a POST request to the specified <paramref name="actionRelativePath"/> of the API to publish the specified <paramref name="data"/> and retrieves results
 		/// of type <typeparamref name="TResult"/> in the specified <paramref name="callback"/>.
-		/// Data will be sent as a www-form. 
+		/// Data will be sent as a www-form.
 		/// </summary>
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
 		/// <param name="data">Data to be sent.</param>
@@ -82,7 +81,7 @@ namespace CommonUtils.RestSdk {
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of expected result.</typeparam>
 		void Put<TResult>(string actionRelativePath, object id, object data, Action<RestResponse<TResult>> callback);
-		
+
 		/// <summary>
 		/// Sends a PUT request to the specified <paramref name="actionRelativePath"/> to update an entity with the specified <paramref name="id"/> and <paramref name="data"/>, and
 		/// retrieves a simple response with no attached data in the <paramref name="callback"/>.
@@ -102,7 +101,7 @@ namespace CommonUtils.RestSdk {
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of expected result.</typeparam>
 		void Delete<TResult>(string actionRelativePath, object id, Action<RestResponse<TResult>> callback);
-		
+
 		/// <summary>
 		/// Sends a DELETE request to the specified <paramref name="actionRelativePath"/> to remove an entity with the specified <paramref name="id"/> and retrieves
 		/// a simple response with no attached data in the <paramref name="callback"/>.
