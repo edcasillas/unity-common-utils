@@ -63,7 +63,7 @@ namespace CommonUtils.Editor {
 				if (fold) {
 					EditorGUI.indentLevel++;
 					foreach (var kvp in dictionary) {
-						ReadOnlyLabelField(kvp.Key.ToString(), kvp.Value.ToString());
+						ReadOnlyLabelField(kvp.Key.ToString(), kvp.Value?.ToString() ?? "<null>");
 					}
 
 					EditorGUI.indentLevel--;
