@@ -24,5 +24,12 @@ namespace CommonUtils.Extensions {
 			yield return new WaitForSeconds(seconds);
 			action.Invoke();
 		}
+
+        public static Coroutine WaitForFixedUpdate(this MonoBehaviour target, Action action) => target.StartCoroutine(waitForFixedUpdate(action));
+
+        private static IEnumerator waitForFixedUpdate(Action action) {
+            yield return new WaitForFixedUpdate();
+            action.Invoke();
+        }
 	}
 }
