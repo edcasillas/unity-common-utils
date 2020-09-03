@@ -324,7 +324,12 @@ namespace CommonUtils.RestSdk {
 
 				if (response == null) {
 					yield return request.SendWebRequest();
-					if (request.isNetworkError)
+					
+					#if UNITY_2020_2_OR_NEWER
+					if(request.result != UnityWebRequest.Result.Success)
+					#else
+					if (request.isNetworkError || request.isHttpError)
+					#endif
 						Debug.LogError($"REST ERROR: ({request.method}): {request.error}");
 					response = GetResponseFrom(request);
 				}
