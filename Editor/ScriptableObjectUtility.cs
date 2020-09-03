@@ -40,7 +40,7 @@ namespace CommonUtils.Editor {
 		/// <summary>
 		/// This makes it easy to create, name and place unique new ScriptableObject asset files.
 		/// </summary>
-		public static void CreateAsset<T>(string name = null, string path = null) where T : ScriptableObject { // https://wiki.unity3d.com/index.php/CreateScriptableObjectAsset
+		public static void CreateAsset<T>(string name = null, string path = null, bool createPathIfNotExists = false) where T : ScriptableObject { // https://wiki.unity3d.com/index.php/CreateScriptableObjectAsset
 			T asset = ScriptableObject.CreateInstance<T>();
 
 			if (string.IsNullOrWhiteSpace(path)) {
@@ -54,6 +54,16 @@ namespace CommonUtils.Editor {
 
 			if (string.IsNullOrWhiteSpace(name)) {
 				name = "New " + typeof(T);
+			}
+
+			if (!Directory.Exists(path)) {
+				if (createPathIfNotExists) {
+					Directory.CreateDirectory(path);
+				}
+				else {
+					Debug.LogError($"Can't create the requested asset because the provided path doesn't exist.");
+					return;
+				}
 			}
 
 			var assetPathAndName = AssetDatabase.GenerateUniqueAssetPath($"{path}/{name}.asset");

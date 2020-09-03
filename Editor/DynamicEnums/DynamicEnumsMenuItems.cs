@@ -6,7 +6,7 @@ namespace CommonUtils.Editor.DynamicEnums {
 		[MenuItem("Tools/Dynamic Enums...", priority = 0)]
 		private static void configure() {
 			if (!EditorUtils.HighlightAssetOfType<DynamicEnumDefinitions>("DynamicEnums")) {
-				ScriptableObjectUtility.CreateAsset<DynamicEnumDefinitions>("DynamicEnums", "Assets/Resources");
+				ScriptableObjectUtility.CreateAsset<DynamicEnumDefinitions>("DynamicEnums", "Assets/Resources", true);
 			}
 		}
 	}
