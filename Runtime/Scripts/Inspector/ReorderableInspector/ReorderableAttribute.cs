@@ -4,6 +4,11 @@ namespace CommonUtils.Inspector.ReorderableInspector {
 	/// <summary>
 	/// Display a List/Array as a sortable list in the inspector
 	/// </summary>
+	/// <remarks>
+	/// Please note this attribute conflicts with the UnityEngine.ReorderableAttribute that was introduced in alpha
+	/// versions of Unity 2020.2. This attribute was removed later on the beta version, so the conflict won't be fixed.
+	/// If you're experimenting this conflict, please upgrade to beta.
+	/// </remarks>
 	public class ReorderableAttribute : PropertyAttribute
 	{
 		public string ElementHeader { get; protected set; }

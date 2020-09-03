@@ -75,13 +75,13 @@ namespace CommonUtils.WebResources {
 
 			using (var uwr = UnityWebRequestTexture.GetTexture(url)) {
 				yield return uwr.SendWebRequest();
-				
+
 				#if UNITY_2020_2_OR_NEWER
 				if(uwr.result != UnityWebRequest.Result.Success) {
 				#else
 				if (uwr.isNetworkError || uwr.isHttpError) {
 				#endif
-					
+
 					Debug.LogError($"Couldn't retrieve texture from '{url}': {uwr.error}");
 					response.StatusCode = getStatusCodeFromMessage(uwr.error, out var errMsg);
 					response.ErrorMessage = errMsg;
