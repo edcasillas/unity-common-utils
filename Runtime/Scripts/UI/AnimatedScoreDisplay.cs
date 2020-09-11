@@ -12,11 +12,13 @@ namespace CommonUtils.UI {
 	[RequireComponent(typeof(Text))]
 	public class AnimatedScoreDisplay : MonoBehaviour, IVerbosable {
 		#region Inspector fields
+		#pragma warning disable 649
 		[SerializeField] private float           AnimDuration = 1f;
 		[SerializeField] private iTween.EaseType EaseType;
 		[SerializeField] private AudioClip       LoopSoundEffect;
 		[SerializeField] private UnityEvent      OnAnimationFinished;
 		[SerializeField] private bool verbose;
+		#pragma warning restore 649
 		#endregion
 
 		#region Properties

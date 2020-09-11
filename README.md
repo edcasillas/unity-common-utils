@@ -10,7 +10,7 @@ A collection of essential tools for any Unity project.
 Add the following line to your Packages/manifest.json file under dependencies:
 
     "com.ecasillas.commonutils": "https://github.com/edcasillas/unity-common-utils.git"
-    
+
 Open Unity again; the Package Manager will run and the package will be installed.
 
 ## Update ##
@@ -24,33 +24,4 @@ To ensure you have the latest version of the package, remove the version lock th
     }
 ```
 ## Features ##
-- Editor:
-    - Editor extensions: [TODO]
-    - Extended gizmos: [TODO]
-    - Hierarchy organizer: [TODO]
-    - Ground enforcer: [TODO]
-    - SceneAutoLoader: [TODO]
-    - ScreenshotManager: [TODO]
-- Runtime
-    - HelpBoxAttribute: [TODO]
-    - SceneReference data type: [TODO]
-    - Components caching: [TODO]
-    - Coroutiner: [TODO]
-    - EditorUtils: [TODO]
-    - CamShaker: [TODO]
-    - Events: [TODO]
-    - Extension methods for arrays, cameras, canvas, IEnumerable, Matrix, RectTransform, strings, Transforms, and Vector3.
-    - SwipeManager: [TODO]
-    - PlayerPrefsDb: [TODO]
-    - MacAddress util: [TODO]
-    - MathUtils: [TODO]
-    - Serializables:
-        - Randomizables: [TODO]
-        - Serializable Array2D: [TODO]
-    - REST SDK: [TODO]
-    - Blinker UI Elements: [TODO]
-    - PromoBadge: [TODO]
-    - Animated submenus: [TODO]
-    - Verbosables: [TODO]
-    
-     
+Please refer to the [wiki](https://github.com/edcasillas/unity-common-utils/wiki) for a full description on the features and their documentation.
