@@ -31,5 +31,12 @@ namespace CommonUtils.Extensions {
             yield return new WaitForFixedUpdate();
             action.Invoke();
         }
+
+		public static Coroutine WaitForEndOfFrame(this MonoBehaviour target, Action action) => target.StartCoroutine(waitForEndOfFrame(action));
+
+		private static IEnumerator waitForEndOfFrame(Action action) {
+			yield return new WaitForEndOfFrame();
+			action.Invoke();
+		}
 	}
 }
