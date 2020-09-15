@@ -16,20 +16,20 @@ namespace CommonUtils.UI.Submenus {
 			var anchoredPosition = RectTransform.anchoredPosition;
 			switch(Direction) {
 			case SlideInDirections.LeftToRight:
-				hiddenValue = new Vector2(-RectTransform.rect.width, RectTransform.anchoredPosition.y);
+				HiddenValue = new Vector2(-RectTransform.rect.width, RectTransform.anchoredPosition.y);
 				break;
 			case SlideInDirections.RightToLeft:
-				hiddenValue = new Vector2(RectTransform.rect.width, RectTransform.anchoredPosition.y);
+				HiddenValue = new Vector2(RectTransform.rect.width, RectTransform.anchoredPosition.y);
 				break;
 			case SlideInDirections.BottomUp:
-				hiddenValue = new Vector2(RectTransform.anchoredPosition.x, -RectTransform.rect.height);
+				HiddenValue = new Vector2(RectTransform.anchoredPosition.x, -RectTransform.rect.height);
 				break;
 			case SlideInDirections.TopDown:
-				hiddenValue = new Vector2(RectTransform.anchoredPosition.x, RectTransform.rect.height);
+				HiddenValue = new Vector2(RectTransform.anchoredPosition.x, RectTransform.rect.height);
 				break;
 			}
-			shownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
-			OnAnimationUpdated(hiddenValue);
+			ShownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
+			OnAnimationUpdated(HiddenValue);
 		}
 
 		public override void OnAnimationUpdated(Vector2 updatedValue) => RectTransform.anchoredPosition = updatedValue;

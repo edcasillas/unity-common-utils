@@ -10,8 +10,8 @@ namespace CommonUtils.UI.Submenus {
 		}
 
 		protected override void OnInit() {
-			hiddenValue = Vector2.zero;
-			shownValue = Vector2.one;
+			HiddenValue = Vector2.zero;
+			ShownValue = Vector2.one;
 			RectTransform.localScale = Vector2.zero;
 		}
 	}

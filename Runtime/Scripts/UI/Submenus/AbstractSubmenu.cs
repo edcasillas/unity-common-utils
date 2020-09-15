@@ -5,6 +5,7 @@ using UnityEngine;
 namespace CommonUtils.UI.Submenus {
     [RequireComponent(typeof(RectTransform), typeof(AudioSource))]
 	public abstract class AbstractSubmenu : MonoBehaviour , IVerbosable{
+		#region Inspector fields
 #pragma warning disable 649
 		[Tooltip("Ease animation type when showing the submenu.")]
 		public iTween.EaseType EaseIn;
@@ -19,17 +20,20 @@ namespace CommonUtils.UI.Submenus {
 		public int AutoHide = 0;
 		[SerializeField] private bool verbose;
 #pragma warning restore 649
+		#endregion
+
+		#region Properties
+		public bool IsInitialized { get; private set; } = false;
+		public bool IsShown { get; private set; } = false;
+
+		public Vector2 HiddenValue { get; protected set; }
+		public Vector2 ShownValue { get; protected set; }
 
 		public bool IsVerbose => verbose;
+		#endregion
 
 		protected RectTransform RectTransform;
 		protected AudioSource AudioSource;
-		protected bool IsOpen = false;
-		protected bool IsInited = false;
-
-		protected Vector2 hiddenValue;
-		protected Vector2 shownValue;
-
 		private Coroutine hideCoroutine;
 
 		#region Public Methods
@@ -40,24 +44,24 @@ namespace CommonUtils.UI.Submenus {
 			if(hideCoroutine != null) {
 				this.DebugLog("Stopping hide coroutine.");
 				StopCoroutine(hideCoroutine);
-				if(IsOpen && AutoHide > 0) {
+				if(IsShown && AutoHide > 0) {
 					hideCoroutine = StartCoroutine(waitAndHide());
 				}
 			}
-			if(!IsOpen) {
-				IsOpen = true;
+			if(!IsShown) {
+				IsShown = true;
 				gameObject.SetActive(true);
-				animate(hiddenValue, shownValue, nameof(OnShown), EaseIn, PlayFeedbackOnShow);
+				animate(HiddenValue, ShownValue, nameof(OnShown), EaseIn, PlayFeedbackOnShow);
 			}
 		}
 
 		public virtual void Hide() {
-			if (!IsInited) {
+			if (!IsInitialized) {
 				Debug.LogError($"Cannot hide this submenu before is initialized. Please call Init(); first.");
 			}
 			this.DebugLog($"Will hide {name}");
-			IsOpen = false;
-			animate(shownValue, hiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
+			IsShown = false;
+			animate(ShownValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
 
 		#endregion
@@ -87,11 +91,11 @@ namespace CommonUtils.UI.Submenus {
 		#region Private Methods
 
 		public void Init() {
-			if(!IsInited) {
+			if(!IsInitialized) {
 				RectTransform = GetComponent<RectTransform>();
 				AudioSource = GetComponent<AudioSource>();
 				OnInit();
-				IsInited = true;
+				IsInitialized = true;
 			}
 		}
 
