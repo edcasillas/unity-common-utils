@@ -59,6 +59,7 @@ namespace CommonUtils.UI.Submenus {
 			if (!IsInitialized) {
 				Debug.LogError($"Cannot hide this submenu before is initialized. Please call Init(); first.");
 			}
+			if(!IsShown) return;
 			this.DebugLog($"Will hide {name}");
 			IsShown = false;
 			animate(ShownValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
