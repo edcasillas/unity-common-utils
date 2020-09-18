@@ -10,7 +10,6 @@ namespace CommonUtils.SelectionToggles {
 	/// <typeparam name="TSelectionValue"></typeparam>
 	public abstract class AbstractSelectionToggle<TSelectionValue> : MonoBehaviour {
 #pragma warning disable 649
-		[SerializeField] private Text label;
 		[SerializeField] private Toggle toggle;
 #pragma warning restore 649
 
@@ -21,12 +20,14 @@ namespace CommonUtils.SelectionToggles {
 		/// <param name="labelText">Text to be shown in the toggle.</param>
 		/// <param name="onSelected">Callback to be executed when the toggle is selected.</param>
 		public void Init(ISelectionToggleConfiguration<TSelectionValue> configuration, Action<TSelectionValue> onSelected) {
-			label.text = configuration.SelectionToggleText;
-			toggle.onValueChanged.RemoveAllListeners();
+            SetLabelText(configuration.SelectionToggleText);
+            toggle.onValueChanged.RemoveAllListeners();
 			toggle.onValueChanged.AddListener(val => {
 				if (val) onSelected(configuration.SelectionToggleValue);
 			});
 		}
+
+        protected abstract void SetLabelText(string text);
 
 		public void SetToggleGroup(ToggleGroup toggleGroup) => toggle.group = toggleGroup;
 
