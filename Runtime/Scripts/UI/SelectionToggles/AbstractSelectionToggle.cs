@@ -20,14 +20,14 @@ namespace CommonUtils.SelectionToggles {
 		/// <param name="labelText">Text to be shown in the toggle.</param>
 		/// <param name="onSelected">Callback to be executed when the toggle is selected.</param>
 		public void Init(ISelectionToggleConfiguration<TSelectionValue> configuration, Action<TSelectionValue> onSelected) {
-            SetLabelText(configuration);
+            SetLabelText(configuration.SelectionToggleText);
             toggle.onValueChanged.RemoveAllListeners();
 			toggle.onValueChanged.AddListener(val => {
 				if (val) onSelected(configuration.SelectionToggleValue);
 			});
 		}
 
-        protected abstract void SetLabelText(ISelectionToggleConfiguration<TSelectionValue> configuration);
+        protected abstract void SetLabelText(string text);
 
 		public void SetToggleGroup(ToggleGroup toggleGroup) => toggle.group = toggleGroup;
 
