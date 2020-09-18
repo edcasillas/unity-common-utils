@@ -1,3 +1,3 @@
 namespace CommonUtils.SelectionToggles {
-	public class StringSelectionToggle : AbstractSelectionToggle<string> { }
+	public class StringSelectionToggle : AbstractUGUISelectionToggle<string> { }
 }

@@ -1,3 +1,3 @@
 namespace CommonUtils.SelectionToggles {
-	public class IntSelectionToggle : AbstractSelectionToggle<int> { }
+	public class IntSelectionToggle : AbstractUGUISelectionToggle<int> { }
 }

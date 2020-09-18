@@ -1,7 +1,8 @@
 {
     "name": "com.ecasillas.commonutils",
     "references": [
-        "com.pixelplacement.itween"
+        "com.pixelplacement.itween",
+        "Unity.TextMeshPro"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
