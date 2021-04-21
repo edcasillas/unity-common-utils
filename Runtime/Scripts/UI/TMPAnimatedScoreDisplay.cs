@@ -1,19 +1,20 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace CommonUtils.UI {
     /// <summary>
     /// Controls a <see cref="Text"/> component to show a numeric score that can be changed with an animation.
     /// </summary>
-    [AddComponentMenu("UI/Animated Score Display")]
-    [RequireComponent(typeof(Text))]
-    public class AnimatedScoreDisplay : AbstractAnimatedScoreDisplay {
+    [AddComponentMenu("UI/TMP Animated Score Display")]
+    [RequireComponent(typeof(TextMeshProUGUI))]
+    public class TMPAnimatedScoreDisplay : AbstractAnimatedScoreDisplay {
 
         #region Properties
-        private Text _textComponent;
-        private Text textComponent {
+        private TextMeshProUGUI _textComponent;
+        private TextMeshProUGUI textComponent {
             get {
-                if (_textComponent == null) _textComponent = GetComponent<Text>();
+                if (_textComponent == null) _textComponent = GetComponent<TextMeshProUGUI>();
                 return _textComponent;
             }
         }
