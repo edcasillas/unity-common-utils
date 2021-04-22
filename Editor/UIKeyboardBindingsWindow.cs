@@ -151,8 +151,8 @@ namespace CommonUtils.Editor {
 			if (context == null || bindings == null || unmappedButtons == null) return true;
 			var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
 
-			if (prefabStage != null) {
-				return context != prefabStage;
+			if (prefabStage) {
+				return (PrefabStage) context != prefabStage;
 			}
 
 			if (context is Scene contextScene) {
