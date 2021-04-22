@@ -24,6 +24,11 @@ namespace CommonUtils.UI.Submenus {
 
 		#region Properties
 		public bool IsInitialized { get; private set; } = false;
+
+		/// <summary>
+		/// Gets a value indicating whether this submenu is being shown.
+		/// </summary>
+		/// <remarks>Formerly called 'IsOpen'.</remarks>
 		public bool IsShown { get; private set; } = false;
 
 		public Vector2 HiddenValue { get; protected set; }

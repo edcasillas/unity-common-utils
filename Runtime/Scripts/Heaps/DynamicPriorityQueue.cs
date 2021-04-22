@@ -10,7 +10,7 @@ namespace CommonUtils.Heaps {
 	/// </summary>
 	/// <typeparam name="T">Specifies the type of elements in the queue.</typeparam>
 	public class DynamicPriorityQueue<T> : PriorityQueue<T> where T : IComparable<T> {
-		private readonly Dictionary<T,int> indexOf;
+		private readonly Dictionary<T, int> indexOf;
 
 		public IReadOnlyDictionary<T, int> IndexOf => indexOf;
 
@@ -45,8 +45,7 @@ namespace CommonUtils.Heaps {
 			if (!indexOf.ContainsKey(item)) {
 				indexOf.Add(item, Count);
 				base.Enqueue(item);
-			}
-			else {
+			} else {
 				FixHeap(indexOf[item]);
 			}
 		}
@@ -61,7 +60,9 @@ namespace CommonUtils.Heaps {
 				indexOf.Remove(result);
 			}
 
-			if (!IsEmpty) indexOf[Data[0]] = 0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
+			if (!IsEmpty)
+				indexOf[Data[0]] =
+					0; // Ensure the stored index of the new top is up to date, because if swap was not called it might end up being the last one in the queue.
 			return result;
 		}
 
@@ -78,7 +79,9 @@ namespace CommonUtils.Heaps {
 		/// <param name="item">The item to be removed.</param>
 		/// <exception cref="InvalidOperationException">The specified <paramref name="item"/> does not exists in the queue.</exception>
 		public void Remove(T item) {
-			if(!indexOf.ContainsKey(item)) throw new InvalidOperationException($"The specified value does not exist in this {nameof(DynamicPriorityQueue<T>)}");
+			if (!indexOf.ContainsKey(item))
+				throw new InvalidOperationException(
+					$"The specified value does not exist in this {nameof(DynamicPriorityQueue<T>)}");
 			RemoveAt(indexOf[item]);
 			indexOf.Remove(item);
 		}
