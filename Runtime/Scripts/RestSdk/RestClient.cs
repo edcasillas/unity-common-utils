@@ -181,17 +181,30 @@ namespace CommonUtils.RestSdk {
 		/// </summary>
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
 		/// <param name="id">Identifier of the entity to modify.</param>
-		/// <param name="data">Data to be set to the entity.</param>
+		/// <param name="data">Data to be set to the entity. This object will be serialized to JSON.</param>
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of expected result.</typeparam>
 		public void Put<TResult>(string actionRelativePath, object id, object data, Action<RestResponse<TResult>> callback) {
+			var putData = JsonUtility.ToJson(data);
+			Put(actionRelativePath, id, putData, callback);
+		}
+
+		/// <summary>
+		/// Sends a PUT request to the specified <paramref name="actionRelativePath"/> to update an entity with the specified <paramref name="id"/> and <paramref name="data"/>, and
+		/// retrieves a result of type <typeparamref name="TResult"/> in the <paramref name="callback"/>.
+		/// </summary>
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="id">Identifier of the entity to modify.</param>
+		/// <param name="data">The raw data to be sent.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		/// <typeparam name="TResult">Type of expected result.</typeparam>
+		public void Put<TResult>(string actionRelativePath, object id, string data, Action<RestResponse<TResult>> callback) {
 			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
 			if (id == null) throw new ArgumentNullException(nameof(id));
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
-			var url     = $"{ApiUrl}/{actionRelativePath}/{id}";
-			var putData = JsonUtility.ToJson(data);
-			ExecutePut(url, putData, callback);
+			var url = $"{ApiUrl}/{actionRelativePath}/{id}";
+			ExecutePut(url, data, callback);
 		}
 
 		/// <summary>
