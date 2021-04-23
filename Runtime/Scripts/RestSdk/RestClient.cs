@@ -85,18 +85,31 @@ namespace CommonUtils.RestSdk {
 		/// of type <typeparamref name="TResult"/> in the specified <paramref name="callback"/>.
 		/// </summary>
 		/// <param name="actionRelativePath">Action path to call in the API.</param>
-		/// <param name="data">Data to be sent.</param>
+		/// <param name="data">Data to be sent. This object will be serialized to JSON.</param>
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of DTO expected as result.</typeparam>
 		public void Post<TResult>(string actionRelativePath, object data, Action<RestResponse<TResult>> callback) {
+			var postData = JsonUtility.ToJson(data);
+			Post(actionRelativePath, postData, callback);
+		}
+
+		/// <summary>
+		/// Sends a POST request to the specified <paramref name="actionRelativePath"/> of the API to publish the specified <paramref name="data"/> and retrieves results
+		/// of type <typeparamref name="TResult"/> in the specified <paramref name="callback"/>.
+		/// </summary>
+		/// <param name="actionRelativePath">Action path to call in the API.</param>
+		/// <param name="data">Raw data to be sent.</param>
+		/// <param name="callback">Callback method to receive the response.</param>
+		/// <typeparam name="TResult">Type of DTO expected as result.</typeparam>
+		/// <exception cref="ArgumentNullException">When the data is incomplete.</exception>
+		public void Post<TResult>(string actionRelativePath, string data, Action<RestResponse<TResult>> callback) {
 			#region Input validation
 			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
 			#endregion
 
-			var url      = $"{ApiUrl}/{actionRelativePath}";
-			var postData = JsonUtility.ToJson(data);
-			ExecutePost(url, postData, callback);
+			var url = $"{ApiUrl}/{actionRelativePath}";
+			ExecutePost(url, data, callback);
 		}
 
 		/// <summary>
@@ -324,7 +337,7 @@ namespace CommonUtils.RestSdk {
 
 				if (response == null) {
 					yield return request.SendWebRequest();
-					
+
 					#if UNITY_2020_2_OR_NEWER
 					if(request.result != UnityWebRequest.Result.Success)
 					#else
