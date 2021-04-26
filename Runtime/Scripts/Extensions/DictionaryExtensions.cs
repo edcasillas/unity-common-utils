@@ -10,6 +10,7 @@ namespace CommonUtils.Extensions {
 			else dictionary[key] = value;
 		}
 
-		public static string AsJsonString<TKey, TValue>(this Dictionary<TKey, TValue> dictionary) => $"{{{string.Join(", ", dictionary.Select(kvp => $"{{{kvp.Key.ToString()}, {kvp.Value.ToString()}}}"))}}}";
+		public static string AsJsonString<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+			=> $"{{{string.Join(", ", dictionary.Select(kvp => $"\"{kvp.Key.ToString()}\":\"{kvp.Value.ToString()}\""))}}}";
 	}
 }
