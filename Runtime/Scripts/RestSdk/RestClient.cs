@@ -378,6 +378,7 @@ namespace CommonUtils.RestSdk {
 
 			if (!result.IsSuccess) {
 				Debug.LogError($"REST ERROR: [{www.method} {www.url}: {www.responseCode}{(!string.IsNullOrEmpty(www.error) ? $": {www.error}" : string.Empty)}]");
+				result.ErrorMessage = www.error;
 			} else if (www.downloadHandler != null) {
 				result.Data = www.downloadHandler.text;
 			}
