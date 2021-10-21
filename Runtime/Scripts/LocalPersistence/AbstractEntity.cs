@@ -8,7 +8,7 @@ namespace CommonUtils.LocalPersistence {
 	/// </summary>
 	/// <typeparam name="TId">Type of the Id this entity uses.</typeparam>
 	[Serializable]
-	public abstract class AbstractEntity<TId> {
+	public abstract class AbstractEntity<TId> : IEntity<TId> {
 		/// <summary>
 		/// Identifier for this entity.
 		/// </summary>
