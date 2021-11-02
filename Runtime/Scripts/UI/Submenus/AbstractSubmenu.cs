@@ -3,21 +3,40 @@ using CommonUtils.Extensions;
 using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
+	/// <summary>
+	/// Base class for submenus animated through iTween.
+	/// </summary>
     [RequireComponent(typeof(RectTransform), typeof(AudioSource))]
 	public abstract class AbstractSubmenu : MonoBehaviour , IVerbosable{
 		#region Inspector fields
 #pragma warning disable 649
+		/// <summary>
+		/// Ease animation type when showing the submenu.
+		/// </summary>
 		[Tooltip("Ease animation type when showing the submenu.")]
 		public iTween.EaseType EaseIn;
+		
+		/// <summary>
+		/// Ease animation type when hiding the submenu.
+		/// </summary>
 		[Tooltip("Ease animation type when hiding the submenu.")]
 		public iTween.EaseType EaseOut;
+		
+		/// <summary>
+		/// Duration of in/out animations in seconds.
+		/// </summary>
 		[Range(0, 1)]
 		public float AnimDuration = 0.5f;
+		
 		public AudioClip Feedback;
 		public bool PlayFeedbackOnShow;
 		public bool PlayFeedbackOnHide;
 		[Range(0, 20)]
 		public int AutoHide = 0;
+		
+		/// <summary>
+		/// When <c>true</c>, writes debug messages on the console when submenus are being shown or hidden.
+		/// </summary>
 		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
@@ -37,9 +56,15 @@ namespace CommonUtils.UI.Submenus {
 		public bool IsVerbose => verbose;
 		#endregion
 
+		#region Fields
+		/// <summary>
+		/// <see cref="RectTransform"/> of the submenu, to manipulate its size, position, etc.
+		/// </summary>
 		protected RectTransform RectTransform;
+		
 		protected AudioSource AudioSource;
 		private Coroutine hideCoroutine;
+		#endregion
 
 		#region Public Methods
 
