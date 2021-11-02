@@ -79,7 +79,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		/// Gets a value indicating whether any of the blockers are active or not.
 		/// </summary>
 		/// <returns><c>true</c> when any of the blockers is active, otherwise <c>false</c>.</returns>
-		protected bool IsBlocked() {
+		protected virtual bool IsBlocked() {
 			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
 			if (IsBlockedBy == null) return false;
 			GameObject activeBlocker = null;
