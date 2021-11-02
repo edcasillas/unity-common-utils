@@ -122,7 +122,9 @@ namespace CommonUtils.Editor {
 
 		private void OnSceneGUI(SceneView scnView) {
 			if (!showInScene || Event.current.type != EventType.Repaint) return;
-			if(hasContextChanged() || GUILayout.Button("Refresh")) refresh();
+			
+			if(hasContextChanged()) refresh();
+
 			if (bindings.IsNullOrEmpty()) return;
 
 			var style = new GUIStyle {normal = {textColor = textColorInScene}};
