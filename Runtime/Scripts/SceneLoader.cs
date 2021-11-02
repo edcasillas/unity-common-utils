@@ -240,7 +240,7 @@ namespace CommonUtils {
 				yield return null;
 			}
 
-			progressSlider.value = 1f;
+			if(progressSlider) progressSlider.value = 1f;
 			onReadyToActivate(asyncLoad);
 		}
 
