@@ -11,14 +11,17 @@ using Random = UnityEngine.Random;
 
 /*
  * TODO
- * - Implement stack of previous scenes and LoadPrevious()
  * - Abort if requested scene is the same as the active one, and an option to opt-out from this (so scenes CAN be reloaded).
  */
 
 namespace CommonUtils {
 	[AddComponentMenu("UI/Scene Loader")]
 	public class SceneLoader : MonoBehaviour, IVerbosable {
+		private const int MAX_PREVIOUS_SCENES = 5;
+		
 		#region Static access members
+		private static readonly Stack<int> previousScenes = new Stack<int>();
+		
 		private static SceneLoader _instance;
 		private static SceneLoader instance {
 			get {
@@ -83,6 +86,27 @@ namespace CommonUtils {
 				yield return null;
 			}
 			onReadyToActivate(asyncLoad);
+		}
+		
+		private static void pushCurrentScene() {
+			previousScenes.Push(SceneManager.GetActiveScene().buildIndex);
+			#region Trim previous scenes stack when MAX_PREVIOUS_SCENES is reached
+			try {
+				if (previousScenes.Count > MAX_PREVIOUS_SCENES) {
+					var tmpQueue = new Stack<int>();
+					for (int i = 0; i < MAX_PREVIOUS_SCENES; i++) {
+						tmpQueue.Push(previousScenes.Pop());
+					}
+					previousScenes.Clear();
+					while (tmpQueue.Count > 0) {
+						previousScenes.Push(tmpQueue.Pop());
+					}
+				}
+			} catch (Exception e) {
+				Debug.LogError($"There's been an error while triming the previousScenes stack: {e.Message}");
+				previousScenes.Clear();
+			}
+			#endregion
 		}
 		#endregion
 
@@ -155,6 +179,7 @@ namespace CommonUtils {
 		public void Load(int sceneIndex) {
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(sceneIndex), "Loading scene");
 		}
 
@@ -166,6 +191,7 @@ namespace CommonUtils {
 		public void Load(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(sceneIndex, onReadyToActivate), "Loading scene");
 		}
 
@@ -176,6 +202,7 @@ namespace CommonUtils {
 		public void Load(string scenePath) {
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath), "Loading scene");
 		}
 		
@@ -187,7 +214,13 @@ namespace CommonUtils {
 		public void Load(string scenePath, Action<AsyncOperation> onReadyToActivate) {
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath, onReadyToActivate), "Loading scene");
+		}
+
+		public void LoadPrevious() {
+			if (previousScenes.Count == 0) return;
+			LoadScene(previousScenes.Pop());
 		}
 
 		#region doLoad coroutines
@@ -279,7 +312,6 @@ namespace CommonUtils {
 			}
 			gameObject.SetActive(false);
 		}
-		
 		#endregion
 	}
 }
