@@ -45,6 +45,14 @@ namespace CommonUtils {
 			instance.load(sceneIndex, onReadyToActivate);
 		}
 
+		public static void LoadScene(string scenePath) {
+			if (!instance) {
+				SceneManager.LoadScene(scenePath);
+				return;
+			}
+			instance.load(scenePath);
+		}
+
 		public static void LoadScene(string scenePath, Action<AsyncOperation> onReadyToActivate) {
 			if (!instance) {
 				Coroutiner.StartCoroutine(loadWithoutInstance(scenePath, onReadyToActivate));
@@ -154,6 +162,12 @@ namespace CommonUtils {
 			Coroutiner.StartCoroutine(doLoad(sceneIndex, onReadyToActivate), "Loading scene");
 		}
 
+		private void load(string scenePath) {
+			gameObject.SetActive(true);
+			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			Coroutiner.StartCoroutine(doLoad(scenePath), "Loading scene");
+		}
+		
 		/// <summary>
 		/// Loads the scene with the specified <paramref name="scenePath"/> and executes the <paramref name="onReadyToActivate"/> callback when it's fully loaded and ready to activate.
 		/// </summary>
@@ -165,6 +179,7 @@ namespace CommonUtils {
 			Coroutiner.StartCoroutine(doLoad(scenePath, onReadyToActivate), "Loading scene");
 		}
 
+		#region doLoad coroutines
 		private IEnumerator doLoad(int sceneIndex) {
 			var asyncLoad = SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Single);
 			while(!asyncLoad.isDone) {
@@ -185,6 +200,14 @@ namespace CommonUtils {
 			onReadyToActivate(asyncLoad);
 		}
 
+		private IEnumerator doLoad(string scenePath) {
+			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
+			while(!asyncLoad.isDone) {
+				if(progressSlider) progressSlider.value = asyncLoad.progress;
+				yield return null;
+			}
+		}
+
 		private IEnumerator doLoad(string scenePath, Action<AsyncOperation> onReadyToActivate) {
 			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
 			asyncLoad.allowSceneActivation = false;
@@ -196,6 +219,7 @@ namespace CommonUtils {
 			progressSlider.value = 1f;
 			onReadyToActivate(asyncLoad);
 		}
+		#endregion
 
 		private IEnumerator updateSuggestions() {
 			if(suggestionsToShow == null) {
