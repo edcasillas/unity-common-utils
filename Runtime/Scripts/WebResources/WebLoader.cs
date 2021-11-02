@@ -83,7 +83,7 @@ namespace CommonUtils.WebResources {
 				#endif
 
 					Debug.LogError($"Couldn't retrieve texture from '{url}': {uwr.error}");
-					response.StatusCode = getStatusCodeFromMessage(uwr.error, out var errMsg);
+					response.StatusCode = GetStatusCodeFromMessage(uwr.error, out var errMsg);
 					response.ErrorMessage = errMsg;
 					Debug.Log(uwr.error);
 				} else {
@@ -121,7 +121,7 @@ namespace CommonUtils.WebResources {
 
 			if (!string.IsNullOrEmpty(www.error)) {
 				Debug.LogError($"Couldn't retrieve audio clip from '{url}': {www.error}");
-				response.StatusCode = getStatusCodeFromMessage(www.error, out var errMsg);
+				response.StatusCode = GetStatusCodeFromMessage(www.error, out var errMsg);
 				response.ErrorMessage = errMsg;
 			} else {
 				if (!www.responseHeaders.ContainsKey(contentTypeHeaderKey)) {
@@ -240,13 +240,20 @@ namespace CommonUtils.WebResources {
 		/// <param name="errorMessage">Error message from the HttpResponse.</param>
 		/// <param name="outputMessage">Remainder of the error message.</param>
 		/// <returns>Error code.</returns>
-		private static int getStatusCodeFromMessage(string errorMessage, out string outputMessage) {
-			outputMessage = string.Empty;
+		internal static int GetStatusCodeFromMessage(string errorMessage, out string outputMessage) {
+			outputMessage = errorMessage;
 			if (errorMessage.Length < 3) { return 0; }
 
-			var err = errorMessage.Substring(0, 3);
-			if (errorMessage.Length > 3) outputMessage = errorMessage.Substring(3);
-			return int.TryParse(err, out var errCode) ? errCode : 500;
+			var errorCodeStr = errorMessage.Substring(0, 3);
+			int errorCodeInt = 500;
+			if (int.TryParse(errorCodeStr, out var errCode)) {
+				errorCodeInt = errCode;
+				if (errorMessage.Length > 3) {
+					outputMessage = errorMessage.Substring(3);
+				}
+			}
+
+			return errorCodeInt;
 		}
 		#endregion
 	}
