@@ -18,7 +18,7 @@ namespace CommonUtils.Editor.CustomEditors {
         private bool showConfig = false;
         private bool showDebug = false;
 
-        private void OnEnable() {
+        protected virtual void OnEnable() {
             if (!target) return;
 
             try {

@@ -7,14 +7,20 @@ namespace CommonUtils.Editor.CustomEditors {
     public class TiledSpriteFromTextureEditor : AbstractDebuggableEditor<TiledSpriteFromTexture> {
         private Texture2D textureOverride;
         private float borderOverride;
-        private float pixelsPerUnitOverride = 100;
-        
+        private float pixelsPerUnitOverride;
+
+        protected override void OnEnable() {
+            base.OnEnable();
+            borderOverride = Subject.Border;
+            pixelsPerUnitOverride = Subject.PixelsPerUnit;
+        }
+
         protected override void RenderDebug() {
             textureOverride = EditorExtensions.TextureField("Texture Override", textureOverride);
             borderOverride = EditorGUILayout.FloatField("Border Override", borderOverride);
             pixelsPerUnitOverride = EditorGUILayout.FloatField("Pixels per unit override", pixelsPerUnitOverride);
             
-            if (GUILayout.Button("Refresh")) {
+            if (textureOverride) {
                 Subject.SetTextureTiled(textureOverride, borderOverride, pixelsPerUnitOverride);
             }
         }
