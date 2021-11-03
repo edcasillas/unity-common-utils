@@ -20,20 +20,12 @@ namespace CommonUtils.UI {
         #endregion
 
         #region Properties
-        private Text _textComponent;
-        private Text textComponent {
-            get {
-                if (_textComponent == null) _textComponent = GetComponent<Text>();
-                return _textComponent;
-            }
-        }
-
         private AudioSource _audioSource;
         private AudioSource audioSource {
             get {
-                if (_audioSource == null) {
+                if (!_audioSource) {
                     _audioSource = GetComponent<AudioSource>();
-                    if (_audioSource == null) {
+                    if (!_audioSource) {
                         _audioSource = gameObject.AddComponent<AudioSource>();
                     }
                 }
@@ -81,10 +73,12 @@ namespace CommonUtils.UI {
             ));
         }
 
-        protected abstract void OnAnimationUpdated(int updatedValue);
+        protected abstract void UpdateLabel(int score);
+
+        protected void OnAnimationUpdated(int updatedValue) => UpdateLabel(updatedValue);
 
         private void onAnimationCompleted() {
-            textComponent.text = LabelDelegate.Invoke(currentScore);
+            UpdateLabel(currentScore);
             playSfx(false);
             OnAnimationFinished.Invoke();
         }
@@ -94,7 +88,7 @@ namespace CommonUtils.UI {
         /// </summary>
         /// <param name="play"></param>
         private void playSfx(bool play) {
-            if (LoopSoundEffect != null) {
+            if (LoopSoundEffect) {
                 if (play) audioSource.Play();
                 else audioSource.Stop();
             }

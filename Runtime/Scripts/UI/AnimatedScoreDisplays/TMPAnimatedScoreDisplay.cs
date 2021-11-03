@@ -14,12 +14,12 @@ namespace CommonUtils.UI {
         private TextMeshProUGUI _textComponent;
         private TextMeshProUGUI textComponent {
             get {
-                if (_textComponent == null) _textComponent = GetComponent<TextMeshProUGUI>();
+                if (!_textComponent) _textComponent = GetComponent<TextMeshProUGUI>();
                 return _textComponent;
             }
         }
         #endregion
 
-        protected override void OnAnimationUpdated(int updatedValue) => textComponent.text = LabelDelegate.Invoke(updatedValue);
+        protected override void UpdateLabel(int score) => textComponent.text = LabelDelegate.Invoke(score);
     }
 }

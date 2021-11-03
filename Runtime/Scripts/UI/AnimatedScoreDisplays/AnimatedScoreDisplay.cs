@@ -13,12 +13,12 @@ namespace CommonUtils.UI {
         private Text _textComponent;
         private Text textComponent {
             get {
-                if (_textComponent == null) _textComponent = GetComponent<Text>();
+                if (!_textComponent) _textComponent = GetComponent<Text>();
                 return _textComponent;
             }
         }
         #endregion
 
-        protected override void OnAnimationUpdated(int updatedValue) => textComponent.text = LabelDelegate.Invoke(updatedValue);
+        protected override void UpdateLabel(int score) => textComponent.text = LabelDelegate.Invoke(score);
     }
 }
