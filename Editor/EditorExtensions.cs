@@ -10,23 +10,11 @@ namespace CommonUtils.Editor {
 	/// A collection of methods to help showing useful data in CustomEditors.
 	/// </summary>
 	public static class EditorExtensions {
-		private static GUIStyle _richTextLabelStyle;
-
-		private static GUIStyle richTextLabelStyle { // TODO Can this be removed and use only GUI.skin.label
-			get {
-				if (_richTextLabelStyle == null) {
-					_richTextLabelStyle = new GUIStyle(GUI.skin.label) {
-						richText = true
-					};
-				}
-
-				return _richTextLabelStyle;
-			}
-		}
+		private static readonly GUIStyle _textureFieldLabelStyle = new GUIStyle(GUI.skin.label) {alignment = TextAnchor.UpperCenter, fixedWidth = 70};
 
 		public static void ReadOnlyLabelField(string label, object value) => RichLabelField($"{label}: <b>{value}</b>");
 
-		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, richTextLabelStyle);
+		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, GUI.skin.label);
 
 		public static void ObjectField(string label, Object obj) => EditorGUILayout.ObjectField($"{label}:", obj, typeof(Object), false);
 
@@ -158,6 +146,15 @@ namespace CommonUtils.Editor {
 			EditorGUI.BeginDisabledGroup(isDisabled);
 			contentsDelegate.Invoke();
 			EditorGUI.EndDisabledGroup();
+		}
+
+		public static Texture2D TextureField(string name, Texture2D texture) {
+			GUILayout.BeginVertical();
+			GUILayout.Label(name, _textureFieldLabelStyle);
+			var result = (Texture2D) EditorGUILayout.ObjectField(texture, typeof(Texture2D), false, GUILayout.Width(70),
+				GUILayout.Height(70));
+			GUILayout.EndVertical();
+			return result;
 		}
 
 		public static void ShowScriptField<T>(this T target, string label = "Script") where T : MonoBehaviour {
