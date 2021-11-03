@@ -31,7 +31,7 @@ namespace CommonUtils.Editor.CustomEditors
 		[Tooltip("Key to select gameobjects")]
 		public KeyCode KeyCodeSelection;
 
-		private int childrenIndex;
+		public int CurrentSelectionChildIndex { get; private set; }
 	
 		#region Unity Lifecycle
 		private void Awake() {
@@ -55,7 +55,7 @@ namespace CommonUtils.Editor.CustomEditors
 				}
 
 			}
-			childrenIndex = -1;
+			CurrentSelectionChildIndex = -1;
 		}
 
 		private void Update() {
@@ -65,14 +65,14 @@ namespace CommonUtils.Editor.CustomEditors
 				}
 				else {
 					if (UnityEngine.Input.GetKeyUp(KeyCode) && 
-					    childrenIndex != -1 && 
-					    childrenToSelect[childrenIndex].gameObject.activeSelf && 
-					    childrenToSelect[childrenIndex].GetComponent<Button>().IsInteractable() && 
+					    CurrentSelectionChildIndex != -1 && 
+					    childrenToSelect[CurrentSelectionChildIndex].gameObject.activeSelf && 
+					    childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().IsInteractable() && 
 					    !IsBlocked()) { // CONFIRMAR SELECCION
 
-						childrenToSelect[childrenIndex].GetComponent<Button>().onClick.Invoke();
+						childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().onClick.Invoke();
 
-						if (childrenToSelect[childrenIndex].name == "Frame") { MoveToTheNextChild(); }
+						if (childrenToSelect[CurrentSelectionChildIndex].name == "Frame") { MoveToTheNextChild(); }
 					}
 
 				}
@@ -83,10 +83,10 @@ namespace CommonUtils.Editor.CustomEditors
 		/// Reinicio el selector cuando se oculta la pantalla.
 		/// </summary>
 		public void OnDisable() {
-			if (childrenIndex != -1) {
-				childrenToSelect[childrenIndex].transform.localScale = new Vector3(1, 1, 1);
-				childrenToSelect[childrenIndex].enabled = false;
-				childrenIndex = -1;
+			if (CurrentSelectionChildIndex != -1) {
+				childrenToSelect[CurrentSelectionChildIndex].transform.localScale = new Vector3(1, 1, 1);
+				childrenToSelect[CurrentSelectionChildIndex].enabled = false;
+				CurrentSelectionChildIndex = -1;
 			}
 		}
 		#endregion

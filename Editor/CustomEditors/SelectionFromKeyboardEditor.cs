@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.CustomEditors {
     [CustomEditor(typeof(SelectionFromKeyboard))]
-    public class SelectionFromKeyboardEditor : UnityEditor.Editor {
+    public class SelectionFromKeyboardEditor : AbstractDebuggableEditor<SelectionFromKeyboard> {
         #region Constants
         private const string EditorPrefKey_ShowInSceneView = nameof(CommonUtils) + "." + nameof(SelectionFromKeyboardEditor) + "." + nameof(showInSceneView);
         private const string EditorPrefKey_RectSize = nameof(CommonUtils) + "." + nameof(SelectionFromKeyboardEditor) +"." + nameof(rectSize);
@@ -59,12 +59,7 @@ namespace CommonUtils.Editor.CustomEditors {
 
         #endregion
         
-        private SelectionFromKeyboard subject;
         private bool showDisplayOptions;
-
-        private void OnEnable() {
-            subject = (SelectionFromKeyboard) target;
-        }
 
         public override void OnInspectorGUI() {
             showDisplayOptions = EditorExtensions.Collapse(showDisplayOptions, "Display Options", () => {
@@ -75,7 +70,11 @@ namespace CommonUtils.Editor.CustomEditors {
                 rectOffset = EditorGUILayout.Vector2Field("Rect Offset", rectOffset);
                 textColor = EditorGUILayout.ColorField("Text Color", textColor);
             });
-            DrawDefaultInspector();
+            base.OnInspectorGUI();
+        }
+
+        protected override void RenderDebug() {
+            EditorGUILayout.IntField("Current Selection Child Index: ", Subject.CurrentSelectionChildIndex);
         }
 
         private void OnSceneGUI() {
@@ -84,7 +83,7 @@ namespace CommonUtils.Editor.CustomEditors {
             
             var halfSizeVector = Vector2.one * (rectSize / 2);
             var i = 0;
-            foreach (var child in subject.childrenToSelect) {
+            foreach (var child in Subject.childrenToSelect) {
                 if (child.gameObject.activeInHierarchy) {
                     var bgRectCenter = (Vector2)child.transform.position - halfSizeVector - rectOffset;
                     Handles.DrawSolidRectangleWithOutline(new Rect(bgRectCenter, Vector2.one * rectSize), rectFillColor, rectOutlineColor);
