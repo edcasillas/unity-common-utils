@@ -19,5 +19,23 @@ namespace CommonUtils.Extensions {
 			point.y = ynew + origin.y;
 			return point;
 		}
+
+		/// <summary>
+		/// Returns a <see cref="Vector2"/> from a well-formatted string representing a vector2: ({0}, {1}).
+		/// In the case of a null, empty or malformed input, the <paramref name="defaultValue"/> is returned.
+		/// </summary>
+		public static Vector2 ToVector2(this string inputString, Vector2 defaultValue = default) {
+			if (string.IsNullOrEmpty(inputString)) return defaultValue;
+			var trimmed = inputString
+				.Replace("(", string.Empty)
+				.Replace(")", string.Empty)
+				.Replace(" ", string.Empty);
+			var components = trimmed.Split(',');
+			if (components.Length != 2) return defaultValue;
+			
+			if (!float.TryParse(components[0], out var x)) return defaultValue;
+			if (!float.TryParse(components[1], out var y)) return defaultValue;
+			return new Vector2(x, y);
+		}
 	}
 }
