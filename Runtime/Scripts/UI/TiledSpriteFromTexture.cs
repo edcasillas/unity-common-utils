@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using UnityEditor;
 #endif
 
-namespace ExaGames.Common.UI
+namespace CommonUtils.UI
 {
 	[AddComponentMenu("UI/TiledSpriteFromTexture")]
 	public class TiledSpriteFromTexture : MonoBehaviour
@@ -31,19 +31,18 @@ namespace ExaGames.Common.UI
 			if (Texture != null) SetTextureTiled(Texture, Border);
 		}
 
-		public void SetTextureTiled(Texture2D texture, float border = 0f, float pixelsPerUnit = 100f)
-		{
-			if(texture == null)
-			{
+		public void SetTextureTiled(Texture2D texture, float border = 0f, float pixelsPerUnit = 100f) {
+			if (texture == null) {
 				Debug.LogErrorFormat("Se ha llamado a SetTextureTiled en {0} con una textura en null.", name);
 				return;
 			}
+
 			texture.wrapMode = TextureWrapMode.Repeat;
-			try
-			{
-				image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero, pixelsPerUnit, 0, SpriteMeshType.Tight, new Vector4(border, border, border, border));
-			} catch(Exception ex)
-			{
+			try {
+				image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero,
+					pixelsPerUnit, 0, SpriteMeshType.Tight, new Vector4(border, border, border, border));
+			}
+			catch (Exception ex) {
 				Debug.LogErrorFormat("No se pudo establecer la textura tileada en {0}: {1}", name, ex.Message);
 			}
 		}
