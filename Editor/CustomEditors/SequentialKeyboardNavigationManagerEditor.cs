@@ -11,6 +11,10 @@ namespace CommonUtils.Editor.CustomEditors {
         private bool _showActiveItems;
         
         protected override void RenderDebug() {
+            if (GUILayout.Button("Request active items refresh")) {
+                Subject.OnItemEnabledOrDisabled();
+            }
+            
             EditorGUILayout.IntField("Current Index", Subject.CurrentIndex);
             EditorGUILayout.ObjectField("Current Focus", Subject.CurrentlyFocusedItem.IsValid()? Subject.CurrentlyFocusedItem.gameObject : null, typeof(GameObject), true);
             _showAllItems = EditorExtensions.ReadonlyEnumerable(_showAllItems,
