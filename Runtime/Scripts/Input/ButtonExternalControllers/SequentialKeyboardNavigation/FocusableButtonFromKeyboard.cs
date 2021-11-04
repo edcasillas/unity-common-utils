@@ -1,8 +1,8 @@
-using CommonUtils.Input.ButtonExternalControllers;
+using CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback;
 using CommonUtils.UnityComponents;
 using UnityEngine;
 
-namespace CommonUtils.Input.SequentialKeyboardNavigation {
+namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public class FocusableButtonFromKeyboard : ButtonFromKeyboard, IFocusableButtonFromKeyboard {
 #if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
         #region Inspector fields

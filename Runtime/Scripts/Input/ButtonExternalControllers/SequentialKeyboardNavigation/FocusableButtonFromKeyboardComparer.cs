@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CommonUtils.UnityComponents;
 
-namespace CommonUtils.Input.SequentialKeyboardNavigation
+namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation
 {
     public class FocusableButtonFromKeyboardComparer : IComparer<IFocusableButtonFromKeyboard> {
         public int Compare(IFocusableButtonFromKeyboard x, IFocusableButtonFromKeyboard y) {

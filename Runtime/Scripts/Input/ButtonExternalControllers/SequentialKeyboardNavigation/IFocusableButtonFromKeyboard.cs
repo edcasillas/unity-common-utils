@@ -1,6 +1,6 @@
 using CommonUtils.UnityComponents;
 
-namespace CommonUtils.Input.SequentialKeyboardNavigation {
+namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public interface IFocusableButtonFromKeyboard : IUnityComponent{
         int TabIndex { get; }
 

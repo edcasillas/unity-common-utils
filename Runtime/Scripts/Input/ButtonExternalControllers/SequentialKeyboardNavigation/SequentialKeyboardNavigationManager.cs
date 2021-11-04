@@ -3,7 +3,7 @@ using System.Linq;
 using CommonUtils.UnityComponents;
 using UnityEngine;
 
-namespace CommonUtils.Input.SequentialKeyboardNavigation {
+namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager {
         #region Static members
 

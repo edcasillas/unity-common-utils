@@ -9,6 +9,7 @@ namespace CommonUtils.Editor.CustomEditors
 	/// <summary>
 	/// Allows objects to be selectable using the keyboard.
 	/// </summary>
+	[Obsolete("This is in the way to deprecation. Do not use anymore.")]
 	public class SelectionFromKeyboard : MonoBehaviour {
 		/// <summary>
 		/// Object that can be selected through keyboard using this object.
