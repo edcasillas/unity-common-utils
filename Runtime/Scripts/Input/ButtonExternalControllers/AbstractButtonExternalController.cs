@@ -131,21 +131,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			
 			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
 
-			if (_currentlyBlockedBy.Any()) return true;
-			
-			if (IsBlockedBy == null) return false;
-			GameObject activeBlocker = null;
-			for (int i = 0; i < IsBlockedBy.Count; i++) {
-				if (IsBlockedBy[i] && IsBlockedBy[i].activeInHierarchy) {
-					activeBlocker = IsBlockedBy[i];
-					break;
-				}
-			}
-			if (activeBlocker) {
-				this.DebugLog($"Button \"{name}\" is being blocked by {activeBlocker.name}");
-				return true;
-			}
-			return false;
+			return _currentlyBlockedBy.Any();
 		}
 
 		protected virtual void OnBlockersChanged() { }
