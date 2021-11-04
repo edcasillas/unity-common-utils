@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.UnityComponents;
@@ -6,9 +7,10 @@ using UnityEngine;
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager {
         #region Static members
-
         private static readonly SortedSet<IFocusableButtonFromKeyboard> allItems =
             new SortedSet<IFocusableButtonFromKeyboard>(new FocusableButtonFromKeyboardComparer());
+
+        public static IEnumerable<IFocusableButtonFromKeyboard> AllItems => allItems;
         
         private static ISequentialKeyboardNavigationManager _instance;
         public static ISequentialKeyboardNavigationManager Instance {
@@ -28,15 +30,18 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         private static List<IFocusableButtonFromKeyboard> currentlyActiveItems =
             new List<IFocusableButtonFromKeyboard>();
 
-        private static int? currentIndex = null;
+        public static IEnumerable<IFocusableButtonFromKeyboard> CurrentlyActiveItems => currentlyActiveItems;
 
-        private static IFocusableButtonFromKeyboard currentlyFocusedItem;
+        private static int? currentIndex = null;
+        public static int CurrentIndex => currentIndex ?? -1;
+
+        public static IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
 
         private static void updateCurrentlyActiveItems() {
             currentlyActiveItems = allItems.Where(i => i.IsInteractable()).ToList();
-            if (currentlyFocusedItem.IsValid() && !currentlyActiveItems.Contains(currentlyFocusedItem)) {
-                currentlyFocusedItem.HasFocus = false;
-                currentlyFocusedItem = null;
+            if (CurrentlyFocusedItem.IsValid() && !currentlyActiveItems.Contains(CurrentlyFocusedItem)) {
+                CurrentlyFocusedItem.HasFocus = false;
+                CurrentlyFocusedItem = null;
             }
             currentIndex = null;
         }
@@ -64,17 +69,19 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
                 currentIndex %= currentlyActiveItems.Count;
                 
-                if(currentlyFocusedItem.IsValid()) currentlyFocusedItem.HasFocus = false;
+                if(CurrentlyFocusedItem.IsValid()) CurrentlyFocusedItem.HasFocus = false;
 
-                currentlyFocusedItem = currentlyActiveItems[currentIndex.Value];
+                CurrentlyFocusedItem = currentlyActiveItems[currentIndex.Value];
                 
-                if(currentlyFocusedItem.IsValid()) currentlyFocusedItem.HasFocus = true;
+                if(CurrentlyFocusedItem.IsValid()) CurrentlyFocusedItem.HasFocus = true;
             }
         }
 
         private void OnDestroy() {
             if ((SequentialKeyboardNavigationManager)_instance == this) _instance = null;
         }
+
+        private void OnApplicationQuit() => Destroy(gameObject);
         #endregion
         
         #region Public Methods
@@ -88,9 +95,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
             updateCurrentlyActiveItems();
         }
 
-        public void OnItemEnabledOrDisabled() {
-            updateCurrentlyActiveItems();
-        }
+        public void OnItemEnabledOrDisabled() => updateCurrentlyActiveItems();
         #endregion
     }
 }
