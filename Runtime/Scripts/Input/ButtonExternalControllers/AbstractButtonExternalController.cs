@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
-using CommonUtils.Inspector.ReorderableInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -45,7 +44,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		public bool IsVerbose => verbose;
 		#endregion
 
-		private void Awake() {
+		protected virtual void Awake() {
 			#if UNITY_EDITOR
 			if (UnityEditor.EditorApplication.isRemoteConnected && disableWithUnityRemote) {
 				Destroy(this);
@@ -76,13 +75,14 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			ExecuteEvents.Execute(gameObject, pointer, ExecuteEvents.pointerClickHandler);
 		}
 
-		public bool IsInteractable() => Button.IsInteractable() && !IsBlocked();
+		public bool IsInteractable() => !IsBlocked();
 
 		/// <summary>
 		/// Gets a value indicating whether any of the blockers are active or not.
 		/// </summary>
 		/// <returns><c>true</c> when any of the blockers is active, otherwise <c>false</c>.</returns>
 		protected virtual bool IsBlocked() {
+			if (!Button.IsInteractable() || !gameObject.activeInHierarchy) return true;
 			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
 			if (IsBlockedBy == null) return false;
 			GameObject activeBlocker = null;

@@ -23,6 +23,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#endregion
 
 		private void Update() {
+			if (keyCode == KeyCode.None) return;
 			if (IsInteractable()) {
 				if (UnityEngine.Input.GetKeyDown(keyCode)) {
 					this.DebugLog($"{name} was pressed using key {keyCode}");

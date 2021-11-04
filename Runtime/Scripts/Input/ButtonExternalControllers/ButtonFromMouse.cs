@@ -14,7 +14,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#endregion
 
 		private void Update() {
-			if (Button.IsInteractable() && !IsBlocked()) {
+			if (!IsBlocked()) {
 				if (UnityEngine.Input.GetMouseButtonDown(mouseButton)) {
 					this.DebugLog($"{name} was pressed using mouse button {mouseButton}");
 					Press();
