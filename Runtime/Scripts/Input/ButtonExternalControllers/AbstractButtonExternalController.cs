@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CommonUtils.ComponentCaching;
 using CommonUtils.Extensions;
+using CommonUtils.UnityComponents;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -47,6 +49,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		public bool IsVerbose => verbose;
 		#endregion
 
+		#region Unity Lifecycle
 		protected virtual void Awake() {
 			#if UNITY_EDITOR
 			if (UnityEditor.EditorApplication.isRemoteConnected && disableWithUnityRemote) {
@@ -58,7 +61,12 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			if (IsBlockedBy.Any(blocker => !blocker)) {
 				Debug.LogWarning($"\"{name}\" is being blocked by an invalid object.", this);
 			}
+			
+			subscribeToBlockers(IsBlockedBy, true);
 		}
+
+		private void OnDestroy() => subscribeToBlockers(IsBlockedBy, false);
+		#endregion
 
 		/// <summary>
 		/// Simulates pressing this button.
@@ -95,6 +103,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 				}
 				
 				IsBlockedBy.Add(blocker);
+				subscribeToBlocker(blocker, true);
 				changed = true;
 			}
 			if(changed) OnBlockersChanged();
@@ -140,5 +149,20 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		}
 
 		protected virtual void OnBlockersChanged() { }
+
+		private void subscribeToBlockers(IEnumerable<GameObject> blockers, bool subscribe) {
+			foreach (var blocker in blockers) {
+				subscribeToBlocker(blocker, subscribe);
+			}
+		}
+
+		private void subscribeToBlocker(GameObject blocker, bool subscribe) {
+			var blockerComponent = blocker.GetCachedComponent<ButtonExternalControllerBlocker>();
+			if (!blockerComponent.IsValid()) {
+				blockerComponent = blocker.AddComponent<ButtonExternalControllerBlocker>();
+			}
+			if(subscribe) blockerComponent.Subscribe(this);
+			else blockerComponent.Unsubscribe(this);
+		}
 	}
 }

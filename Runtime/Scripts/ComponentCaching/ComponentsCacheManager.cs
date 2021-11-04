@@ -7,13 +7,14 @@ namespace CommonUtils.ComponentCaching {
 		private static ComponentsCache Cache {
 			get {
 				if (!cacheInstance) {
-					cacheInstance = new GameObject("ComponentsCache").AddComponent<ComponentsCache>();
+					cacheInstance = new GameObject(nameof(ComponentsCache)).AddComponent<ComponentsCache>();
 				}
 
 				return cacheInstance;
 			}
 		}
 
-		public static T GetCachedComponent<T>(this GameObject gameObject) => Cache.GetComponentFrom<T>(gameObject);
+		public static T GetCachedComponent<T>(this GameObject gameObject) where T : Component =>
+			Cache.GetComponentFrom<T>(gameObject);
 	}
 }

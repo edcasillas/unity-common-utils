@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using CommonUtils.UnityComponents;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
-    public interface IButtonExternalControllerBlocker { }
+    public interface IButtonExternalControllerBlocker : IUnityComponent {
+        void Subscribe(IButtonExternalController button);
+        void Unsubscribe(IButtonExternalController button);
+    }
     
     public class ButtonExternalControllerBlocker : MonoBehaviour, IButtonExternalControllerBlocker {
         private readonly HashSet<IButtonExternalController> _subscribers = new HashSet<IButtonExternalController>();
