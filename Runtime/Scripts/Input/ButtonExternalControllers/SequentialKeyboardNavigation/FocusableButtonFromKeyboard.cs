@@ -1,4 +1,3 @@
-using System.Collections;
 using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback;
 using CommonUtils.UnityComponents;
@@ -13,7 +12,10 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         #endregion
 
         #region Properties and backing fields
-        public int TabIndex => tabIndex;
+        public int TabIndex {
+            get => tabIndex;
+            set => tabIndex = value;
+        }
 
         private bool _hasFocus;
         public bool HasFocus {
@@ -50,12 +52,12 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         private void OnEnable() {
             this.DebugLog($"{name} has been enabled.");
-            Coroutiner.StartCoroutine(waitAndInformEnabledChanged());
+            manager.OnItemEnabledOrDisabled();
         }
 
         private void OnDisable() {
             this.DebugLog($"{name} has been disabled.");
-            Coroutiner.StartCoroutine(waitAndInformEnabledChanged());
+            manager.OnItemEnabledOrDisabled();
         }
 
         private void OnDestroy() {
@@ -66,12 +68,9 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         #region Overrides
         protected override bool IsKeyPressed() => (KeyCode != KeyCode.None && base.IsKeyPressed()) || (HasFocus && UnityEngine.Input.GetKeyDown(keyCodeWhenFocused));
         protected override bool IsKeyReleased() => (KeyCode != KeyCode.None && base.IsKeyReleased()) || (HasFocus && UnityEngine.Input.GetKeyUp(keyCodeWhenFocused));
-        #endregion
+        protected override void OnBlockersChanged() => manager.OnItemEnabledOrDisabled();
 
-        private IEnumerator waitAndInformEnabledChanged() {
-            yield return null;
-            manager.OnItemEnabledOrDisabled();
-        }
+        #endregion
 #else
         public int TabIndex => 0;
         public bool HasFocus { get; set; }

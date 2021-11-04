@@ -1,10 +1,9 @@
 using CommonUtils.UnityComponents;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
-    public interface IFocusableButtonFromKeyboard : IUnityComponent{
-        int TabIndex { get; }
+    public interface IFocusableButtonFromKeyboard : IButtonExternalController {
+        int TabIndex { get; set; }
 
         bool HasFocus { get; set; }
-        bool IsInteractable();
     }
 }

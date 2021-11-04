@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
 	[RequireComponent(typeof(Selectable))]
-	public abstract class AbstractButtonExternalController : MonoBehaviour, IVerbosable {
+	public abstract class AbstractButtonExternalController : MonoBehaviour, IVerbosable, IButtonExternalController {
 #pragma warning disable 649
 		[SerializeField] private bool isBlockedBySceneLoader = true;
 		/// <summary>
@@ -77,6 +77,26 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 
 		public bool IsInteractable() => !IsBlocked();
 
+		public void AddBlockers(IEnumerable<GameObject> blockers) {
+			if(blockers == null) return;
+			var changed = false;
+			foreach (var blocker in blockers) {
+				if (!blocker) {
+					Debug.LogWarning($"Trying to add an invalid blocker to \"{name}\".", this);
+					continue;
+				}
+
+				if (IsBlockedBy.Contains(blocker)) {
+					Debug.LogWarning($"Trying to add a duplicated blocker (\"{blocker.name}\") to \"{name}\".", this);
+					continue;
+				}
+				
+				IsBlockedBy.Add(blocker);
+				changed = true;
+			}
+			if(changed) OnBlockersChanged();
+		}
+
 		/// <summary>
 		/// Gets a value indicating whether any of the blockers are active or not.
 		/// </summary>
@@ -98,5 +118,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			}
 			return false;
 		}
+
+		protected virtual void OnBlockersChanged() { }
 	}
 }
