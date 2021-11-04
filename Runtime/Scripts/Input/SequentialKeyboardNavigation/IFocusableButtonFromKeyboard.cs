@@ -1,10 +1,10 @@
 using CommonUtils.UnityComponents;
 
 namespace CommonUtils.Input.SequentialKeyboardNavigation {
-    public interface ISequentialKeyboardNavigationItem : IUnityComponent{
+    public interface IFocusableButtonFromKeyboard : IUnityComponent{
         int TabIndex { get; }
 
-        void SetFocus(bool hasFocus);
+        bool HasFocus { get; set; }
         bool IsInteractable();
     }
 }

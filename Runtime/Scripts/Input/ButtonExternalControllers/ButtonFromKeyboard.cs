@@ -23,19 +23,21 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#endregion
 
 		private void Update() {
-			if (keyCode == KeyCode.None) return;
 			if (IsInteractable()) {
-				if (UnityEngine.Input.GetKeyDown(keyCode)) {
+				if (IsKeyPressed()) {
 					this.DebugLog($"{name} was pressed using key {keyCode}");
 					Press();
 				}
 
-				if (UnityEngine.Input.GetKeyUp(keyCode)) {
+				if (IsKeyReleased()) {
 					this.DebugLog($"{name} was unpressed using key {keyCode}");
 					Release();
 				}
 			}
 		}
+
+		protected virtual bool IsKeyPressed() => UnityEngine.Input.GetKeyDown(keyCode);
+		protected virtual bool IsKeyReleased() => UnityEngine.Input.GetKeyUp(keyCode);
 #endif
 	}
 }

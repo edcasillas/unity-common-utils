@@ -1,10 +1,9 @@
 ﻿using CommonUtils.UnityComponents;
 
-namespace CommonUtils.Input.SequentialKeyboardNavigation
-{
+namespace CommonUtils.Input.SequentialKeyboardNavigation {
     public interface ISequentialKeyboardNavigationManager : IUnityComponent {
-        void Subscribe(ISequentialKeyboardNavigationItem item);
-        void Unsubscribe(ISequentialKeyboardNavigationItem item);
+        void Subscribe(IFocusableButtonFromKeyboard item);
+        void Unsubscribe(IFocusableButtonFromKeyboard item);
         void OnItemEnabledOrDisabled();
     }
 }
