@@ -11,12 +11,12 @@ namespace CommonUtils.Editor.CustomEditors {
         private bool _showActiveItems;
         
         protected override void RenderDebug() {
-            EditorGUILayout.IntField("Current Index", SequentialKeyboardNavigationManager.CurrentIndex);
-            EditorGUILayout.ObjectField("Current Focus", SequentialKeyboardNavigationManager.CurrentlyFocusedItem.IsValid()? SequentialKeyboardNavigationManager.CurrentlyFocusedItem.gameObject : null, typeof(GameObject), true);
+            EditorGUILayout.IntField("Current Index", Subject.CurrentIndex);
+            EditorGUILayout.ObjectField("Current Focus", Subject.CurrentlyFocusedItem.IsValid()? Subject.CurrentlyFocusedItem.gameObject : null, typeof(GameObject), true);
             _showAllItems = EditorExtensions.ReadonlyEnumerable(_showAllItems,
-                SequentialKeyboardNavigationManager.AllItems.Select(i => i.gameObject), "All Items");
+                Subject.AllItems.Select(i => i.gameObject), "All Items");
             _showActiveItems = EditorExtensions.ReadonlyEnumerable(_showActiveItems,
-                SequentialKeyboardNavigationManager.CurrentlyActiveItems.Select(i => i.gameObject), "Active Items");
+                Subject.CurrentlyActiveItems.Select(i => i.gameObject), "Active Items");
         }
     }
 }

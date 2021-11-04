@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.UnityComponents;
@@ -6,12 +5,7 @@ using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager {
-        #region Static members
-        private static readonly SortedSet<IFocusableButtonFromKeyboard> allItems =
-            new SortedSet<IFocusableButtonFromKeyboard>(new FocusableButtonFromKeyboardComparer());
-
-        public static IEnumerable<IFocusableButtonFromKeyboard> AllItems => allItems;
-        
+        #region Singleton
         private static ISequentialKeyboardNavigationManager _instance;
         public static ISequentialKeyboardNavigationManager Instance {
             get {
@@ -26,28 +20,28 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
                 return _instance;
             }
         }
-
-        private static List<IFocusableButtonFromKeyboard> currentlyActiveItems =
-            new List<IFocusableButtonFromKeyboard>();
-
-        public static IEnumerable<IFocusableButtonFromKeyboard> CurrentlyActiveItems => currentlyActiveItems;
-
-        private static int? currentIndex = null;
-        public static int CurrentIndex => currentIndex ?? -1;
-
-        public static IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
-
-        private static void updateCurrentlyActiveItems() {
-            currentlyActiveItems = allItems.Where(i => i.IsInteractable()).ToList();
-            if (CurrentlyFocusedItem.IsValid() && !currentlyActiveItems.Contains(CurrentlyFocusedItem)) {
-                CurrentlyFocusedItem.HasFocus = false;
-                CurrentlyFocusedItem = null;
-            }
-            currentIndex = null;
-        }
         #endregion
 
+        #region Inspector fields
         [SerializeField] private KeyCode navigationKey = KeyCode.Tab;
+        #endregion
+        
+        #region Properties and backing fields
+        private readonly SortedSet<IFocusableButtonFromKeyboard> _allItems = new SortedSet<IFocusableButtonFromKeyboard>(new FocusableButtonFromKeyboardComparer());
+        public IEnumerable<IFocusableButtonFromKeyboard> AllItems => _allItems;
+        
+        private List<IFocusableButtonFromKeyboard> _currentlyActiveItems = new List<IFocusableButtonFromKeyboard>();
+        public IEnumerable<IFocusableButtonFromKeyboard> CurrentlyActiveItems => _currentlyActiveItems;
+
+        private int? currentIndex = null;
+        public int CurrentIndex => currentIndex ?? -1;
+
+        public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
+        #endregion
+        
+        #region Fields
+        private bool needsRefreshOfCurrentlyActiveItems;
+        #endregion
 
         #region Unity Lifecycle
         private void Awake() {
@@ -61,17 +55,22 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         }
 
         private void Update() {
-            if (currentlyActiveItems.Count == 0) return;
+            if (needsRefreshOfCurrentlyActiveItems) {
+                refreshCurrentlyActiveItems();
+                needsRefreshOfCurrentlyActiveItems = false;
+            }
+            
+            if (_currentlyActiveItems.Count == 0) return;
             
             if (UnityEngine.Input.GetKeyUp(navigationKey)) {
                 if (!currentIndex.HasValue) currentIndex = 0;
                 else currentIndex++;
 
-                currentIndex %= currentlyActiveItems.Count;
+                currentIndex %= _currentlyActiveItems.Count;
                 
                 if(CurrentlyFocusedItem.IsValid()) CurrentlyFocusedItem.HasFocus = false;
 
-                CurrentlyFocusedItem = currentlyActiveItems[currentIndex.Value];
+                CurrentlyFocusedItem = _currentlyActiveItems[currentIndex.Value];
                 
                 if(CurrentlyFocusedItem.IsValid()) CurrentlyFocusedItem.HasFocus = true;
             }
@@ -86,16 +85,27 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         
         #region Public Methods
         public void Subscribe(IFocusableButtonFromKeyboard item) {
-            allItems.Add(item);
-            updateCurrentlyActiveItems();
+            _allItems.Add(item);
+            refreshCurrentlyActiveItems();
         }
 
         public void Unsubscribe(IFocusableButtonFromKeyboard item) {
-            allItems.Remove(item);
-            updateCurrentlyActiveItems();
+            _allItems.Remove(item);
+            refreshCurrentlyActiveItems();
         }
 
-        public void OnItemEnabledOrDisabled() => updateCurrentlyActiveItems();
+        public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
+        #endregion
+        
+        #region Private methods
+        private void refreshCurrentlyActiveItems() {
+            _currentlyActiveItems = _allItems.Where(i => i.IsInteractable()).ToList();
+            if (CurrentlyFocusedItem.IsValid() && !_currentlyActiveItems.Contains(CurrentlyFocusedItem)) {
+                CurrentlyFocusedItem.HasFocus = false;
+                CurrentlyFocusedItem = null;
+            }
+            currentIndex = null;
+        }
         #endregion
     }
 }

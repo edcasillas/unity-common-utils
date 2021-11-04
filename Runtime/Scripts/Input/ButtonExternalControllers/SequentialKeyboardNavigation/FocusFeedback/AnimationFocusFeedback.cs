@@ -3,16 +3,16 @@ using UnityEngine;
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback {
     [RequireComponent(typeof(Animation))]
     public class AnimationFocusFeedback : MonoBehaviour, IFocusFeedback {
-        private Animation _animation;
-        private Animation animation {
+        private Animation _anim;
+        private Animation anim {
             get {
-                if (!_animation) _animation = GetComponent<Animation>();
-                return _animation;
+                if (!_anim) _anim = GetComponent<Animation>();
+                return _anim;
             }
         }
         
         public void SetFocus(bool hasFocus) {
-            animation.enabled = hasFocus;
+            anim.enabled = hasFocus;
             if(!hasFocus) transform.localScale = Vector3.one;
         }
     }
