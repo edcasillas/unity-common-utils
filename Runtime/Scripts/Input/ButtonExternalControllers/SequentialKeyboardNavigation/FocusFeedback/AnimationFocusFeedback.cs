@@ -3,11 +3,13 @@ using UnityEngine;
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback {
     [RequireComponent(typeof(Animation))]
     public class AnimationFocusFeedback : MonoBehaviour, IFocusFeedback {
-        private Animation _anim;
+        [Tooltip("OPTIONAL. If empty, it will retrieve the Animation component using GetComponent.")]
+        [SerializeField] private Animation feedbackAnimation;
+        
         private Animation anim {
             get {
-                if (!_anim) _anim = GetComponent<Animation>();
-                return _anim;
+                if (!feedbackAnimation) feedbackAnimation = GetComponent<Animation>();
+                return feedbackAnimation;
             }
         }
         

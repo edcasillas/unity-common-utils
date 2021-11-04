@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback;

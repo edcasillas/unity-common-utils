@@ -17,6 +17,8 @@ namespace CommonUtils.Editor.CustomEditors {
                 Subject.AllItems.Select(i => i.gameObject), "All Items");
             _showActiveItems = EditorExtensions.ReadonlyEnumerable(_showActiveItems,
                 Subject.CurrentlyActiveItems.Select(i => i.gameObject), "Active Items");
+            
+            EditorUtility.SetDirty(target);
         }
     }
 }

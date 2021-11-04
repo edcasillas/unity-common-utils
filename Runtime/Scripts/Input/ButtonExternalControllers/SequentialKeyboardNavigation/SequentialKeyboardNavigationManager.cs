@@ -86,12 +86,12 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         #region Public Methods
         public void Subscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Add(item);
-            refreshCurrentlyActiveItems();
+            needsRefreshOfCurrentlyActiveItems = true;
         }
 
         public void Unsubscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Remove(item);
-            refreshCurrentlyActiveItems();
+            needsRefreshOfCurrentlyActiveItems = true;
         }
 
         public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
