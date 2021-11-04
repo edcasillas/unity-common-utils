@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using CommonUtils.Extensions;
 using CommonUtils.UnityComponents;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
-    public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager {
+    public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager, IVerbosable {
         #region Singleton
         private static ISequentialKeyboardNavigationManager _instance;
         public static ISequentialKeyboardNavigationManager Instance {
@@ -24,6 +25,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         #region Inspector fields
         [SerializeField] private KeyCode navigationKey = KeyCode.Tab;
+        [SerializeField] private bool verbose;
         #endregion
         
         #region Properties and backing fields
@@ -37,6 +39,9 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         public int CurrentIndex => currentIndex ?? -1;
 
         public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
+
+        public bool IsVerbose => verbose;
+
         #endregion
         
         #region Fields
@@ -87,11 +92,13 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         public void Subscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Add(item);
             needsRefreshOfCurrentlyActiveItems = true;
+            this.DebugLog($"{item.name} has been SUBSCRIBED to {name}");
         }
 
         public void Unsubscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Remove(item);
             needsRefreshOfCurrentlyActiveItems = true;
+            this.DebugLog($"{item.name} has been UNSUBSCRIBED from {name}");
         }
 
         public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
