@@ -109,9 +109,9 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			if(changed) OnBlockersChanged();
 		}
 
-		public void OnBlockerBecameActive(IButtonExternalControllerBlocker blocker) => _currentlyBlockedBy.SafeAdd(blocker);
+		public virtual void OnBlockerBecameActive(IButtonExternalControllerBlocker blocker) => _currentlyBlockedBy.SafeAdd(blocker);
 
-		public void OnBlockerBecameInactive(IButtonExternalControllerBlocker blocker) => _currentlyBlockedBy.SafeRemove(blocker);
+		public virtual void OnBlockerBecameInactive(IButtonExternalControllerBlocker blocker) => _currentlyBlockedBy.SafeRemove(blocker);
 
 		/// <summary>
 		/// Gets a value indicating whether any of the blockers are active or not.

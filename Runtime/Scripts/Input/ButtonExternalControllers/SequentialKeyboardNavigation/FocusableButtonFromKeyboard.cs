@@ -69,6 +69,16 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         protected override bool IsKeyPressed() => (KeyCode != KeyCode.None && base.IsKeyPressed()) || (HasFocus && UnityEngine.Input.GetKeyDown(keyCodeWhenFocused));
         protected override bool IsKeyReleased() => (KeyCode != KeyCode.None && base.IsKeyReleased()) || (HasFocus && UnityEngine.Input.GetKeyUp(keyCodeWhenFocused));
         protected override void OnBlockersChanged() => manager.OnItemEnabledOrDisabled();
+        
+        public override void OnBlockerBecameActive(IButtonExternalControllerBlocker blocker) {
+            base.OnBlockerBecameActive(blocker);
+            manager.OnItemEnabledOrDisabled();
+        }
+
+        public override void OnBlockerBecameInactive(IButtonExternalControllerBlocker blocker) {
+            base.OnBlockerBecameInactive(blocker);
+            manager.OnItemEnabledOrDisabled();
+        }
 
         #endregion
 #else
