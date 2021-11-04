@@ -59,23 +59,23 @@ namespace CommonUtils.Editor.CustomEditors
 		}
 
 		private void Update() {
-			if (KeyCodeSelection != KeyCode && !IsBlocked()) {
-				if (UnityEngine.Input.GetKeyUp(KeyCodeSelection)) { // SELECTOR HIJO
-					MoveToTheNextChild();
+			if (KeyCodeSelection == KeyCode || IsBlocked()) return;
+
+			if (UnityEngine.Input.GetKeyUp(KeyCodeSelection)) { // SELECTOR HIJO
+				moveToTheNextChild();
+			}
+			else {
+				if (UnityEngine.Input.GetKeyUp(KeyCode) && 
+				    CurrentSelectionChildIndex != -1 && 
+				    childrenToSelect[CurrentSelectionChildIndex].gameObject.activeSelf && 
+				    childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().IsInteractable() && 
+				    !IsBlocked()) { // CONFIRMAR SELECCION
+
+					childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().onClick.Invoke();
+
+					if (childrenToSelect[CurrentSelectionChildIndex].name == "Frame") { moveToTheNextChild(); }
 				}
-				else {
-					if (UnityEngine.Input.GetKeyUp(KeyCode) && 
-					    CurrentSelectionChildIndex != -1 && 
-					    childrenToSelect[CurrentSelectionChildIndex].gameObject.activeSelf && 
-					    childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().IsInteractable() && 
-					    !IsBlocked()) { // CONFIRMAR SELECCION
 
-						childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().onClick.Invoke();
-
-						if (childrenToSelect[CurrentSelectionChildIndex].name == "Frame") { MoveToTheNextChild(); }
-					}
-
-				}
 			}
 		}
 	
@@ -94,39 +94,47 @@ namespace CommonUtils.Editor.CustomEditors
 		/// <summary>
 		/// Método que controla el movimiento al siguiente hijo disponible
 		/// </summary>
-		private void MoveToTheNextChild() {
-			Debug.LogWarning($"La funcionalidad de {nameof(MoveToTheNextChild)} ha sido desactivada temporalmente", this);
-			/*if (childrenIndex != -1) {
-			childrenToSelect[childrenIndex].enabled = false;
-			childrenToSelect[childrenIndex].transform.localScale = new Vector3(1, 1, 1);
-		}
-
-		bool flag = false;
-		while (flag == false) {
-
-			childrenIndex = childrenIndex >= childrenToSelect.Length - 1 || childrenIndex == -1 ? 0 : childrenIndex + 1;
-
-			if (childrenToSelect[childrenIndex].GetComponent<Button>().IsInteractable() && childrenToSelect[childrenIndex].gameObject.activeSelf) {
-
-				if (childrenToSelect[childrenIndex].name == "Frame") { //Control para no seleccionar los reels si no esta funcionando
-
-					try {
-						if (childrenToSelect[childrenIndex].GetComponentInChildren<ReelView>().isMoving) {
-							childrenToSelect[childrenIndex].enabled = true;
-							flag = true;
-						}
-					}
-					catch { }
-
-				}
-				else {
-					childrenToSelect[childrenIndex].enabled = true;
-					flag = true;
-				}
+		private void moveToTheNextChild() {
+			Debug.LogWarning($"La funcionalidad de {nameof(moveToTheNextChild)} ha sido desactivada temporalmente",
+				this);
+			if (CurrentSelectionChildIndex != -1) {
+				childrenToSelect[CurrentSelectionChildIndex].enabled = false;
+				childrenToSelect[CurrentSelectionChildIndex].transform.localScale = new Vector3(1, 1, 1);
 			}
 
-		}
-*/
+			bool flag = false;
+			while (flag == false) {
+
+				CurrentSelectionChildIndex = CurrentSelectionChildIndex >= childrenToSelect.Length - 1 || CurrentSelectionChildIndex == -1
+					? 0
+					: CurrentSelectionChildIndex + 1;
+
+				if (childrenToSelect[CurrentSelectionChildIndex].GetComponent<Button>().IsInteractable() &&
+				    childrenToSelect[CurrentSelectionChildIndex].gameObject.activeSelf) {
+
+					/*if (childrenToSelect[CurrentSelectionChildIndex].name == "Frame") {
+						//Control para no seleccionar los reels si no esta funcionando
+
+						try {
+							if (childrenToSelect[CurrentSelectionChildIndex].GetComponentInChildren<ReelView>().isMoving) {
+								childrenToSelect[CurrentSelectionChildIndex].enabled = true;
+								flag = true;
+							}
+						}
+						catch {
+						}
+
+					}
+					else {
+						childrenToSelect[CurrentSelectionChildIndex].enabled = true;
+						flag = true;
+					}*/
+					childrenToSelect[CurrentSelectionChildIndex].enabled = true;
+					flag = true;
+				}
+
+			}
+
 		}
 
 		/// <summary>

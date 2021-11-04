@@ -75,6 +75,7 @@ namespace CommonUtils.Editor.CustomEditors {
 
         protected override void RenderDebug() {
             EditorGUILayout.IntField("Current Selection Child Index: ", Subject.CurrentSelectionChildIndex);
+            EditorUtility.SetDirty(target);
         }
 
         private void OnSceneGUI() {
