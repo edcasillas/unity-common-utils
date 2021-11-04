@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Codice.Client.BaseCommands;
 using CommonUtils.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -26,18 +28,17 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 #pragma warning restore 649
 
 		#region Properties
-		private Selectable button;
-
+		private Selectable _button;
 		public Selectable Button {
 			get {
-				if (!button) {
-					button = GetComponent<Selectable>();
-					if (!button) {
+				if (!_button) {
+					_button = GetComponent<Selectable>();
+					if (!_button) {
 						Debug.LogError($"\"{name}\" doesn't have a required component of type '{nameof(Selectable)}'.");
 						enabled = false;
 					}
 				}
-				return button;
+				return _button;
 			}
 		}
 
@@ -102,7 +103,17 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		/// </summary>
 		/// <returns><c>true</c> when any of the blockers is active, otherwise <c>false</c>.</returns>
 		protected virtual bool IsBlocked() {
-			if (!Button.IsInteractable() || !gameObject.activeInHierarchy) return true;
+			if (!gameObject.activeInHierarchy) return true;
+			
+			Selectable selectable;
+			try { selectable = Button; }
+			catch (Exception ex) {
+				Debug.LogError($"An error occured while trying to access the {nameof(Selectable)} component of {name}. This {GetType()} object will be deactivated: {ex.Message}", this);
+				gameObject.SetActive(false);
+				return true;
+			}
+			if (!selectable.IsInteractable()) return true;
+			
 			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
 			if (IsBlockedBy == null) return false;
 			GameObject activeBlocker = null;

@@ -3,6 +3,7 @@ using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.UnityComponents;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager, IVerbosable {
@@ -57,6 +58,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
             _instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += onSceneLoaded;
         }
 
         private void Update() {
@@ -105,6 +107,12 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         #endregion
         
         #region Private methods
+        private void onSceneLoaded(Scene arg0, LoadSceneMode arg1) {
+            var removedItems = _allItems.RemoveWhere(item => !item.IsValid());
+            this.DebugLog($"A new scene was loaded and {removedItems} items were removed from {name}");
+            refreshCurrentlyActiveItems();
+        }
+        
         private void refreshCurrentlyActiveItems() {
             _currentlyActiveItems = _allItems.Where(i => i.IsInteractable()).ToList();
             if (CurrentlyFocusedItem.IsValid() && !_currentlyActiveItems.Contains(CurrentlyFocusedItem)) {
