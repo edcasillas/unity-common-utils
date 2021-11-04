@@ -1,8 +1,10 @@
 using CommonUtils.Extensions;
+using System;
 using UnityEditor;
 using UnityEngine;
 
 namespace CommonUtils.Editor.CustomEditors {
+	[Obsolete]
     [CustomEditor(typeof(SelectionFromKeyboard))]
     public class SelectionFromKeyboardEditor : AbstractDebuggableEditor<SelectionFromKeyboard> {
         #region Constants
@@ -13,18 +15,18 @@ namespace CommonUtils.Editor.CustomEditors {
         private const string EditorPrefKey_RectOffSet = nameof(CommonUtils) + "." + nameof(SelectionFromKeyboardEditor) +"." + nameof(rectOffset);
         private const string EditorPrefKey_TextColor = nameof(CommonUtils) + "." + nameof(SelectionFromKeyboardEditor) +"." + nameof(textColor);
         #endregion
-        
+
         #region Properties
         private static bool showInSceneView {
             get => EditorPrefs.GetBool(EditorPrefKey_ShowInSceneView, true);
             set => EditorPrefs.SetBool(EditorPrefKey_ShowInSceneView, value);
         }
-        
+
         private static float rectSize {
             get => EditorPrefs.GetFloat(EditorPrefKey_RectSize, 25);
             set => EditorPrefs.SetFloat(EditorPrefKey_RectSize, value);
         }
-        
+
         private static Color rectFillColor {
             get {
                 var hex = EditorPrefs.GetString(EditorPrefKey_RectFillColor, Color.white.ColorToHex());
@@ -32,7 +34,7 @@ namespace CommonUtils.Editor.CustomEditors {
             }
             set => EditorPrefs.SetString(EditorPrefKey_RectFillColor, value.ColorToHex(true));
         }
-        
+
         private static Color rectOutlineColor {
             get {
                 var hex = EditorPrefs.GetString(EditorPrefKey_RectOutlineColor, Color.black.ColorToHex());
@@ -40,7 +42,7 @@ namespace CommonUtils.Editor.CustomEditors {
             }
             set => EditorPrefs.SetString(EditorPrefKey_RectOutlineColor, value.ColorToHex(true));
         }
-        
+
         private static Vector2 rectOffset {
             get {
                 var str = EditorPrefs.GetString(EditorPrefKey_RectOffSet, Vector2.zero.ToString());
@@ -48,7 +50,7 @@ namespace CommonUtils.Editor.CustomEditors {
             }
             set => EditorPrefs.SetString(EditorPrefKey_RectOffSet, value.ToString());
         }
-        
+
         private static Color textColor {
             get {
                 var hex = EditorPrefs.GetString(EditorPrefKey_TextColor, Color.black.ColorToHex());
@@ -58,7 +60,7 @@ namespace CommonUtils.Editor.CustomEditors {
         }
 
         #endregion
-        
+
         private bool showDisplayOptions;
 
         public override void OnInspectorGUI() {
@@ -81,7 +83,7 @@ namespace CommonUtils.Editor.CustomEditors {
         private void OnSceneGUI() {
             if(!showInSceneView || Event.current.type != EventType.Repaint) return;
             var style = new GUIStyle {normal = {textColor = textColor}, alignment = TextAnchor.MiddleCenter};
-            
+
             var halfSizeVector = Vector2.one * (rectSize / 2);
             var i = 0;
             foreach (var child in Subject.childrenToSelect) {
