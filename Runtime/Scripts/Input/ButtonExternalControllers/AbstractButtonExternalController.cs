@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Codice.Client.BaseCommands;
 using CommonUtils.Extensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -42,6 +41,9 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			}
 		}
 
+		private readonly HashSet<IButtonExternalControllerBlocker> _currentlyBlockedBy = new HashSet<IButtonExternalControllerBlocker>();
+		public IEnumerable<IButtonExternalControllerBlocker> CurrentlyBlockedBy => _currentlyBlockedBy;
+		
 		public bool IsVerbose => verbose;
 		#endregion
 
@@ -98,6 +100,10 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			if(changed) OnBlockersChanged();
 		}
 
+		public void OnBlockerBecameActive(IButtonExternalControllerBlocker blocker) => _currentlyBlockedBy.SafeAdd(blocker);
+
+		public void OnBlockerBecameInactive(IButtonExternalControllerBlocker blocker) => _currentlyBlockedBy.SafeRemove(blocker);
+
 		/// <summary>
 		/// Gets a value indicating whether any of the blockers are active or not.
 		/// </summary>
@@ -115,6 +121,9 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			if (!selectable.IsInteractable()) return true;
 			
 			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
+
+			if (_currentlyBlockedBy.Any()) return true;
+			
 			if (IsBlockedBy == null) return false;
 			GameObject activeBlocker = null;
 			for (int i = 0; i < IsBlockedBy.Count; i++) {
