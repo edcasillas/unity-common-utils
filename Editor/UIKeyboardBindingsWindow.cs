@@ -4,7 +4,11 @@ using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers;
 using UnityEditor;
+#if UNITY_2022_1_OR_NEWER
+using UnityEditor.SceneManagement;
+#else
 using UnityEditor.Experimental.SceneManagement;
+#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -122,7 +126,7 @@ namespace CommonUtils.Editor {
 
 		private void OnSceneGUI(SceneView scnView) {
 			if (!showInScene || Event.current.type != EventType.Repaint) return;
-			
+
 			if(hasContextChanged()) refresh();
 
 			if (bindings.IsNullOrEmpty()) return;
@@ -136,7 +140,7 @@ namespace CommonUtils.Editor {
 
 		private static void refresh() {
 			var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-			if (prefabStage != null) {
+			if (prefabStage) {
 				//Debug.Log("In prefab");
 				context = prefabStage;
 				bindings = prefabStage.stageHandle.FindComponentsOfType<ButtonFromKeyboard>();

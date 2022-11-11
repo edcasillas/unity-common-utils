@@ -94,7 +94,12 @@ public class TextureScale
 			}
 		}
 
+		#if UNITY_2022_1_OR_NEWER
+		tex.Reinitialize(newWidth, newHeight);
+		#else
 		tex.Resize(newWidth, newHeight);
+		#endif
+
 		tex.SetPixels(newColors);
 		tex.Apply();
 

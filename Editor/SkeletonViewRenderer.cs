@@ -28,11 +28,20 @@ namespace CommonUtils.Editor {
 
 				if (child == root) {
 					Handles.color = skeleton.RootColor;
+					#if UNITY_2022_1_OR_NEWER
+					Handles.FreeMoveHandle(child.position, skeleton.RootSize, Vector3.zero, Handles.SphereHandleCap);
+					#else
 					Handles.FreeMoveHandle(child.position, child.rotation, skeleton.RootSize, Vector3.zero, Handles.SphereHandleCap);
+					#endif
 				} else {
 					Handles.color = skeleton.BoneColor;
 					Handles.DrawLine(child.position, child.parent.position);
+
+					#if UNITY_2022_1_OR_NEWER
+					Handles.FreeMoveHandle(child.position, skeleton.JointSize, Vector3.zero, Handles.SphereHandleCap);
+					#else
 					Handles.FreeMoveHandle(child.position, child.rotation, skeleton.JointSize, Vector3.zero, Handles.SphereHandleCap);
+					#endif
 				}
 
 				if(options && options.ShowName) Handles.Label(child.position, child.name);
