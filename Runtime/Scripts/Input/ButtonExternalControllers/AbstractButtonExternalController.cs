@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CommonUtils.ComponentCaching;
 using CommonUtils.Extensions;
 using CommonUtils.UnityComponents;
 using UnityEngine;
@@ -45,7 +44,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 
 		private readonly HashSet<IButtonExternalControllerBlocker> _currentlyBlockedBy = new HashSet<IButtonExternalControllerBlocker>();
 		public IEnumerable<IButtonExternalControllerBlocker> CurrentlyBlockedBy => _currentlyBlockedBy;
-		
+
 		public bool IsVerbose => verbose;
 		#endregion
 
@@ -61,7 +60,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 			if (IsBlockedBy.Any(blocker => !blocker)) {
 				Debug.LogWarning($"\"{name}\" is being blocked by an invalid object.", this);
 			}
-			
+
 			subscribeToBlockers(IsBlockedBy, true);
 		}
 
@@ -101,7 +100,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 					Debug.LogWarning($"Trying to add a duplicated blocker (\"{blocker.name}\") to \"{name}\".", this);
 					continue;
 				}
-				
+
 				IsBlockedBy.Add(blocker);
 				subscribeToBlocker(blocker, true);
 				changed = true;
@@ -119,7 +118,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		/// <returns><c>true</c> when any of the blockers is active, otherwise <c>false</c>.</returns>
 		protected virtual bool IsBlocked() {
 			if (!gameObject.activeInHierarchy) return true;
-			
+
 			Selectable selectable;
 			try { selectable = Button; }
 			catch (Exception ex) {
@@ -128,7 +127,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 				return true;
 			}
 			if (!selectable.IsInteractable()) return true;
-			
+
 			if (isBlockedBySceneLoader && SceneLoader.IsActive) return true;
 
 			return _currentlyBlockedBy.Any();
