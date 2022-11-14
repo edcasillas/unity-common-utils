@@ -1,0 +1,19 @@
+{
+    "name": "com.ecasillas.commonutils.demos.debuggableeditors.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:26e573929c1f8f747b3cfaac8d4085a4",
+        "GUID:6c6fab3a886a248888c7fbb984d1dc2b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
