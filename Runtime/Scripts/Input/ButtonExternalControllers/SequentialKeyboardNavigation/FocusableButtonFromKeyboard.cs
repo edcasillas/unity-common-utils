@@ -43,7 +43,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
             }
         }
         #endregion
-        
+
         #region Unity Lifecycle
         protected override void Awake() {
             base.Awake();
@@ -69,7 +69,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         protected override bool IsKeyPressed() => (KeyCode != KeyCode.None && base.IsKeyPressed()) || (HasFocus && UnityEngine.Input.GetKeyDown(keyCodeWhenFocused));
         protected override bool IsKeyReleased() => (KeyCode != KeyCode.None && base.IsKeyReleased()) || (HasFocus && UnityEngine.Input.GetKeyUp(keyCodeWhenFocused));
         protected override void OnBlockersChanged() => manager.OnItemEnabledOrDisabled();
-        
+
         public override void OnBlockerBecameActive(IButtonExternalControllerBlocker blocker) {
             base.OnBlockerBecameActive(blocker);
             manager.OnItemEnabledOrDisabled();
@@ -82,7 +82,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         #endregion
 #else
-        public int TabIndex => 0;
+        public int TabIndex { get; set; }
         public bool HasFocus { get; set; }
         bool IsInteractable() => false;
 #endif
