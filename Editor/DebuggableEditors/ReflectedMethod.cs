@@ -27,7 +27,8 @@ namespace CommonUtils.Editor.DebuggableEditors {
 			ParamInfo = methodInfo.GetParameters();
 			HasParameters = ParamInfo.Any();
 			HasOutParameters = ParamInfo.Any(p => p.IsOut);
-			Arguments = new object[ParamInfo.Length];
+			Arguments = ParamInfo.Select(p => p.DefaultValue == DBNull.Value ? null : p.DefaultValue).ToArray();
+
 			IsAwaitable = methodInfo.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
 		}
 

@@ -9,7 +9,7 @@ namespace Demos.DebuggableEditors {
 		[ShowInInspector]
 		public IEnumerable<string> ListOfStrings => new[] { "This", "is", "a", "list", "of", "strings" };
 
-		[ShowInInspector] public void Echo(string input) => Debug.Log(input);
+		[ShowInInspector] public void Echo(string input = "Hello") => Debug.Log(input);
 
 		[ShowInInspector] public int AddOne(int input) => input + 1;
 	}
