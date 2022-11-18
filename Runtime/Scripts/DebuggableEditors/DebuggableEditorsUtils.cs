@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace CommonUtils.Editor.DebuggableEditors {
+namespace CommonUtils.DebuggableEditors {
 	public static class DebuggableEditorsUtils {
 		// TODO Finish writing these methods
 		public static ICollection<ReflectedProperty> GetDebuggableProperties(this Type t, bool debugAllPropsAndMethods = false, bool debugAllMonoBehaviorPropsAndMethods = false) {

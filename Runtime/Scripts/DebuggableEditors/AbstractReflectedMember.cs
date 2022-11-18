@@ -1,7 +1,7 @@
 ﻿using CommonUtils.Extensions;
 using System.Reflection;
 
-namespace CommonUtils.Editor.DebuggableEditors {
+namespace CommonUtils.DebuggableEditors {
 	public abstract class AbstractReflectedMember<TMember> where TMember : MemberInfo {
 		public string RealName { get; }
 		public string DisplayName { get; }

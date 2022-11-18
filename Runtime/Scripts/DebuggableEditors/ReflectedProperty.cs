@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace CommonUtils.Editor.DebuggableEditors {
+namespace CommonUtils.DebuggableEditors {
 	public class ReflectedProperty : AbstractReflectedMember<PropertyInfo>  {
 		public bool HasPublicGetter { get; }
 		public bool HasPublicSetter { get; }

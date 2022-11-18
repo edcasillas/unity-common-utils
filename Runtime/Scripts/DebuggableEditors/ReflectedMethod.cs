@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace CommonUtils.Editor.DebuggableEditors {
+namespace CommonUtils.DebuggableEditors {
 	public class ReflectedMethod : AbstractReflectedMember<MethodInfo> {
 		public bool HasParameters { get; }
 		public bool HasOutParameters { get; }
