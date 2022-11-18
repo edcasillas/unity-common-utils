@@ -5,31 +5,30 @@ namespace GUIMaquetter {
 	/// <summary>
 	/// Image maquette.
 	/// </summary>
-	/// <author>Eduardo Casillas</author>
 	[System.Serializable]
 	public class Image : GUIItem {
 		/// <summary>
 		/// The texture to be drawn.
 		/// </summary>
 		public Texture2D Texture;
-		
+
 		/// <summary>
 		/// Draws the image calculating it's size.
 		/// </summary>
-		public void Draw(){
+		public override void Draw(){
 			try {
-				if(Texture!=null){
+				if(Texture){
 					Rect = new Rect(
-						Rect.x, 
+						Rect.x,
 						Rect.y,
-						(Texture != null ? Texture.width : 0), 
-						(Texture != null ? Texture.height : 0));
+						(Texture && AutoSize ? Texture.width : Rect.width),
+						(Texture && AutoSize ? Texture.height : Rect.height));
 					GUI.DrawTexture(Rect,Texture);
 				}
 			} catch (System.Exception) {
-				string errorDetails = 
-					(Texture == null ? "Texture is null; " : "Texture exists; ") + 
-						"Rect = " + Rect.ToString() +".";
+				var errorDetails =
+					(!Texture ? "Texture is null; " : "Texture exists; ") +
+						"Rect = " + Rect +".";
 				Debug.Log ("Texture: Could not draw the texture. Details: " + errorDetails);
 			}
 		}

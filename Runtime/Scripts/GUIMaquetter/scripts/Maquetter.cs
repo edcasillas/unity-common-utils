@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System;
 
 namespace GUIMaquetter{
 	/// <summary>
@@ -49,23 +46,17 @@ namespace GUIMaquetter{
 		/// Call this method at the start of the OnGUI method in the GUIMaquetter handler.
 		/// </summary>
 		public void Draw(){
-			GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, 
+			GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
 			                           new Vector3(Screen.width/SizeOfGUI.x,Screen.height/SizeOfGUI.y, 1));
 
 			GUI.BeginGroup (new Rect(0f,0f,SizeOfGUI.x, SizeOfGUI.y));
 
-			if(Boxes != null) foreach(Box box in Boxes){ GUI.Box(box.Rect,box.Content); }
-			if(Labels != null) foreach(Label label in Labels){ GUI.Label(label.Rect,label.Text); }
-			if(Buttons != null) foreach(Button button in Buttons){ button.IsPressed = GUI.Button(button.Rect, button.Content); }
-			if(ComboBoxes != null) foreach(ComboBox combo in ComboBoxes){ combo.Show (); }
-			if(TextFields != null) foreach(TextField textField in TextFields) { 
-				string editedText = GUI.TextField (textField.Rect, textField.Text);
-				if(textField.EnableUserEdit) textField.Text = editedText;
-			}
-			if(TextAreas != null) foreach(TextArea textArea in TextAreas){ 
-				string editedText = GUI.TextArea(textArea.Rect,textArea.Text);
-				if(textArea.EnableUserEdit) textArea.Text = editedText;
-			}
+			if(Boxes != null) foreach(Box box in Boxes){ box.Draw(); }
+			if(Labels != null) foreach(Label label in Labels){ label.Draw(); }
+			if(Buttons != null) foreach(Button button in Buttons){ button.Draw(); }
+			if(ComboBoxes != null) foreach(ComboBox combo in ComboBoxes){ combo.Draw(); }
+			if(TextFields != null) foreach(TextField textField in TextFields) { textField.Draw(); }
+			if(TextAreas != null) foreach(TextArea textArea in TextAreas){ textArea.Draw(); }
 			if(Images != null) foreach(Image image in Images){ image.Draw (); }
 
 			GUI.EndGroup ();
