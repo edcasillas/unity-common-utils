@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 namespace GUIMaquetter {
 	/// <summary>
@@ -15,16 +14,16 @@ namespace GUIMaquetter {
 		/// <summary>
 		/// Draws the image calculating it's size.
 		/// </summary>
-		public override void Draw(){
+		protected override void DoDraw(){
 			try {
-				if(Texture){
-					Rect = new Rect(
-						Rect.x,
-						Rect.y,
-						(Texture && AutoSize ? Texture.width : Rect.width),
-						(Texture && AutoSize ? Texture.height : Rect.height));
-					GUI.DrawTexture(Rect,Texture);
-				}
+				if (!Texture) return;
+				Rect = new Rect(
+					Rect.x,
+					Rect.y,
+					(Texture && AutoSize ? Texture.width : Rect.width),
+					(Texture && AutoSize ? Texture.height : Rect.height));
+
+				GUI.DrawTexture(Rect, Texture);
 			} catch (System.Exception) {
 				var errorDetails =
 					(!Texture ? "Texture is null; " : "Texture exists; ") +

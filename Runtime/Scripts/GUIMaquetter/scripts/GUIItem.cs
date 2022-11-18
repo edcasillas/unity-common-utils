@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 namespace GUIMaquetter {
 	/// <summary>
@@ -19,9 +18,46 @@ namespace GUIMaquetter {
 
 		[SerializeField] protected bool AutoSize;
 
-		public abstract void Draw();
+		[SerializeField] protected bool Draggable;
 
-		protected virtual void ExecuteAutoSize(){}
+		private bool dragging;
+
+		public void Draw(Event currentEvent) {
+			DoDraw();
+			ProcessEvent(currentEvent);
+		}
+
+		protected abstract void DoDraw();
+
+		// Drag&Drop functionality based off this great tutorial: https://gram.gs/gramlog/creating-node-based-editor-unity/
+		// TODO Needs a lot of polishing
+		protected virtual void ProcessEvent(Event currentEvent) {
+			if(!Draggable) return;
+			var eventMousePosition = currentEvent.mousePosition;
+			var hovering = Rect.Contains(eventMousePosition);
+
+			switch (currentEvent.type) {
+				case EventType.MouseDown:
+					if (currentEvent.button == 0) {
+						if (hovering) {
+							dragging = true;
+						}
+						GUI.changed = true;
+					}
+					break;
+				case EventType.MouseUp:
+					dragging = false;
+					break;
+				case EventType.MouseDrag:
+					if (currentEvent.button == 0 && dragging) {
+						Drag(currentEvent.delta);
+						currentEvent.Use();
+					}
+					break;
+			}
+		}
+
+		protected void Drag(Vector2 delta) => Rect.position += (delta);
 	}
 
 	/// <summary>
@@ -65,7 +101,7 @@ namespace GUIMaquetter {
 	/// </summary>
 	[System.Serializable]
 	public class Box : GUIItemContent {
-		public override void Draw() {
+		protected override void DoDraw() {
 			if (AutoSize) {
 				var sizeOfContent = GUI.skin.box.CalcSize(Content);
 				Rect.width = sizeOfContent.x;
@@ -80,7 +116,7 @@ namespace GUIMaquetter {
 	/// </summary>
 	[System.Serializable]
 	public class Label : GUIItemText {
-		public override void Draw() {
+		protected override void DoDraw() {
 			if (AutoSize) {
 				var sizeOfContent = GUI.skin.label.CalcSize(new GUIContent(Text));
 				Rect.width = sizeOfContent.x;
@@ -96,7 +132,7 @@ namespace GUIMaquetter {
 	/// <author>Eduardo Casillas</author>
 	[System.Serializable]
 	public class TextField : GUIItemEditableText {
-		public override void Draw() {
+		protected override void DoDraw() {
 			if (AutoSize) {
 				var sizeOfContent = GUI.skin.textField.CalcSize(new GUIContent(Text));
 				Rect.width = sizeOfContent.x;
@@ -114,7 +150,7 @@ namespace GUIMaquetter {
 	/// <author>Eduardo Casillas</author>
 	[System.Serializable]
 	public class TextArea : GUIItemEditableText {
-		public override void Draw() {
+		protected override void DoDraw() {
 			if (AutoSize) {
 				var sizeOfContent = GUI.skin.textArea.CalcSize(new GUIContent(Text));
 				Rect.width = sizeOfContent.x;
@@ -137,7 +173,7 @@ namespace GUIMaquetter {
 		/// </summary>
 		public bool IsPressed { get; set; }
 
-		public override void Draw() {
+		protected override void DoDraw() {
 			if (AutoSize) {
 				var sizeOfContent = GUI.skin.button.CalcSize(Content);
 				Rect.width = sizeOfContent.x;

@@ -312,6 +312,7 @@ MonoBehaviour:
         width: 96.453125
         height: 22.34375
       AutoSize: 1
+      Draggable: 0
       Content:
         m_Text: Here is a box :)
         m_Image: {fileID: 0}
@@ -325,6 +326,7 @@ MonoBehaviour:
         width: 102
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Text: Hello! I'm a label!
     - Name: lblComboBox
       Rect:
@@ -334,6 +336,7 @@ MonoBehaviour:
         width: 166.54688
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Text: 'Here you have a ComboBox:'
     - Name: lblChange
       Rect:
@@ -343,6 +346,7 @@ MonoBehaviour:
         width: 287.67188
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Text: This text will change when you press the button :)
     - Name: lblImage
       Rect:
@@ -352,6 +356,7 @@ MonoBehaviour:
         width: 100.40625
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Text: 'This is an image:'
     Buttons:
     - Name: btnPress
@@ -362,6 +367,7 @@ MonoBehaviour:
         width: 70.96875
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Content:
         m_Text: Press Me!
         m_Image: {fileID: 0}
@@ -375,6 +381,7 @@ MonoBehaviour:
         width: 62.203125
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       ListContent:
       - m_Text: Option 1
         m_Image: {fileID: 0}
@@ -394,6 +401,7 @@ MonoBehaviour:
         width: 144.65625
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Text: I'm a disabled TextField
       EnableUserEdit: 0
     - Name: txtEdit
@@ -404,6 +412,7 @@ MonoBehaviour:
         width: 55.40625
         height: 20.34375
       AutoSize: 1
+      Draggable: 0
       Text: Edit me!
       EnableUserEdit: 1
     TextAreas:
@@ -415,18 +424,24 @@ MonoBehaviour:
         width: 229.5
         height: 73.12
       AutoSize: 0
+      Draggable: 0
       Text: Here you can write a number of lines. You can enable or disable editing!
       EnableUserEdit: 1
     Images:
     - Name: imgImage
       Rect:
         serializedVersion: 2
-        x: 169.23
+        x: 171.93
         y: 235.43
         width: 96
         height: 96
       AutoSize: 1
+      Draggable: 1
       Texture: {fileID: 2800000, guid: 3fa510893dc3c4eb280b5ebc70a46612, type: 3}
+      mouseLocalPosition: {x: 33.62027, y: 532.74225}
+      mouseLocalCorrected: {x: 33.62027, y: -323.60223}
+      hovering: 0
+      offset: 0
 --- !u!4 &1803045912
 Transform:
   m_ObjectHideFlags: 0

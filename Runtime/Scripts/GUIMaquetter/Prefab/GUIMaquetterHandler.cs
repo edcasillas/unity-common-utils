@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using GUIMaquetter;
 
-
 [ExecuteInEditMode]
 public class GUIMaquetterHandler : MonoBehaviour {
 	/// <summary>
@@ -19,7 +18,7 @@ public class GUIMaquetterHandler : MonoBehaviour {
 
 	void OnGUI(){
 		// Call maquetter.Draw() always at the beginning of OnGUI.
-		maquetter.Draw ();
+		maquetter.Draw (Event.current);
 
 		// Now you can play with your maquette. Here's a little example:
 		// aTextField.Text = "Hello world!";

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using GUIMaquetter;
 
 /// <summary>
@@ -17,14 +16,11 @@ public class GUIMaquetterHandlerDemo : MonoBehaviour {
 	private Button btnPress;
 	private Label lblChange;
 
-	void Start(){
-		// Always initialize your GUI items when starting.
-		initializeGUIMaquetterItems();
-	}
+	private void Start() => initializeGUIMaquetterItems(); // Always initialize your GUI items when starting.
 
-	void OnGUI(){
+	private void OnGUI(){
 		// Call maquetter.Draw() always at the beginning of OnGUI.
-		maquetter.Draw ();
+		maquetter.Draw(Event.current);
 
 		// Now you can play with your maquette. Here's a little example:
 		if(btnPress.IsPressed){

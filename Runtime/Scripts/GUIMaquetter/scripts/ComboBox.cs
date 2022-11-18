@@ -18,7 +18,7 @@ namespace GUIMaquetter {
 		private string buttonStyle = "button";
 		private string boxStyle = "box";
 
-		public override void Draw() {
+		protected override void DoDraw() {
 			if (AutoSize && ListContent.Length > 0) {
 				var longestContent = ListContent[0];
 				foreach (var content in ListContent) {
