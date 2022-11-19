@@ -16,7 +16,11 @@ public class GUIMaquetterHandlerDemo : MonoBehaviour {
 	private Button btnPress;
 	private Label lblChange;
 
-	private void Start() => initializeGUIMaquetterItems(); // Always initialize your GUI items when starting.
+	private void Start() {
+		initializeGUIMaquetterItems();
+
+		// Always initialize your GUI items when starting.
+	}
 
 	private void OnGUI(){
 		// Call maquetter.Draw() always at the beginning of OnGUI.
