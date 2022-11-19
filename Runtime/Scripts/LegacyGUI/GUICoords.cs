@@ -24,10 +24,11 @@ namespace CommonUtils.LegacyGUI {
 		float GetCoordX(float percentage);
 		float GetCoordY(float percentage);
 		Vector2 GetCoords(Vector2 percentage);
+		Rect GetRect(float percentageX, float percentageY, float percentageWidth, float percentageHeight);
 	}
 
 	public class GUICoords : IGUICoords {
-		public static GUICoords Instance { get; }
+		public static IGUICoords Instance { get; }
 
 		static GUICoords() => Instance = new GUICoords();
 
@@ -86,5 +87,7 @@ namespace CommonUtils.LegacyGUI {
 		public float GetCoordX(float percentage) => GUISize.x * percentage;
 		public float GetCoordY(float percentage) => GUISize.y * percentage;
 		public Vector2 GetCoords(Vector2 percentage) => new Vector2(GetCoordX(percentage.x), GetCoordY(percentage.y));
+		public Rect GetRect(float percentageX, float percentageY, float percentageWidth, float percentageHeight) =>
+			new(GetCoordX(percentageX), GetCoordY(percentageY), GetCoordX(percentageWidth), GetCoordY(percentageHeight));
 	}
 }

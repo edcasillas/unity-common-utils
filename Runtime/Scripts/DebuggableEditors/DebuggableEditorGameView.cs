@@ -1,9 +1,12 @@
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.HelpBox;
+using CommonUtils.LegacyGUI;
+using GUIMaquetter;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace CommonUtils.DebuggableEditors {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
 	[ExecuteInEditMode]
 	public class DebuggableEditorGameView : MonoBehaviour {
 		private const float DEFAULT_HEIGHT_PCT = 0.3f;
@@ -18,10 +21,14 @@ namespace CommonUtils.DebuggableEditors {
 		[SerializeField] private MonoBehaviour debuggableComponent;
 		[SerializeField] private bool debugAllPropertiesAndMethods;
 
+		private Box box;
+
 		private void OnGUI() {
+			GUICoords.Instance.AdjustGUIMatrix();
+
 			GUI.color = fontColor;
 			GUI.backgroundColor = backgroundColor;
-			GUI.skin.box.fontSize = GUI.skin.label.fontSize = GUI.skin.button.fontSize = Mathf.Min(Mathf.FloorToInt(Screen.width * fontSize/(float)1000), Mathf.FloorToInt(Screen.height * fontSize/(float)1000)); // This adjusts the font size to different screen sizes
+			GUI.skin.box.fontSize = GUI.skin.label.fontSize = GUI.skin.button.fontSize = fontSize;
 
 			var componentName = "";
 			ICollection<ReflectedProperty> reflectedProperties = null;
@@ -33,15 +40,21 @@ namespace CommonUtils.DebuggableEditors {
 				reflectedMethods = debuggableComponentType.GetDebuggableMethods(debugAllPropertiesAndMethods);
 			}
 
-			var rowSize = GUI.skin.box.CalcSize(new GUIContent(componentName));
-			var requiredRows = (reflectedProperties?.Count ?? 0) + (reflectedMethods?.Count ?? 0);
-			var actualRect = new Rect(
-				widthPercentageToPixels(positionX),
-				heightPercentageToPixels(positionY),
-				widthPercentageToPixels(width),
-				(requiredRows > 0 ? requiredRows * rowSize.y : heightPercentageToPixels(DEFAULT_HEIGHT_PCT)));
+			var actualRect = GUICoords.Instance.GetRect(positionX, positionY, width, DEFAULT_HEIGHT_PCT);
 
-			GUI.Box(actualRect, componentName);
+			var rowSize = GUI.skin.box.CalcSize(new GUIContent(componentName));
+
+			var requiredRows = (reflectedProperties?.Count ?? 0) + (reflectedMethods?.Count ?? 0);
+			if (requiredRows > 0) {
+				actualRect.height = requiredRows * rowSize.y;
+			}
+
+			box ??= new Box();
+			box.Name = componentName;
+			box.Content = new GUIContent(componentName);
+			box.Rect = actualRect;
+
+			box.Draw(Event.current);
 
 			var i = 1;
 			if (reflectedProperties != null) {
@@ -68,9 +81,6 @@ namespace CommonUtils.DebuggableEditors {
 				}
 			}
 		}
-
-		private float widthPercentageToPixels(float percent) => Screen.width * percent;
-		private float heightPercentageToPixels(float percent) => Screen.height * percent;
 
 		private void renderMethod(object instance, ReflectedMethod reflectedMethod) {
 			/*if (reflectedMethod.HasOutParameters) {
@@ -124,4 +134,5 @@ namespace CommonUtils.DebuggableEditors {
 			GUILayout.EndVertical();*/
 		}
 	}
+#endif
 }
