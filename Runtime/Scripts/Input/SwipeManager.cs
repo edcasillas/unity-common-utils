@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -209,6 +210,8 @@ namespace CommonUtils.Input {
 				return result;
 			}
 		}
+
+		[ShowInInspector] public IEnumerable<float> SwipeHorizontal => swipeHorizontal ?? Enumerable.Empty<float>();
 		#endregion
 
 		#region Unity Behaviour
