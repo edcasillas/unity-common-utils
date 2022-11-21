@@ -78,11 +78,11 @@ namespace CommonUtils.Input {
 		/// <summary>
 		/// Indicates the maximum number of fingers that should be supported for interaction.
 		/// </summary>
-		public int MaxFingers;
+		public int MaxFingers = 1;
 		/// <summary>
 		/// Indicates the sensibility of swipes on X and Y axes as a percentage (from 0 to 1) of the screen size.
 		/// </summary>
-		public Vector2 Sensibility;
+		public Vector2 Sensibility = new Vector2(0.1f, 0.1f);
 		/// <summary>
 		/// Specifies the time it takes to rewind values to zero for the horizontal axis. If this value is itself zero, smooth rewind will be deactivated.
 		/// </summary>
