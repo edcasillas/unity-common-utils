@@ -16,7 +16,7 @@ namespace CommonUtils.Extensions {
 		/// <summary>
 		/// Returns a string with the specified count of white spaces.
 		/// </summary>
-		public static string GetWhiteSpaces(int count) {
+		public static string GetWhiteSpaces(this int count) {
 			var result = new StringBuilder();
 			for (var i = 0; i < count; i++) {
 				result.Append(" ");

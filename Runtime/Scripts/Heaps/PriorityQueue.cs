@@ -123,7 +123,7 @@ namespace CommonUtils.Heaps {
 			var depth = getDepth();
 			var strLevels = new string[depth + 1];
 			var lastNodeInLevel = Count; // exclusive
-			var spacesIncrement = StringExtensions.GetWhiteSpaces(printedItemLength);
+			var spacesIncrement = printedItemLength.GetWhiteSpaces();
 			var spaces = string.Empty;
 
 			while(depth >= 0) {
