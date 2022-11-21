@@ -143,62 +143,62 @@ namespace CommonUtils.Input {
 		/// Gets a value indicating whether a touch has started with any finger.
 		/// </summary>
 		/// <value><c>true</c> if touch started; otherwise, <c>false</c>.</value>
-		public bool TouchStarted => touchStarted.Contains(true);
+		[ShowInInspector] public bool TouchStarted => touchStarted.Contains(true);
 
 		/// <summary>
 		/// Gets a value indicating whether a touch has ended with any finger.
 		/// </summary>
 		/// <value><c>true</c> if touch ended; otherwise, <c>false</c>.</value>
-		public bool TouchEnded => touchEnded.Contains(true);
+		[ShowInInspector] public bool TouchEnded => touchEnded.Contains(true);
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping; otherwise, <c>false</c>.</value>
-		public bool Swiping => (SwipingHorizontal || SwipingVertical);
+		[ShowInInspector] public bool Swiping => (SwipingHorizontal || SwipingVertical);
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping horizontal with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping horizontal; otherwise, <c>false</c>.</value>
-		public bool SwipingHorizontal => (SwipingLeft || SwipingRight);
+		[ShowInInspector] public bool SwipingHorizontal => (SwipingLeft || SwipingRight);
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping vertical with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping vertical; otherwise, <c>false</c>.</value>
-		public bool SwipingVertical => (SwipingUp || SwipingDown);
+		[ShowInInspector] public bool SwipingVertical => (SwipingUp || SwipingDown);
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping left with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping left; otherwise, <c>false</c>.</value>
-		public bool SwipingLeft => swipeHorizontal.Count(c => c < 0f) > 0;
+		[ShowInInspector] public bool SwipingLeft => swipeHorizontal.Count(c => c < 0f) > 0;
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping right with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping right; otherwise, <c>false</c>.</value>
-		public bool SwipingRight => swipeHorizontal.Count(c => c > 0f) > 0;
+		[ShowInInspector] public bool SwipingRight => swipeHorizontal.Count(c => c > 0f) > 0;
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping up with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping up; otherwise, <c>false</c>.</value>
-		public bool SwipingUp => swipeVertical.Count(c => c > 0f) > 0;
+		[ShowInInspector] public bool SwipingUp => swipeVertical.Count(c => c > 0f) > 0;
 
 		/// <summary>
 		/// Gets a value indicating whether the user is swiping down with any finger.
 		/// </summary>
 		/// <value><c>true</c> if swiping down; otherwise, <c>false</c>.</value>
-		public bool SwipingDown => swipeVertical.Count(c => c < 0f) > 0;
+		[ShowInInspector] public bool SwipingDown => swipeVertical.Count(c => c < 0f) > 0;
 
 		/// <summary>
 		/// Gets a value indicating whether the user tapped with any finger.
 		/// </summary>
 		/// <value><c>true</c> if tapped; otherwise, <c>false</c>.</value>
-		public bool Tapped {
-			get { 
+		[ShowInInspector] public bool Tapped {
+			get {
 				var result = false;
 				for(int i = 0; i < MaxFingers; i++) {
 					if(tapped[i] && touchEnded[i]) {
@@ -206,7 +206,7 @@ namespace CommonUtils.Input {
 						break;
 					}
 				}
-				return result; 
+				return result;
 			}
 		}
 		#endregion
@@ -224,7 +224,7 @@ namespace CommonUtils.Input {
 		/// <summary>
 		/// Detects swipes and taps.
 		/// </summary>
-		private void Update() { 
+		private void Update() {
 			/* Taps are detected only when finger hasn't moved AND a tap ended is detected. These taps should only be
 			 * available for one cycle (namely, one LateUpdate). For that reason, the "tapped" array is set to a new
 			 * array here, with all their values to the default (false).
@@ -321,7 +321,7 @@ namespace CommonUtils.Input {
 		/// </summary>
 		/// <returns>The swipe amount.</returns>
 		/// <param name="fingerId">Finger identifier, zero based.</param>
-		/// <param name="relative">If set to <c>true</c> the value returned will be from 0 to 1, 
+		/// <param name="relative">If set to <c>true</c> the value returned will be from 0 to 1,
 		/// else the total amount of pixels moved is returned.</param>
 		public float GetSwipeAmountHorizontalForFinger(int fingerId, bool relative = true) {
 			float result = swipeHorizontal[fingerId];
