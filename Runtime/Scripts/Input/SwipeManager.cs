@@ -212,6 +212,7 @@ namespace CommonUtils.Input {
 		}
 
 		[ShowInInspector] public IEnumerable<float> SwipeHorizontal => swipeHorizontal ?? Enumerable.Empty<float>();
+		[ShowInInspector] public IEnumerable<float> SwipeVertical => swipeVertical ?? Enumerable.Empty<float>();
 		#endregion
 
 		#region Unity Behaviour
@@ -327,10 +328,19 @@ namespace CommonUtils.Input {
 		/// <param name="relative">If set to <c>true</c> the value returned will be from 0 to 1,
 		/// else the total amount of pixels moved is returned.</param>
 		public float GetSwipeAmountHorizontalForFinger(int fingerId, bool relative = true) {
-			float result = swipeHorizontal[fingerId];
+			var result = swipeHorizontal[fingerId];
 			if(relative) {
-				result = result / Screen.width;
+				result /= Screen.width;
 			}
+			return result;
+		}
+
+		public float GetSwipeAmountVerticalForFinger(int fingerId, bool relative = true) {
+			var result = swipeVertical[fingerId];
+			if (relative) {
+				result /= Screen.height;
+			}
+
 			return result;
 		}
 
