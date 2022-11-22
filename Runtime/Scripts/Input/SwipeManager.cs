@@ -7,9 +7,102 @@ namespace CommonUtils.Input {
 	/// <summary>
 	/// Swipe manager. Detects swipes and taps.
 	/// </summary>
+	public interface ISwipeManager {
+		/// <summary>
+		/// Gets a value indicating whether a touch has started with any finger.
+		/// </summary>
+		/// <value><c>true</c> if touch started; otherwise, <c>false</c>.</value>
+		bool TouchStarted { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether a touch has ended with any finger.
+		/// </summary>
+		/// <value><c>true</c> if touch ended; otherwise, <c>false</c>.</value>
+		bool TouchEnded { get; }
+
+		/// <summary>
+		/// Indicates the current swiping distance on X axis for each of the supported fingers.
+		/// </summary>
+		IEnumerable<float> SwipeHorizontal { get; }
+
+		/// <summary>
+		/// Indicates the current swiping distance on Y axis for each of the supported fingers.
+		/// </summary>
+		IEnumerable<float> SwipeVertical { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user tapped with any finger.
+		/// </summary>
+		/// <value><c>true</c> if tapped; otherwise, <c>false</c>.</value>
+		bool Tapped { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping; otherwise, <c>false</c>.</value>
+		bool Swiping { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping horizontal with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping horizontal; otherwise, <c>false</c>.</value>
+		bool SwipingHorizontal { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping vertical with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping vertical; otherwise, <c>false</c>.</value>
+		bool SwipingVertical { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping left with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping left; otherwise, <c>false</c>.</value>
+		bool SwipingLeft { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping right with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping right; otherwise, <c>false</c>.</value>
+		bool SwipingRight { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping up with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping up; otherwise, <c>false</c>.</value>
+		bool SwipingUp { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the user is swiping down with any finger.
+		/// </summary>
+		/// <value><c>true</c> if swiping down; otherwise, <c>false</c>.</value>
+		bool SwipingDown { get; }
+
+		/// <summary>
+		/// Gets the swipe amount value on the horizontal axis for a specific finger.
+		/// </summary>
+		/// <returns>The swipe amount.</returns>
+		/// <param name="fingerId">Finger identifier, zero based.</param>
+		/// <param name="relative">If set to <c>true</c> the value returned will be from 0 to 1,
+		/// else the total amount of pixels moved is returned.</param>
+		float GetSwipeAmountHorizontalForFinger(int fingerId, bool relative = true);
+
+		/// <summary>
+		/// Gets the swipe amount value on the vertical axis for a specific finger.
+		/// </summary>
+		/// <param name="fingerId">Finger identifier, zero based.</param>
+		/// <param name="relative">If set to <c>true</c> the value returned will be from 0 to 1,
+		/// else the total amount of pixels moved is returned.</param>
+		/// <returns>The swipe amount.</returns>
+		float GetSwipeAmountVerticalForFinger(int fingerId, bool relative = true);
+	}
+
+	/// <summary>
+	/// Swipe manager. Detects swipes and taps.
+	/// </summary>
 	/// <author>Ed Casillas</author>
 	[AddComponentMenu("Input/Swipe Manager")]
-	public class SwipeManager : MonoBehaviour {
+	public class SwipeManager : MonoBehaviour, ISwipeManager {
 		#region Singleton
 
 		/// <summary>
@@ -21,13 +114,13 @@ namespace CommonUtils.Input {
 		/// Gets the singleton instance of the Swipe Manager.
 		/// </summary>
 		/// <value>The instance.</value>
-		public static SwipeManager Instance {
+		public static ISwipeManager Instance {
 			get {
-				if(instance == null) {
+				if(!instance) {
 					// If instance doesn't exist, creates a new one, initializes it and set DontDestroyOnLoad on it.
-					instance = GameObject.FindObjectOfType<SwipeManager>();
-					if(instance == null) {
-						var gameObject = new GameObject(typeof(SwipeManager).Name);
+					instance = FindObjectOfType<SwipeManager>();
+					if(!instance) {
+						var gameObject = new GameObject(nameof(SwipeManager));
 						instance = gameObject.AddComponent<SwipeManager>();
 						DontDestroyOnLoad(gameObject);
 					}
@@ -61,7 +154,7 @@ namespace CommonUtils.Input {
 		/// Gets or sets a value indicating whether this instance is initialized.
 		/// </summary>
 		/// <value><c>true</c> if this instance is initialized; otherwise, <c>false</c>.</value>
-		protected bool IsInitialized{ get; set; }
+		public bool IsInitialized{ get; private set; }
 
 		/// <summary>
 		/// Initialize this instance.
@@ -211,12 +304,18 @@ namespace CommonUtils.Input {
 			}
 		}
 
+		/// <summary>
+		/// Indicates the current swiping distance on X axis for each of the supported fingers.
+		/// </summary>
 		[ShowInInspector] public IEnumerable<float> SwipeHorizontal => swipeHorizontal ?? Enumerable.Empty<float>();
+
+		/// <summary>
+		/// Indicates the current swiping distance on Y axis for each of the supported fingers.
+		/// </summary>
 		[ShowInInspector] public IEnumerable<float> SwipeVertical => swipeVertical ?? Enumerable.Empty<float>();
 		#endregion
 
 		#region Unity Behaviour
-
 		/// <summary>
 		/// Initialize swipe sensibility values.
 		/// </summary>
@@ -310,7 +409,6 @@ namespace CommonUtils.Input {
 				}
 			}
 		}
-
 		#endregion
 
 		/// <summary>
@@ -335,6 +433,13 @@ namespace CommonUtils.Input {
 			return result;
 		}
 
+		/// <summary>
+		/// Gets the swipe amount value on the vertical axis for a specific finger.
+		/// </summary>
+		/// <param name="fingerId">Finger identifier, zero based.</param>
+		/// <param name="relative">If set to <c>true</c> the value returned will be from 0 to 1,
+		/// else the total amount of pixels moved is returned.</param>
+		/// <returns>The swipe amount.</returns>
 		public float GetSwipeAmountVerticalForFinger(int fingerId, bool relative = true) {
 			var result = swipeVertical[fingerId];
 			if (relative) {
