@@ -9,6 +9,12 @@ namespace CommonUtils.Input {
 	/// </summary>
 	public interface ISwipeManager {
 		/// <summary>
+		/// Gets or sets a value indicating whether this instance is initialized.
+		/// </summary>
+		/// <value><c>true</c> if this instance is initialized; otherwise, <c>false</c>.</value>
+		bool IsInitialized { get; }
+
+		/// <summary>
 		/// Gets a value indicating whether a touch has started with any finger.
 		/// </summary>
 		/// <value><c>true</c> if touch started; otherwise, <c>false</c>.</value>
