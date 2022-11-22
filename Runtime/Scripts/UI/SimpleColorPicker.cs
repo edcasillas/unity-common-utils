@@ -1,16 +1,14 @@
 using UnityEngine;
 
 namespace CommonUtils.UI {
-	public class ColorPicker : MonoBehaviour {
+	public class SimpleColorPicker : MonoBehaviour {
 		[SerializeField] private RectTransform texture;
-		[SerializeField] private GameObject target;
 		[SerializeField] private Texture2D refSprite;
+		[SerializeField] private ColorEvent onColorPicked;
 
-		public void OnClickPickerColor() {
-			setColor();
-		}
+		[ShowInInspector] public Color Color { get; private set; }
 
-		private void setColor() {
+		public void PickColor() {
 			var imagePos = texture.position;
 			var globalPosX = UnityEngine.Input.mousePosition.x - imagePos.x;
 			var globalPosY = UnityEngine.Input.mousePosition.y - imagePos.y;
@@ -18,13 +16,8 @@ namespace CommonUtils.UI {
 			var localPosX = (int)(globalPosX * (refSprite.width / texture.rect.width));
 			var localPosY = (int)(globalPosY * (refSprite.height / texture.rect.height));
 
-			var c = refSprite.GetPixel(localPosX, localPosY);
-
-			SetActualColor(c);
-		}
-
-		private void SetActualColor(Color c) {
-			target.GetComponent<MeshRenderer>().material.color = c;
+			Color = refSprite.GetPixel(localPosX, localPosY);
+			onColorPicked.Invoke(Color);
 		}
 	}
 }
