@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -64,6 +65,34 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
+		public static bool ReadonlyEnumerable(bool fold, IEnumerable enumerable, string displayName) {
+			var count = enumerable.Cast<object>().Count();
+
+			if (count == 0) {
+				EditorGUILayout.LabelField($"{displayName} is empty.");
+			} else {
+				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName}"), true);
+				if (!fold) return false;
+
+				EditorGUI.indentLevel++;
+
+				var i = 0;
+				foreach (var item in enumerable) {
+					if (item == null) {
+						EditorGUILayout.LabelField($"[{i}]", "<null>");
+					} else {
+						RenderField(item.GetType(), $"[{i}]", item);
+					}
+					i++;
+				}
+
+				EditorGUI.indentLevel--;
+			}
+
+			return fold;
+		}
+
+		[Obsolete]
 		public static bool ReadonlyEnumerable<T>(bool fold, IEnumerable<T> enumerable, string displayName)
 			where T : Object {
 			if (enumerable == null) {
@@ -88,6 +117,7 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
+		[Obsolete]
 		public static bool ReadonlyEnumerable(bool fold, IEnumerable<string> enumerable, string displayName) {
 			if (enumerable == null) {
 				EditorGUILayout.LabelField($"{displayName} is null.");

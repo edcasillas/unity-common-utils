@@ -176,7 +176,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 					}
 
 					var fold = reflectedMethod.Fold;
-					if (TryRenderEnumerableField(reflectedMethod.ReturnValue, "Result", ref fold)) {
+					if (tryRenderEnumerableField(reflectedMethod.ReturnValue, "Result", ref fold)) {
 						reflectedMethod.Fold = fold;
 					} else {
 						EditorExtensions.RenderField(reflectedMethod.Type, "Result", reflectedMethod.ReturnValue);
@@ -198,7 +198,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 
 			#region Render collections (arrays, lists, etc) - For now values are read-only!
 			var fold = reflectedProperty.Fold;
-			if (TryRenderEnumerableField(value, reflectedProperty.DisplayName, ref fold)) {
+			if (tryRenderEnumerableField(value, reflectedProperty.DisplayName, ref fold)) {
 				reflectedProperty.Fold = fold;
 				return value;
 			}
@@ -218,36 +218,14 @@ namespace CommonUtils.Editor.DebuggableEditors {
 			return EditorExtensions.RenderField(reflectedProperty.Type, reflectedProperty.DisplayName, value);
 		}
 
-		private bool TryRenderEnumerableField(object value, string displayName, ref bool fold) {
+		private bool tryRenderEnumerableField(object value, string displayName, ref bool fold) {
 			// string and Transform are special cases: they implement IEnumerable, but for the purposes of the editor we
 			// don't want to treat them as such.
 			if (value == null || !(value is IEnumerable enumerableValue) || value is string || value is Transform) {
 				return false;
 			}
 
-			var count = enumerableValue.Cast<object>().Count();
-
-			if (count == 0) {
-				EditorGUILayout.LabelField($"{displayName} is empty.");
-			} else {
-				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName}"), true);
-				if (!fold) return true;
-
-				EditorGUI.indentLevel++;
-
-				var i = 0;
-				foreach (var item in enumerableValue) {
-					if (item == null) {
-						EditorGUILayout.LabelField($"[{i}]", "<null>");
-					} else {
-						EditorExtensions.RenderField(item.GetType(), $"[{i}]", item);
-					}
-					i++;
-				}
-
-				EditorGUI.indentLevel--;
-			}
-
+			fold = EditorExtensions.ReadonlyEnumerable(fold, enumerableValue, displayName);
 			return true;
 		}
     }
