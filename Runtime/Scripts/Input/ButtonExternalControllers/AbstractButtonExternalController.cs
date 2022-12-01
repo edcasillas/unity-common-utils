@@ -44,8 +44,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 
 		private readonly HashSet<IButtonExternalControllerBlocker> _currentlyBlockedBy = new HashSet<IButtonExternalControllerBlocker>();
 
-		[ShowInInspector]
-		public IEnumerable<IButtonExternalControllerBlocker> CurrentlyBlockedBy => _currentlyBlockedBy;
+		[ShowInInspector] public IEnumerable<IButtonExternalControllerBlocker> CurrentlyBlockedBy => _currentlyBlockedBy;
 
 		public bool IsVerbose => verbose;
 		#endregion

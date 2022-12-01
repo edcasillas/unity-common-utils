@@ -72,7 +72,7 @@ namespace CommonUtils.Editor {
 				EditorGUILayout.LabelField($"{displayName} is empty.");
 			} else {
 				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName}"), true);
-				if (!fold) return true;
+				if (!fold) return false;
 
 				EditorGUI.indentLevel++;
 
@@ -92,56 +92,11 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
-		[Obsolete]
-		public static bool ReadonlyEnumerable<T>(bool fold, IEnumerable<T> enumerable, string displayName)
-			where T : Object {
-			if (enumerable == null) {
-				EditorGUILayout.LabelField($"{displayName} is null.");
-			} else if (!enumerable.Any()) {
-				EditorGUILayout.LabelField($"{displayName} is empty.");
-			} else {
-				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName} ({enumerable.Count()})"), true);
-				if (fold) {
-					EditorGUI.indentLevel++;
+		[Obsolete("This variant of ReadonlyEnumerable is deprecated and will be removed in the near future. Please change this call to use the variant without generics.")]
+		public static bool ReadonlyEnumerable<T>(bool fold, IEnumerable<T> enumerable, string displayName) where T : Object => ReadonlyEnumerable(fold, (IEnumerable)enumerable, displayName);
 
-					var i = 0;
-					foreach (var item in enumerable) {
-						ObjectField(i.ToString(), item);
-						i++;
-					}
-
-					EditorGUI.indentLevel--;
-				}
-			}
-
-			return fold;
-		}
-
-		[Obsolete]
-		public static bool ReadonlyEnumerable(bool fold, IEnumerable<string> enumerable, string displayName) {
-			if (enumerable == null) {
-				EditorGUILayout.LabelField($"{displayName} is null.");
-			} else if (!enumerable.Any()) {
-				EditorGUILayout.LabelField($"{displayName} is empty.");
-			} else {
-				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName} ({enumerable.Count()})"), true);
-				if (fold) {
-					EditorGUI.indentLevel++;
-					EditorGUI.BeginDisabledGroup(true);
-
-					var i = 0;
-					foreach (var item in enumerable) {
-						ReadOnlyLabelField(i.ToString(), item);
-						i++;
-					}
-
-					EditorGUI.EndDisabledGroup();
-					EditorGUI.indentLevel--;
-				}
-			}
-
-			return fold;
-		}
+		[Obsolete("This variant of ReadonlyEnumerable is deprecated and will be removed in the near future. Please change this call to use the variant without generics.")]
+		public static bool ReadonlyEnumerable(bool fold, IEnumerable<string> enumerable, string displayName) => ReadonlyEnumerable(fold, (IEnumerable)enumerable, displayName);
 
 		/// <summary>
 		/// Creates a collapsible area.

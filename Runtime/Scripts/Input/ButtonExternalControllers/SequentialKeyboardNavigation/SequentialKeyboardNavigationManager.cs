@@ -28,23 +28,23 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         [SerializeField] private KeyCode navigationKey = KeyCode.Tab;
         [SerializeField] private bool verbose;
         #endregion
-        
+
         #region Properties and backing fields
         private readonly SortedSet<IFocusableButtonFromKeyboard> _allItems = new SortedSet<IFocusableButtonFromKeyboard>(new FocusableButtonFromKeyboardComparer());
-        public IEnumerable<IFocusableButtonFromKeyboard> AllItems => _allItems;
-        
+        [ShowInInspector] public IEnumerable<IFocusableButtonFromKeyboard> AllItems => _allItems;
+
         private List<IFocusableButtonFromKeyboard> _currentlyActiveItems = new List<IFocusableButtonFromKeyboard>();
-        public IEnumerable<IFocusableButtonFromKeyboard> CurrentlyActiveItems => _currentlyActiveItems;
+        [ShowInInspector] public IEnumerable<IFocusableButtonFromKeyboard> CurrentlyActiveItems => _currentlyActiveItems;
 
         private int? currentIndex = null;
-        public int CurrentIndex => currentIndex ?? -1;
+        [ShowInInspector] public int CurrentIndex => currentIndex ?? -1;
 
-        public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
+        [ShowInInspector] public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
 
         public bool IsVerbose => verbose;
 
         #endregion
-        
+
         #region Fields
         private bool needsRefreshOfCurrentlyActiveItems;
         #endregion
@@ -66,19 +66,19 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
                 refreshCurrentlyActiveItems();
                 needsRefreshOfCurrentlyActiveItems = false;
             }
-            
+
             if (_currentlyActiveItems.Count == 0) return;
-            
+
             if (UnityEngine.Input.GetKeyUp(navigationKey)) {
                 if (!currentIndex.HasValue) currentIndex = 0;
                 else currentIndex++;
 
                 currentIndex %= _currentlyActiveItems.Count;
-                
+
                 if(CurrentlyFocusedItem.IsValid()) CurrentlyFocusedItem.HasFocus = false;
 
                 CurrentlyFocusedItem = _currentlyActiveItems[currentIndex.Value];
-                
+
                 if(CurrentlyFocusedItem.IsValid()) CurrentlyFocusedItem.HasFocus = true;
             }
         }
@@ -89,7 +89,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         private void OnApplicationQuit() => Destroy(gameObject);
         #endregion
-        
+
         #region Public Methods
         public void Subscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Add(item);
@@ -103,16 +103,16 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
             this.DebugLog($"{item.name} has been UNSUBSCRIBED from {name}");
         }
 
-        public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
+        [ShowInInspector] public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
         #endregion
-        
+
         #region Private methods
         private void onSceneLoaded(Scene arg0, LoadSceneMode arg1) {
             var removedItems = _allItems.RemoveWhere(item => !item.IsValid());
             this.DebugLog($"A new scene was loaded and {removedItems} items were removed from {name}");
             refreshCurrentlyActiveItems();
         }
-        
+
         private void refreshCurrentlyActiveItems() {
             _currentlyActiveItems = _allItems.Where(i => i.IsInteractable()).ToList();
             if (CurrentlyFocusedItem.IsValid() && !_currentlyActiveItems.Contains(CurrentlyFocusedItem)) {
