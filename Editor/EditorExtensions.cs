@@ -72,7 +72,7 @@ namespace CommonUtils.Editor {
 				EditorGUILayout.LabelField($"{displayName} is empty.");
 			} else {
 				fold = EditorGUILayout.Foldout(fold, new GUIContent($"{displayName}"), true);
-				if (!fold) return false;
+				if (!fold) return true;
 
 				EditorGUI.indentLevel++;
 
