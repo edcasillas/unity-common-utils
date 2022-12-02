@@ -22,7 +22,7 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 	}
 
 	[Serializable]
-	public class DynamicEnumDictionary {
-		[SerializeField] private List<TestKVP<GameObject>> kvps;
+	public class DynamicEnumDictionary<TValue> {
+		[SerializeField] private List<TestKVP<TValue>> kvps;
 	}
 }

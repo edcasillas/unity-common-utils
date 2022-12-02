@@ -37,7 +37,7 @@ namespace CommonUtils.Editor.DynamicEnums.Drawers {
 		}
 	}
 
-	[CustomPropertyDrawer(typeof(DynamicEnumDictionary), true)]
+	[CustomPropertyDrawer(typeof(DynamicEnumDictionary<>), true)]
 	public class DynamicEnumDictionaryDrawer : PropertyDrawer {
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
 			// Using BeginProperty / EndProperty on the parent property means that
