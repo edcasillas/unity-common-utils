@@ -86,7 +86,7 @@ namespace CommonUtils.Editor.Inspector.ReorderableInspector {
 			if ((property.propertyType == SerializedPropertyType.Integer || property.propertyType == SerializedPropertyType.String)) {
 				var parentParent = SerializedPropExtension.GetParentProp(parent);
 				if (parentParent.GetAttributes<DynamicEnumAttribute>().FirstOrDefault() is DynamicEnumAttribute dynamicEnumAttribute) {
-					DynamicEnumDrawer.DrawDynamicEnumField(rect, property, propHeader, dynamicEnumAttribute);
+					DynamicEnumDrawer.DrawDynamicEnumField(rect, property, propHeader, dynamicEnumAttribute.EnumName);
 					return true;
 				}
 			}

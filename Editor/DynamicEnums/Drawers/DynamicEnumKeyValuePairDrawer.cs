@@ -1,11 +1,9 @@
 using CommonUtils.DynamicEnums.Dictionaries;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace CommonUtils.Editor.DynamicEnums.Drawers {
-	[CustomPropertyDrawer(typeof(DynamicEnumKeyValuePair<>))]
+	[CustomPropertyDrawer(typeof(DynamicEnumKeyValuePair<>), true)]
 	public class DynamicEnumKeyValuePairDrawer : PropertyDrawer {
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
 			// Using BeginProperty / EndProperty on the parent property means that
@@ -25,13 +23,21 @@ namespace CommonUtils.Editor.DynamicEnums.Drawers {
 			var valueRect = new Rect(position.x + (position.width / 3)+5, position.y, ((position.width / 3) * 2)-5, position.height);
 
 			// Draw fields - pass GUIContent.none to each so they are drawn without labels
-			EditorGUI.PropertyField(keyRect, property.FindPropertyRelative("key"), GUIContent.none);
+			DynamicEnumDrawer.DrawDynamicEnumField(
+				keyRect,
+				property.FindPropertyRelative("key"),
+				GUIContent.none,
+				property.FindPropertyRelative("enumName").stringValue);
 			EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("value"), GUIContent.none);
 
 			// Set indent back to what it was
 			EditorGUI.indentLevel = indent;
 
 			EditorGUI.EndProperty();
+		}
+
+		private string getEnumName(SerializedProperty property) {
+			return property.FindPropertyRelative("enumName").stringValue;
 		}
 	}
 }
