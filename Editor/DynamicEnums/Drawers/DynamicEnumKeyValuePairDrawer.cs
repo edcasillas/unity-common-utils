@@ -25,10 +25,10 @@ namespace CommonUtils.Editor.DynamicEnums.Drawers {
 			// Draw fields - pass GUIContent.none to each so they are drawn without labels
 			DynamicEnumDrawer.DrawDynamicEnumField(
 				keyRect,
-				property.FindPropertyRelative("key"),
+				property.FindPropertyRelative("Key"),
 				GUIContent.none,
 				property.FindPropertyRelative("enumName").stringValue);
-			EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("value"), GUIContent.none);
+			EditorGUI.PropertyField(valueRect, property.FindPropertyRelative("Value"), GUIContent.none);
 
 			// Set indent back to what it was
 			EditorGUI.indentLevel = indent;
@@ -48,10 +48,13 @@ namespace CommonUtils.Editor.DynamicEnums.Drawers {
 		}
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-			bool isExpanded = property.FindPropertyRelative("kvps").isExpanded;
+			var isExpanded = property.FindPropertyRelative("kvps").isExpanded;
 			if (!isExpanded) return EditorGUIUtility.singleLineHeight;
 
-			int lineCount = 3 + property.FindPropertyRelative("kvps").arraySize;
+			var arraySize = property.FindPropertyRelative("kvps").arraySize;
+			if (arraySize == 0) return EditorGUIUtility.singleLineHeight * 4;
+
+			var lineCount = 3 + arraySize;
 			return EditorGUIUtility.singleLineHeight * lineCount + EditorGUIUtility.standardVerticalSpacing * (lineCount-1);
 		}
 	}
