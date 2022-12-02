@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace CommonUtils.Editor.Inspector {
+namespace CommonUtils.Editor.DynamicEnums.Drawers {
 	[CustomPropertyDrawer(typeof(DynamicEnumAttribute))]
 	public class DynamicEnumDrawer : PropertyDrawer {
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
