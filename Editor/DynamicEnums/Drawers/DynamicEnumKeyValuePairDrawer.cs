@@ -35,9 +35,24 @@ namespace CommonUtils.Editor.DynamicEnums.Drawers {
 
 			EditorGUI.EndProperty();
 		}
+	}
 
-		private string getEnumName(SerializedProperty property) {
-			return property.FindPropertyRelative("enumName").stringValue;
+	[CustomPropertyDrawer(typeof(DynamicEnumDictionary), true)]
+	public class DynamicEnumDictionaryDrawer : PropertyDrawer {
+		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+			// Using BeginProperty / EndProperty on the parent property means that
+			// prefab override logic works on the entire property.
+			EditorGUI.BeginProperty(position, label, property);
+			EditorGUI.PropertyField(position, property.FindPropertyRelative("kvps"), label);
+			EditorGUI.EndProperty();
+		}
+
+		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
+			bool isExpanded = property.FindPropertyRelative("kvps").isExpanded;
+			if (!isExpanded) return EditorGUIUtility.singleLineHeight;
+
+			int lineCount = 3 + property.FindPropertyRelative("kvps").arraySize;
+			return EditorGUIUtility.singleLineHeight * lineCount + EditorGUIUtility.standardVerticalSpacing * (lineCount-1);
 		}
 	}
 }
