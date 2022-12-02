@@ -30,7 +30,11 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 		[SerializeField] private string enumName;
 		[SerializeField] private List<TestKVP<TValue>> kvps;
 
+		private Dictionary<int, TValue> innerDictionary;
+
 		public abstract string EnumName { get; }
+
+		public void MakeReadOnly() => innerDictionary = kvps.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
 		#region Serialization
 		public void OnBeforeSerialize() {
@@ -66,37 +70,42 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 		#endregion
 
 		#region Dictionary Implementation
-		public ICollection<int> Keys => kvps.Select(kvp => kvp.Key).ToList();
-		public ICollection<TValue> Values => kvps.Select(kvp => kvp.Value).ToList();
+		public bool IsReadOnly => innerDictionary != null;
+		public ICollection<int> Keys => IsReadOnly ? innerDictionary.Keys : kvps.Select(kvp => kvp.Key).ToList();
+		public ICollection<TValue> Values => IsReadOnly ? innerDictionary.Values : kvps.Select(kvp => kvp.Value).ToList();
 
-		public IEnumerator<KeyValuePair<int, TValue>> GetEnumerator() {
-			return kvps.Select(kvp => new KeyValuePair<int, TValue>(kvp.Key, kvp.Value)).GetEnumerator();
-		}
+		public IEnumerator<KeyValuePair<int, TValue>> GetEnumerator() =>
+			IsReadOnly ? innerDictionary.GetEnumerator() :
+				kvps.Select(kvp => new KeyValuePair<int, TValue>(kvp.Key, kvp.Value)).GetEnumerator();
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public bool Contains(KeyValuePair<int, TValue> item) { return kvps.Any(kvp => kvp.Key == item.Key); }
+		public bool Contains(KeyValuePair<int, TValue> item) =>
+			IsReadOnly ? innerDictionary.Contains(item) : kvps.Any(kvp => kvp.Key == item.Key);
 
-		public bool ContainsKey(int key) { return kvps.Any(kvp => kvp.Key == key); }
+		public bool ContainsKey(int key)
+			=> IsReadOnly ? innerDictionary.ContainsKey(key) : kvps.Any(kvp => kvp.Key == key);
 
-		public void Add(KeyValuePair<int, TValue> item) {
-			if (ContainsKey(item.Key)) throw new ArgumentException($"Key \"{item.Key}\" already exists");
-			kvps.Add(new TestKVP<TValue>(){Key = item.Key, Value = item.Value});
-		}
+		public void Add(KeyValuePair<int, TValue> item) => Add(item.Key, item.Value);
 
 		public void Add(int key, TValue value) {
+			if (IsReadOnly) throw new InvalidOperationException("This dictionary has been made readonly.");
+
 			if(ContainsKey(key)) throw new ArgumentException($"Key \"{key}\" already exists");
 			kvps.Add(new TestKVP<TValue>(){Key = key, Value = value});
 		}
 
-		public void Clear() => kvps.Clear();
-		public void CopyTo(KeyValuePair<int, TValue>[] array, int arrayIndex) {
-			kvps.Select(kvp=>new KeyValuePair<int,TValue>(kvp.Key, kvp.Value)).ToList().CopyTo(array, arrayIndex);
+		public void Clear() {
+			if (IsReadOnly) throw new InvalidOperationException("This dictionary has been made readonly.");
+			kvps.Clear();
 		}
+
+		public void CopyTo(KeyValuePair<int, TValue>[] array, int arrayIndex) => kvps.Select(kvp=>new KeyValuePair<int,TValue>(kvp.Key, kvp.Value)).ToList().CopyTo(array, arrayIndex);
 
 		public bool Remove(KeyValuePair<int, TValue> item) => Remove(item.Key);
 
 		public bool Remove(int key) {
+			if (IsReadOnly) throw new InvalidOperationException("This dictionary has been made readonly.");
 			var index = -1;
 			for (int i = 0; i < kvps.Count; i++) {
 				if (kvps[i].Key == key) {
@@ -114,10 +123,13 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 			return false;
 		}
 
-		public int Count => kvps.Count;
-		public bool IsReadOnly => false;
+		public int Count => IsReadOnly? innerDictionary.Count : kvps.Count;
 
 		public bool TryGetValue(int key, out TValue value) {
+			if (IsReadOnly) {
+				return innerDictionary.TryGetValue(key, out value);
+			}
+
 			value = default;
 			for (int i = 0; i < kvps.Count; i++) {
 				if (kvps[i].Key == key) {
@@ -131,19 +143,21 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 
 		public TValue this[int key] {
 			get {
-				for (int i = 0; i < kvps.Count; i++) {
-					if (kvps[i].Key == key) {
-						return kvps[i].Value;
-					}
+				if (IsReadOnly) {
+					return innerDictionary[key];
+				}
+
+				foreach (var t in kvps.Where(t => t.Key == key)) {
+					return t.Value;
 				}
 
 				throw new KeyNotFoundException($"Key {key} was not found in the dictionary.");
 			}
 			set {
-				for (int i = 0; i < kvps.Count; i++) {
-					if (kvps[i].Key == key) {
-						kvps[i].Value = value;
-					}
+				if (IsReadOnly) throw new InvalidOperationException("This dictionary has been made readonly.");
+
+				foreach (var t in kvps.Where(t => t.Key == key)) {
+					t.Value = value;
 				}
 
 				throw new KeyNotFoundException($"Key {key} was not found in the dictionary.");
