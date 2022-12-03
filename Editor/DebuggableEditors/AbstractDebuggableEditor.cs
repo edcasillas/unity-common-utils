@@ -122,7 +122,8 @@ namespace CommonUtils.Editor.DebuggableEditors {
 			try {
 				oldValue = reflectedProperty.GetValue(instance);
 			} catch (Exception ex) {
-				EditorGUILayout.HelpBox($"An exception occurred while calling the setter of property \"{reflectedProperty.RealName}\": {ex.Message}", MessageType.Error);
+				var exceptionMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+				EditorGUILayout.HelpBox($"An exception occurred while calling the getter of property \"{reflectedProperty.RealName}\": {exceptionMessage}", MessageType.Error);
 				return;
 			}
 

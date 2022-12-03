@@ -18,7 +18,10 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 
 		#region Serialization
 		public void OnBeforeSerialize() {
-			var enumValuesCount = DynamicEnumManager.GetValues(EnumName).Count;
+			var allValues = DynamicEnumManager.GetValues(EnumName);
+			if (allValues == null) return;
+
+			var enumValuesCount = allValues.Count;
 
 			if (innerList.Count > enumValuesCount) {
 				Debug.LogError($"Cannot add more values to the dictionary because the dynamic enum \"{EnumName}\" doesn't have enough values to create more unique keys.");

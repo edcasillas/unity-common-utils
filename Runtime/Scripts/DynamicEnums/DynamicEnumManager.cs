@@ -18,7 +18,9 @@ namespace CommonUtils.DynamicEnums {
 
 		public static GUIContent[] GetValuesAsGuiContent(string enumName) => definitions[enumName]?.ValuesAsGuiContent;
 		public static int ValueToInt(string enumName, string value) => definitions[enumName]?.ToInt(value) ?? -1;
-		public static string IntToValue(string enumName, int index) => definitions[enumName]?.ToValue(index);
+
+		public static string IntToValue(string enumName, int index)
+			=> index >= 0 ? definitions[enumName]?.ToValue(index) : string.Empty;
 
 		public static bool Reload() {
 			_definitions = Resources.Load<DynamicEnumDefinitions>(resourceName);
