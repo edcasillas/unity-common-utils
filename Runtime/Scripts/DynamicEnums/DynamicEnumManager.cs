@@ -14,7 +14,8 @@ namespace CommonUtils.DynamicEnums {
 			}
 		}
 
-		public static IReadOnlyCollection<string> GetValues(string enumName) => definitions[enumName]?.Values;
+		public static IReadOnlyCollection<string> GetValues(string enumName) => definitions != null ? definitions[enumName]?.Values : null;
+
 		public static GUIContent[] GetValuesAsGuiContent(string enumName) => definitions[enumName]?.ValuesAsGuiContent;
 		public static int ValueToInt(string enumName, string value) => definitions[enumName]?.ToInt(value) ?? -1;
 		public static string IntToValue(string enumName, int index) => definitions[enumName]?.ToValue(index);
