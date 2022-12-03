@@ -41,7 +41,7 @@ namespace CommonUtils.UI.Submenus {
 #pragma warning restore 649
 		#endregion
 
-		#region Properties
+		#region Properties and backing fields
 		[ShowInInspector] public bool IsInitialized { get; private set; } = false;
 
 		/// <summary>
@@ -53,16 +53,30 @@ namespace CommonUtils.UI.Submenus {
 		[ShowInInspector] public Vector2 HiddenValue { get; protected set; }
 		[ShowInInspector] public Vector2 ShownValue { get; protected set; }
 
+		private RectTransform rectTransform;
+		/// <summary>
+		/// <see cref="RectTransform"/> of the submenu, to manipulate its size, position, etc.
+		/// </summary>
+		protected RectTransform RectTransform {
+			get {
+				if (!rectTransform) rectTransform = GetComponent<RectTransform>();
+				return rectTransform;
+			}
+		}
+
+		private AudioSource audioSource;
+		protected AudioSource AudioSource {
+			get {
+				if (!audioSource) audioSource = GetComponent<AudioSource>();
+				return audioSource;
+			}
+		}
+
 		public bool IsVerbose => verbose;
 		#endregion
 
 		#region Fields
-		/// <summary>
-		/// <see cref="RectTransform"/> of the submenu, to manipulate its size, position, etc.
-		/// </summary>
-		protected RectTransform RectTransform;
 
-		protected AudioSource AudioSource;
 		private Coroutine hideCoroutine;
 		#endregion
 
@@ -125,12 +139,9 @@ namespace CommonUtils.UI.Submenus {
 
 		[ShowInInspector]
 		public void Init() {
-			if(!IsInitialized) {
-				RectTransform = GetComponent<RectTransform>();
-				AudioSource = GetComponent<AudioSource>();
-				OnInit();
-				IsInitialized = true;
-			}
+			if (IsInitialized) return;
+			OnInit();
+			IsInitialized = true;
 		}
 
 		private void animate(Vector2 start, Vector2 end, string onComplete, iTween.EaseType easeType, bool playSound) {
