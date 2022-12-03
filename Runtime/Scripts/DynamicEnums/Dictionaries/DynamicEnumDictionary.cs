@@ -135,7 +135,7 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 					return t.Value;
 				}
 
-				throw new KeyNotFoundException($"Key {key} was not found in the dictionary.");
+				throw new KeyNotFoundException($"Key {key}({DynamicEnumManager.IntToValue(enumName, key)}) was not found in the dictionary.");
 			}
 			set {
 				if (IsReadOnly) throw new InvalidOperationException("This dictionary has been made readonly.");
