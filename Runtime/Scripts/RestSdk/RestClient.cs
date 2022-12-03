@@ -122,12 +122,9 @@ namespace CommonUtils.RestSdk {
 		/// <param name="callback">Callback method to receive the response.</param>
 		/// <typeparam name="TResult">Type of DTO expected as result.</typeparam>
 		public void Post<TResult>(string actionRelativePath, Dictionary<string, object> data, Action<RestResponse<TResult>> callback) {
-			#region Input validation
-			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
 			if (callback == null) throw new ArgumentNullException(nameof(callback));
-			#endregion
 
-			var url      = $"{ApiUrl}/{actionRelativePath}";
+			var url = string.IsNullOrEmpty(actionRelativePath) ? ApiUrl : $"{ApiUrl}/{actionRelativePath}";
 
 			var form = new WWWForm();
 			foreach (var kvp in data) {
