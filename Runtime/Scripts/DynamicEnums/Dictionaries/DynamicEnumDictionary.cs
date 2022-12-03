@@ -18,6 +18,8 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 
 		#region Serialization
 		public void OnBeforeSerialize() {
+			if(innerList == null) return;
+
 			var allValues = DynamicEnumManager.GetValues(EnumName);
 			if (allValues == null) return;
 
