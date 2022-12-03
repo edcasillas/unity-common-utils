@@ -38,6 +38,7 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 				}
 				kvp.SetEnumName(enumName);
 				usedKeys[kvp.Key] = true;
+				if(++usedKeysCount >= enumValuesCount) break;
 			}
 		}
 
