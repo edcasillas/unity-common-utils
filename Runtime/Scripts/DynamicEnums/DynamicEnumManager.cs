@@ -21,6 +21,7 @@ namespace CommonUtils.DynamicEnums {
 
 		public static bool Reload() {
 			_definitions = Resources.Load<DynamicEnumDefinitions>(resourceName);
+			if (!_definitions) return false;
 			_definitions.Reload();
 			return _definitions;
 		}
