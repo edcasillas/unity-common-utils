@@ -76,7 +76,6 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Fields
-
 		private Coroutine hideCoroutine;
 		#endregion
 
@@ -103,7 +102,7 @@ namespace CommonUtils.UI.Submenus {
 		[ShowInInspector]
 		public virtual void Hide() {
 			if (!IsInitialized) {
-				Debug.LogError($"Cannot hide this submenu before is initialized. Please call Init(); first.");
+				Debug.LogError($"Cannot hide submenu '{name}' before is initialized. Please call Init(); first.");
 			}
 			if(!IsShown) return;
 			this.DebugLog($"Will hide {name}");
@@ -114,25 +113,19 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Abstract Methods
-
 		protected abstract void OnInit();
-
 		public abstract void OnAnimationUpdated(Vector2 updatedValue);
-
 		#endregion
 
 		#region Virtual Methods
 		protected virtual void OnShown() {
 			if(AutoHide > 0) {
-				this.DebugLog("Starting hide coroutine.");
+				this.DebugLog($"Starting hide coroutine for submenu {name}.");
 				hideCoroutine = StartCoroutine(waitAndHide());
 			}
 		}
 
-		protected virtual void OnHidden() {
-			gameObject.SetActive(false);
-		}
-
+		protected virtual void OnHidden() => gameObject.SetActive(false);
 		#endregion
 
 		#region Private Methods
