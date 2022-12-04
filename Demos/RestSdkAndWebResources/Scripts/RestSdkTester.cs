@@ -1,18 +1,33 @@
-using System.Collections;
-using System.Collections.Generic;
+using CommonUtils;
+using CommonUtils.RestSdk;
 using UnityEngine;
 
-public class RestSdkTester : MonoBehaviour
-{
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+namespace Demos.RestSdkAndWebResources {
+	public class RestSdkTester : MonoBehaviour {
+		public enum CallResult {
+			None,
+			Busy,
+			Success,
+			Error
+		}
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+		[SerializeField] private string apiUrl = "https://api.weather.gov";
+
+		private IRestClient restClient;
+
+		[ShowInInspector] public CallResult Status { get; private set; }
+		[ShowInInspector] public TestDto ObtainedData { get; private set; }
+
+		private void Awake() => restClient = new RestClient(apiUrl);
+
+		[ShowInInspector]
+		public void MakeAGetRequest(string relativePath = "gridpoints/MTR/85,105/forecast") {
+			Status = CallResult.Busy;
+			restClient.Get<TestDto>(relativePath,
+				response => {
+					Status = response.IsSuccess ? CallResult.Success : CallResult.Error;
+					ObtainedData = response.IsSuccess ? response.Data : null;
+				});
+		}
+	}
 }

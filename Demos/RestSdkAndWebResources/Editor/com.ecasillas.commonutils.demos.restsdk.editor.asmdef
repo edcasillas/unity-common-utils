@@ -1,0 +1,19 @@
+{
+    "name": "com.ecasillas.commonutils.demos.restsdk.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:6c6fab3a886a248888c7fbb984d1dc2b",
+        "GUID:87c118bcf383e46fabaf8e2363222416"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
