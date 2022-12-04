@@ -76,7 +76,7 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Fields
-		private Coroutine hideCoroutine;
+		protected Coroutine HideCoroutine;
 		#endregion
 
 		#region Public Methods
@@ -85,11 +85,11 @@ namespace CommonUtils.UI.Submenus {
 		public virtual void Show() {
 			this.DebugLog(() => $"Will show {name}");
 			Init();
-			if(hideCoroutine != null) {
+			if(HideCoroutine != null) {
 				this.DebugLog("Stopping hide coroutine.");
-				StopCoroutine(hideCoroutine);
+				StopCoroutine(HideCoroutine);
 				if(IsShown && AutoHide > 0) {
-					hideCoroutine = StartCoroutine(waitAndHide());
+					HideCoroutine = StartCoroutine(WaitAndHide());
 				}
 			}
 			if(!IsShown) {
@@ -121,7 +121,7 @@ namespace CommonUtils.UI.Submenus {
 		protected virtual void OnShown() {
 			if(AutoHide > 0) {
 				this.DebugLog($"Starting hide coroutine for submenu {name}.");
-				hideCoroutine = StartCoroutine(waitAndHide());
+				HideCoroutine = StartCoroutine(WaitAndHide());
 			}
 		}
 
@@ -164,11 +164,11 @@ namespace CommonUtils.UI.Submenus {
 			AudioSource.PlayOneShot(Feedback);
 		}
 
-		private IEnumerator waitAndHide() {
+		protected virtual IEnumerator WaitAndHide() { // When overriden, please make sure to set HideCoroutine to null!
 			yield return new WaitForSeconds(AutoHide);
 			this.DebugLog("Hiding");
 			Hide();
-			hideCoroutine = null;
+			HideCoroutine = null;
 		}
 
 		#endregion
