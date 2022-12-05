@@ -10,9 +10,9 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 		[SerializeField] private string enumName;
 		[SerializeField] private List<AutoDynamicEnumKeyValuePair<TValue>> innerList;
 
-		private Dictionary<int, TValue> innerDictionary;
-
 		public abstract string EnumName { get; }
+
+		private Dictionary<int, TValue> innerDictionary;
 
 		public void MakeReadOnly() => innerDictionary = innerList.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
