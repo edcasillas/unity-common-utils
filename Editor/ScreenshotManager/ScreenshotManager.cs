@@ -18,12 +18,12 @@ namespace CommonUtils.Editor.ScreenshotManager {
             get => EditorPrefs.GetString(EDITOR_PREF_KEY_SAVE_TO, defaultSaveDirectory);
             set => EditorPrefs.SetString(EDITOR_PREF_KEY_SAVE_TO, value);
         }
-        
+
         internal static string FilePrefix {
             get => EditorPrefs.GetString(EDITOR_PREF_KEY_PREFIX, "screenshot");
             set => EditorPrefs.SetString(EDITOR_PREF_KEY_PREFIX, value);
         }
-        
+
         internal static int CurrentCount {
             get => EditorPrefs.GetInt(EDITOR_PREF_KEY_CURRENT_COUNT, 0);
             set => EditorPrefs.SetInt(EDITOR_PREF_KEY_CURRENT_COUNT, value);
@@ -39,7 +39,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
             }
 
             var count = CurrentCount;
-            var filename = $"{SaveToFolder}/{FilePrefix}{++count}.png"; 
+            var filename = $"{SaveToFolder}/{FilePrefix}{++count}.png";
             try {
                 ScreenCapture.CaptureScreenshot(filename);
                 Debug.Log($"Screenshot saved at \"{filename}\"");
@@ -49,10 +49,5 @@ namespace CommonUtils.Editor.ScreenshotManager {
                 Debug.LogError($"Could not save screenshot at {filename}: {e.Message}");
             }
         }
-
-        [MenuItem("Tools/Configure screenshots...")]
-        private static void openConfigWindow() {
-            ScreenshotManagerConfigWindow.OpenActiveWindow();
-        }
-    }
+	}
 }
