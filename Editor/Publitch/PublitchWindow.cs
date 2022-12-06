@@ -43,6 +43,8 @@ namespace CommonUtils.Editor.Publitch {
 		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
 		#endregion
 
+		private string errorMessage;
+		private Process fetchVersionProcess;
 		private string version;
 		private string status;
 
@@ -57,18 +59,35 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void OnEnable() {
-			version = checkButlerVersion();
-			if (!string.IsNullOrEmpty(version)) {
-				var indexOfComma = version.IndexOf(',');
-				if (indexOfComma > 0) {
-					version = version[..indexOfComma];
+			fetchVersionProcess = checkButlerVersion();
+			EditorApplication.update += Update;
+		}
+
+		private void OnDisable() => EditorApplication.update -= Update;
+
+		private void Update() {
+			if (fetchVersionProcess != null) {
+				if (fetchVersionProcess.HasExited) {
+					if (fetchVersionProcess.ExitCode == 0) {
+						version = fetchVersionProcess.StandardOutput.ReadToEnd();
+						if (!string.IsNullOrEmpty(version)) {
+							var indexOfComma = version.IndexOf(',');
+							if (indexOfComma > 0) {
+								version = version[..indexOfComma];
+							}
+						}
+					} else {
+						errorMessage = "An error occurred while trying to fetch the version of butler";
+					}
+
+					fetchVersionProcess = null;
 				}
 			}
 		}
 
-		private string checkButlerVersion() => executeButler("version");
+		private Process checkButlerVersion() => executeButler("version");
 
-		private string executeButler(string args) {
+		private Process executeButler(string args) {
 			var proc = new Process {
 				StartInfo = new ProcessStartInfo {
 					FileName = @"butler",
@@ -90,12 +109,20 @@ namespace CommonUtils.Editor.Publitch {
 				}
 				return null;
 			}
-			proc.WaitForExit();
-			Debug.Log($"{args} - returned {proc.ExitCode}");
-			return proc.StandardOutput.ReadToEnd();
+
+			return proc;
 		}
 
 		private void OnGUI() {
+			if (!string.IsNullOrEmpty(errorMessage)) {
+				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
+			}
+
+			if (fetchVersionProcess != null) {
+				EditorGUILayout.HelpBox($"Checking butler installation", MessageType.Info);
+				return;
+			}
+
 			if (!string.IsNullOrEmpty(version)) {
 				EditorGUILayout.HelpBox($"butler {version}", MessageType.None);
 
@@ -120,14 +147,14 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.Space();
 				EditorGUILayout.TextField("Build ID:", buildId);
 
-				EditorGUILayout.Space();
+				/*EditorGUILayout.Space();
 				if (GUILayout.Button("Status")) {
 					status = executeButler($"status {buildId}");
 				}
 
 				if (!string.IsNullOrEmpty(status)) {
 					EditorGUILayout.TextArea(status);
-				}
+				}*/
 			}
 			else EditorGUILayout.HelpBox("Butler is not installed", MessageType.Error);
 		}
