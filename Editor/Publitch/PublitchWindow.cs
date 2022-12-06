@@ -44,8 +44,11 @@ namespace CommonUtils.Editor.Publitch {
 		#endregion
 
 		private string errorMessage;
+
 		private Process fetchVersionProcess;
 		private string version;
+
+		private Process fetchStatusProcess;
 		private string status;
 
 		private static void openActiveWindow() {
@@ -81,6 +84,18 @@ namespace CommonUtils.Editor.Publitch {
 					}
 
 					fetchVersionProcess = null;
+				}
+			}
+
+			if (fetchStatusProcess != null) {
+				if (fetchStatusProcess.HasExited) {
+					if (fetchStatusProcess.ExitCode == 0) {
+						status = fetchStatusProcess.StandardOutput.ReadToEnd();
+					} else {
+						errorMessage = "An error occurred while trying to fetch the status of butler";
+					}
+
+					fetchStatusProcess = null;
 				}
 			}
 		}
@@ -147,14 +162,22 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.Space();
 				EditorGUILayout.TextField("Build ID:", buildId);
 
-				/*EditorGUILayout.Space();
+				EditorGUILayout.Space();
 				if (GUILayout.Button("Status")) {
-					status = executeButler($"status {buildId}");
+					fetchStatusProcess = executeButler($"status {buildId}");
 				}
 
-				if (!string.IsNullOrEmpty(status)) {
-					EditorGUILayout.TextArea(status);
-				}*/
+				if (fetchStatusProcess != null) {
+					var timeRunning = DateTime.Now - fetchStatusProcess.StartTime;
+					EditorGUILayout.HelpBox($"Fetching status for {timeRunning.TotalSeconds} seconds" , MessageType.Info);
+					Repaint();
+				} else {
+					if (!string.IsNullOrEmpty(status)) {
+						EditorGUILayout.TextArea(status);
+					}
+				}
+
+
 			}
 			else EditorGUILayout.HelpBox("Butler is not installed", MessageType.Error);
 		}
