@@ -177,7 +177,12 @@ namespace CommonUtils.Editor.Publitch {
 				if(string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) return;
 
 				EditorGUILayout.Space();
+				EditorGUILayout.BeginHorizontal();
 				EditorGUILayout.TextField("Build ID:", buildId);
+				if (GUILayout.Button("View on itch.io", EditorStyles.miniButtonRight)) {
+					Application.OpenURL($"https://{User}.itch.io/{ProjectName}");
+				}
+				EditorGUILayout.EndHorizontal();
 
 				EditorGUILayout.Space();
 				if (GUILayout.Button("Status")) {
