@@ -9,8 +9,11 @@ namespace CommonUtils.Editor.ScreenshotManager {
 		private string saveTo;
 		private string prefix;
 		private int currentCount;
-		
-		public static void OpenActiveWindow() {
+
+		[MenuItem("Tools/Configure screenshots...")]
+		private static void openConfigWindow() => openActiveWindow();
+
+		private static void openActiveWindow() {
 			if (!instance) {
 				instance              = GetWindow<ScreenshotManagerConfigWindow>();
 				instance.titleContent = new GUIContent("Screenshot Manager");
@@ -32,12 +35,12 @@ namespace CommonUtils.Editor.ScreenshotManager {
 			}
 
 			prefix = EditorGUILayout.TextField("Prefix", prefix).Trim();
-			
+
 			EditorExtensions.ReadOnlyLabelField("Current count", currentCount);
 			if (GUILayout.Button("Reset count")) {
 				currentCount = 0;
 			}
-			
+
 			if (!Directory.Exists(saveTo)) {
 				EditorGUILayout.HelpBox($"The selected folder does not exist. Screenshots cannot be taken!", MessageType.Error);
 			} else {

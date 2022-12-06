@@ -23,6 +23,7 @@ namespace CommonUtils.DynamicEnums {
 			=> index >= 0 ? definitions[enumName]?.ToValue(index) : string.Empty;
 
 		public static bool Reload() {
+			if (AssemblyReloadUtil.IsReloading) return false;
 			_definitions = Resources.Load<DynamicEnumDefinitions>(resourceName);
 			if (!_definitions) return false;
 			_definitions.Reload();
