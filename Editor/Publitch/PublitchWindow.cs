@@ -51,6 +51,9 @@ namespace CommonUtils.Editor.Publitch {
 		private Process fetchStatusProcess;
 		private string status;
 
+		private Process publishProcess;
+		private string publishResult;
+
 		private static void openActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<PublitchWindow>();
@@ -80,7 +83,7 @@ namespace CommonUtils.Editor.Publitch {
 							}
 						}
 					} else {
-						errorMessage = "An error occurred while trying to fetch the version of butler";
+						errorMessage = "An error occurred while trying to fetch the version of butler.";
 					}
 
 					fetchVersionProcess = null;
@@ -92,10 +95,24 @@ namespace CommonUtils.Editor.Publitch {
 					if (fetchStatusProcess.ExitCode == 0) {
 						status = fetchStatusProcess.StandardOutput.ReadToEnd();
 					} else {
-						errorMessage = "An error occurred while trying to fetch the status of butler";
+						errorMessage = "An error occurred while trying to fetch the status of the project.";
 					}
 
 					fetchStatusProcess = null;
+				}
+			}
+
+			if (publishProcess != null) {
+				if (publishProcess.HasExited) {
+					if (publishProcess.ExitCode == 0) {
+						publishResult = publishProcess.StandardOutput.ReadToEnd();
+						fetchStatusProcess = executeButler($"status {buildId}");
+						EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
+					} else {
+						errorMessage = "An error occurred while publishing.";
+					}
+
+					publishProcess = null;
 				}
 			}
 		}
@@ -177,9 +194,18 @@ namespace CommonUtils.Editor.Publitch {
 					}
 				}
 
+				EditorGUILayout.Space();
+				if (GUILayout.Button("Publitch NOW")) {
+					publishProcess = executeButler($"push {BuildPath} {buildId}");
+				}
 
+				if (publishProcess != null) {
+					var timeRunning = DateTime.Now - publishProcess.StartTime;
+					EditorGUILayout.HelpBox($"Publishing to itch for {timeRunning.TotalSeconds} seconds" , MessageType.Info);
+					Repaint();
+				}
 			}
-			else EditorGUILayout.HelpBox("Butler is not installed", MessageType.Error);
+			else EditorGUILayout.HelpBox("Butler is not installed", MessageType.Error); // TODO Give instructions on how to install
 		}
 
 		[PostProcessBuild]
