@@ -30,5 +30,15 @@ namespace CommonUtils {
 
 			videoPlayer.Play();
 		}
+
+		public void Play() {
+			if(!videoPlayer.isPaused) return;
+			videoPlayer.Pause();
+		}
+
+		public void Pause() {
+			if(videoPlayer.isPaused) return;
+			videoPlayer.Play();
+		}
 	}
 }
