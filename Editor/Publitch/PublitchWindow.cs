@@ -105,6 +105,7 @@ namespace CommonUtils.Editor.Publitch {
 			if (publishProcess != null) {
 				if (publishProcess.HasExited) {
 					if (publishProcess.ExitCode == 0) {
+						errorMessage = null;
 						//publishResult = publishProcess.StandardOutput.ReadToEnd();
 						fetchStatusProcess = executeButler($"status {buildId}");
 						EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
