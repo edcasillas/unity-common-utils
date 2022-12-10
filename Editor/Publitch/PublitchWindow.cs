@@ -172,7 +172,12 @@ namespace CommonUtils.Editor.Publitch {
 				}
 				EditorGUILayout.EndHorizontal();
 
+				EditorGUILayout.BeginHorizontal();
 				EditorGUILayout.TextField("Build Path", BuildPath);
+				if (GUILayout.Button("Reveal", EditorStyles.miniButtonRight)) {
+					EditorUtility.RevealInFinder(BuildPath);
+				}
+				EditorGUILayout.EndHorizontal();
 
 				if(string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) return;
 
