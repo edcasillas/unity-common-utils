@@ -105,7 +105,7 @@ namespace CommonUtils.Editor.Publitch {
 			if (publishProcess != null) {
 				if (publishProcess.HasExited) {
 					if (publishProcess.ExitCode == 0) {
-						publishResult = publishProcess.StandardOutput.ReadToEnd();
+						//publishResult = publishProcess.StandardOutput.ReadToEnd();
 						fetchStatusProcess = executeButler($"status {buildId}");
 						EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
 					} else {
@@ -119,7 +119,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private Process checkButlerVersion() => executeButler("version");
 
-		private Process executeButler(string args) {
+		private Process executeButler(string args, DataReceivedEventHandler onOutputDataReceived = null) {
 			var proc = new Process {
 				StartInfo = new ProcessStartInfo {
 					FileName = @"butler",
@@ -131,8 +131,11 @@ namespace CommonUtils.Editor.Publitch {
 				}
 			};
 
+			if (onOutputDataReceived != null) proc.OutputDataReceived += onOutputDataReceived;
+
 			try {
 				proc.Start();
+				if (onOutputDataReceived != null) proc.BeginOutputReadLine();
 			} catch (Win32Exception ex) {
 				// Error 2 is not found; if this is the error, we'll show an option to install
 				// butler in the editor window. Otherwise it's an unknown error and we'll log it.
@@ -143,6 +146,13 @@ namespace CommonUtils.Editor.Publitch {
 			}
 
 			return proc;
+		}
+
+		private string publishData = string.Empty;
+		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
+			//publishData += "\n---RECEIVED DATA---\n";
+			//publishData += e.Data;
+			publishData = e.Data;
 		}
 
 		private void OnGUI() {
@@ -205,14 +215,25 @@ namespace CommonUtils.Editor.Publitch {
 				}
 
 				EditorGUILayout.Space();
-				if (GUILayout.Button("Publitch NOW")) {
-					publishProcess = executeButler($"push {BuildPath} {buildId}");
-				}
-
-				if (publishProcess != null) {
+				if (publishProcess == null) {
+					if (GUILayout.Button("Publitch NOW")) {
+						publishData = string.Empty;
+						publishProcess = executeButler($"push {BuildPath} {buildId}", OnPublishDataReceived);
+					}
+				} else {
 					var timeRunning = DateTime.Now - publishProcess.StartTime;
 					EditorGUILayout.HelpBox($"Publishing to itch for {timeRunning.TotalSeconds} seconds" , MessageType.Info);
+					if (GUILayout.Button("Cancel")) {
+						if (EditorUtility.DisplayDialog("Cancel publish", "Are you sure?", "Yup", "Nope")) {
+							publishProcess.Kill();
+							publishProcess = null;
+						}
+					}
 					Repaint();
+				}
+
+				if (!string.IsNullOrEmpty(publishData)) {
+					EditorGUILayout.TextArea(publishData);
 				}
 			}
 			else EditorGUILayout.HelpBox("Butler is not installed", MessageType.Error); // TODO Give instructions on how to install
@@ -224,9 +245,7 @@ namespace CommonUtils.Editor.Publitch {
 			BuildPath = pathToBuiltProject;
 		}
 
-		private static string getEditorPrefKey(string setting) {
-			return $"{PlayerSettings.productGUID}.{EDITOR_PREF_KEY_PREFIX}.{setting}";
-		}
+		private static string getEditorPrefKey(string setting) => $"{PlayerSettings.productGUID}.{EDITOR_PREF_KEY_PREFIX}.{setting}";
 
 		private static string getChannelName(BuildTarget t) {
 			switch (t) {
