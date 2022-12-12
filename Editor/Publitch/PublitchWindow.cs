@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -8,16 +9,29 @@ using Debug = UnityEngine.Debug;
 
 namespace CommonUtils.Editor.Publitch {
 	public class PublitchWindow : EditorWindow {
+		#region Constants
 		private const string EDITOR_PREF_KEY_PREFIX = "Publitch";
 		private const string EDITOR_PREF_KEY_BUILD_TARGET = "LastKnownBuildTarget";
 		private const string EDITOR_PREF_KEY_BUILD_PATH = "LastKnownBuildPath";
 		private const string EDITOR_PREF_KEY_USER = "User";
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
+		#endregion
 
+		#region Statics (To create the editor menu and save preferences)
 		private static PublitchWindow instance;
 
 		[MenuItem("Tools/Publish to itch.io...")]
 		private static void openConfigWindow() => openActiveWindow();
+
+		private static void openActiveWindow() {
+			if (!instance) {
+				instance = GetWindow<PublitchWindow>();
+				instance.titleContent = new GUIContent("Publitch");
+				instance.maxSize = new Vector2(400f, 300f);
+			}
+
+			instance.Show();
+		}
 
 		#region Properties (connected to EditorPrefs)
 		internal static BuildTarget BuildTarget {
@@ -42,6 +56,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
 		#endregion
+		#endregion
 
 		private string errorMessage;
 
@@ -53,16 +68,6 @@ namespace CommonUtils.Editor.Publitch {
 
 		private Process publishProcess;
 		private string publishResult;
-
-		private static void openActiveWindow() {
-			if (!instance) {
-				instance = GetWindow<PublitchWindow>();
-				instance.titleContent = new GUIContent("Publitch");
-				instance.maxSize = new Vector2(400f, 300f);
-			}
-
-			instance.Show();
-		}
 
 		private void OnEnable() {
 			fetchVersionProcess = checkButlerVersion();
@@ -150,10 +155,45 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private string publishData = string.Empty;
+		private float publishProgressPct = 0f;
 		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
 			//publishData += "\n---RECEIVED DATA---\n";
 			//publishData += e.Data;
-			publishData = e.Data;
+			if (!string.IsNullOrEmpty(e?.Data)) {
+				var i = 0;
+				while (i < e.Data.Length) {
+					if (int.TryParse(e.Data, out var num)) {
+						var pctBuilder = new StringBuilder();
+						pctBuilder.Append(num);
+						var foundPeriod = false;
+						i++;
+						while (i < e.Data.Length && e.Data[i] != '%') {
+							if (int.TryParse(e.Data, out num)) {
+								pctBuilder.Append(num);
+							} else if (e.Data[i] == '.') {
+								if (foundPeriod) {
+									Debug.LogError($"Bad percentage info in butler string: {e.Data}");
+									break;
+								}
+								pctBuilder.Append(".");
+								foundPeriod = true;
+							} else {
+								Debug.LogError($"Unexpected character in string received from butler: '{e.Data}'");
+								break;
+							}
+							i++;
+						}
+
+						if (float.TryParse(pctBuilder.ToString(), out var pct)) {
+							publishProgressPct = pct;
+						}
+
+						break;
+					}
+					i++;
+				}
+			}
+			publishData = e?.Data;
 		}
 
 		private void OnGUI() {
@@ -232,6 +272,9 @@ namespace CommonUtils.Editor.Publitch {
 					}
 					Repaint();
 				}
+
+				var progressBarRect = EditorGUILayout.GetControlRect();
+				EditorGUI.ProgressBar(progressBarRect, publishProgressPct / 100f, $"{publishProgressPct}%");
 
 				if (!string.IsNullOrEmpty(publishData)) {
 					EditorGUILayout.TextArea(publishData);
