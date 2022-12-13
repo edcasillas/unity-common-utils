@@ -157,8 +157,7 @@ namespace CommonUtils.Editor.Publitch {
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
 		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
-			//publishData += "\n---RECEIVED DATA---\n";
-			//publishData += e.Data;
+			var foundPct = false;
 			if (!string.IsNullOrEmpty(e?.Data)) {
 				var i = 0;
 				while (i < e.Data.Length) {
@@ -184,6 +183,9 @@ namespace CommonUtils.Editor.Publitch {
 							i++;
 						}
 
+						foundPct = true;
+
+						Debug.Log(pctBuilder.ToString());
 						if (float.TryParse(pctBuilder.ToString(), out var pct)) {
 							publishProgressPct = pct;
 						}
@@ -193,6 +195,11 @@ namespace CommonUtils.Editor.Publitch {
 					i++;
 				}
 			}
+
+			if (!foundPct) {
+				Debug.LogWarning($"Didn't find percentage in string: '{e?.Data}'");
+			}
+
 			publishData = e?.Data;
 		}
 
