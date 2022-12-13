@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
 	[AddComponentMenu("UI/Animated Submenu/Slide-in Submenu")]

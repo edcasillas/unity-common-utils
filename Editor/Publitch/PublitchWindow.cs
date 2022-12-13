@@ -157,50 +157,58 @@ namespace CommonUtils.Editor.Publitch {
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
 		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
-			var foundPct = false;
-			if (!string.IsNullOrEmpty(e?.Data)) {
-				var i = 0;
-				while (i < e.Data.Length) {
-					if (int.TryParse(e.Data, out var num)) {
-						var pctBuilder = new StringBuilder();
-						pctBuilder.Append(num);
-						var foundPeriod = false;
-						i++;
-						while (i < e.Data.Length && e.Data[i] != '%') {
-							if (int.TryParse(e.Data, out num)) {
-								pctBuilder.Append(num);
-							} else if (e.Data[i] == '.') {
-								if (foundPeriod) {
-									Debug.LogError($"Bad percentage info in butler string: {e.Data}");
-									break;
-								}
-								pctBuilder.Append(".");
-								foundPeriod = true;
-							} else {
-								Debug.LogError($"Unexpected character in string received from butler: '{e.Data}'");
-								break;
-							}
-							i++;
-						}
-
-						foundPct = true;
-
-						Debug.Log(pctBuilder.ToString());
-						if (float.TryParse(pctBuilder.ToString(), out var pct)) {
-							publishProgressPct = pct;
-						}
-
-						break;
-					}
-					i++;
-				}
-			}
-
-			if (!foundPct) {
+			if (TryParseProgressFromButlerString(e?.Data, out var pct)) {
+				publishProgressPct = pct;
+			} else {
 				Debug.LogWarning($"Didn't find percentage in string: '{e?.Data}'");
 			}
 
 			publishData = e?.Data;
+		}
+
+		internal static bool TryParseProgressFromButlerString(string butlerOutput, out float progress) {
+			progress = 0f;
+			if (string.IsNullOrEmpty(butlerOutput)) return false;
+			var foundPct = false;
+
+			var i = 0;
+			while (i < butlerOutput.Length) {
+				var num = (int)char.GetNumericValue(butlerOutput[i]);
+				if (num >= 0) {
+					var pctBuilder = new StringBuilder();
+					pctBuilder.Append(num);
+					var foundPeriod = false;
+					i++;
+					while (i < butlerOutput.Length && butlerOutput[i] != '%') {
+						num = (int)char.GetNumericValue(butlerOutput[i]);
+						if (num>=0) {
+							pctBuilder.Append(num);
+						} else if (butlerOutput[i] == '.') {
+							if (foundPeriod) {
+								Debug.LogError($"Bad percentage info in butler string: {butlerOutput}");
+								return false;
+							}
+							pctBuilder.Append(".");
+							foundPeriod = true;
+						} else {
+							Debug.LogError($"Unexpected character in string received from butler: '{butlerOutput}'");
+							return false;
+						}
+						i++;
+					}
+
+					foundPct = true;
+
+					if (float.TryParse(pctBuilder.ToString(), out var pct)) {
+						progress = pct;
+					}
+
+					break;
+				}
+				i++;
+			}
+
+			return foundPct;
 		}
 
 		private void OnGUI() {
