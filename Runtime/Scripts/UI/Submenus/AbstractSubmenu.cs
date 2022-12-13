@@ -1,13 +1,21 @@
 ﻿using System.Collections;
 using CommonUtils.Extensions;
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace CommonUtils.UI.Submenus {
 	/// <summary>
 	/// Base class for submenus animated through iTween.
 	/// </summary>
     [RequireComponent(typeof(RectTransform), typeof(AudioSource))]
-	public abstract class AbstractSubmenu : MonoBehaviour , IVerbosable{
+	public abstract class AbstractSubmenu : MonoBehaviour , IVerbosable {
+		[Serializable]
+		public class SubMenuEvents {
+			public UnityEvent OnShown;
+			public UnityEvent OnHidden;
+		}
+
 		#region Inspector fields
 #pragma warning disable 649
 		/// <summary>
@@ -33,6 +41,8 @@ namespace CommonUtils.UI.Submenus {
 		public bool PlayFeedbackOnHide;
 		[Range(0, 20)]
 		public int AutoHide = 0;
+
+		[SerializeField] private SubMenuEvents events;
 
 		/// <summary>
 		/// When <c>true</c>, writes debug messages on the console when submenus are being shown or hidden.
@@ -123,9 +133,13 @@ namespace CommonUtils.UI.Submenus {
 				this.DebugLog($"Starting hide coroutine for submenu {name}.");
 				HideCoroutine = StartCoroutine(WaitAndHide());
 			}
+			events.OnShown?.Invoke();
 		}
 
-		protected virtual void OnHidden() => gameObject.SetActive(false);
+		protected virtual void OnHidden() {
+			gameObject.SetActive(false);
+			events.OnHidden?.Invoke();
+		}
 		#endregion
 
 		#region Private Methods
