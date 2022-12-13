@@ -7,7 +7,7 @@ namespace CommonUtils.DebuggableEditors {
 	public static class DebuggableEditorsUtils {
 		// TODO Finish writing these methods
 		public static ICollection<ReflectedProperty> GetDebuggableProperties(this Type t, bool debugAllPropsAndMethods = false, bool debugAllMonoBehaviorPropsAndMethods = false) {
-			var props = t.GetProperties().Where(
+			var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(
 				prop => Attribute.IsDefined(prop, typeof(ShowInInspectorAttribute)));
 			var p2 = props.Select(p => {
 				var showInInspectorAttribute = p.GetCustomAttribute<ShowInInspectorAttribute>();
@@ -20,7 +20,7 @@ namespace CommonUtils.DebuggableEditors {
 		}
 
 		public static ICollection<ReflectedMethod> GetDebuggableMethods(this Type t, bool debugAllPropsAndMethods = false, bool debugAllMonoBehaviorPropsAndMethods = false) {
-			var methods = t.GetMethods().Where(
+			var methods = t.GetMethods( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(
 				prop => Attribute.IsDefined(prop, typeof(ShowInInspectorAttribute)));
 			var p2 = methods.Select(m => {
 				var showInInspectorAttribute = m.GetCustomAttribute<ShowInInspectorAttribute>();

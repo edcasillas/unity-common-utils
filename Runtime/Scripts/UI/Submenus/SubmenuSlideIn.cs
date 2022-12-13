@@ -1,8 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
 	[AddComponentMenu("UI/Animated Submenu/Slide-in Submenu")]
 	public class SubmenuSlideIn : AbstractSubmenu {
+		[SerializeField] private bool initOnStart;
+
 		public enum SlideInDirections {
 			LeftToRight,
 			RightToLeft,
@@ -11,6 +14,10 @@ namespace CommonUtils.UI.Submenus {
 		}
 
 		public SlideInDirections Direction;
+
+		private void Start() {
+			if(initOnStart) Init();
+		}
 
 		protected override void OnInit() {
 			var anchoredPosition = RectTransform.anchoredPosition;
@@ -29,7 +36,14 @@ namespace CommonUtils.UI.Submenus {
 				break;
 			}
 			ShownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
-			OnAnimationUpdated(HiddenValue);
+
+			if (gameObject.activeSelf) {
+				IsShown = true;
+				OnAnimationUpdated(ShownValue);
+			} else {
+				IsShown = false;
+				OnAnimationUpdated(HiddenValue);
+			}
 		}
 
 		public override void OnAnimationUpdated(Vector2 updatedValue) => RectTransform.anchoredPosition = updatedValue;

@@ -48,7 +48,7 @@ namespace CommonUtils.UI.Submenus {
 		/// Gets a value indicating whether this submenu is being shown.
 		/// </summary>
 		/// <remarks>Formerly called 'IsOpen'.</remarks>
-		[ShowInInspector] public bool IsShown { get; private set; } = false;
+		[ShowInInspector] public bool IsShown { get; protected set; } = false;
 
 		[ShowInInspector] public Vector2 HiddenValue { get; protected set; }
 		[ShowInInspector] public Vector2 ShownValue { get; protected set; }
@@ -131,7 +131,7 @@ namespace CommonUtils.UI.Submenus {
 		#region Private Methods
 
 		[ShowInInspector]
-		public void Init() {
+		internal void Init() {
 			if (IsInitialized) return;
 			OnInit();
 			IsInitialized = true;
