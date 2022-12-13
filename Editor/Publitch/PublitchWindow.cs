@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -15,6 +16,7 @@ namespace CommonUtils.Editor.Publitch {
 		private const string EDITOR_PREF_KEY_BUILD_PATH = "LastKnownBuildPath";
 		private const string EDITOR_PREF_KEY_USER = "User";
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
+		private const string EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME = "LastPublishDateTime";
 		#endregion
 
 		#region Statics (To create the editor menu and save preferences)
@@ -52,6 +54,11 @@ namespace CommonUtils.Editor.Publitch {
 		internal static string ProjectName {
 			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME));
 			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), value);
+		}
+
+		internal static string LastPublishDateTime {
+			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME));
+			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), value);
 		}
 
 		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
@@ -99,6 +106,7 @@ namespace CommonUtils.Editor.Publitch {
 				if (fetchStatusProcess.HasExited) {
 					if (fetchStatusProcess.ExitCode == 0) {
 						status = fetchStatusProcess.StandardOutput.ReadToEnd();
+						// TODO Parse butler status
 					} else {
 						errorMessage = "An error occurred while trying to fetch the status of the project.";
 					}
@@ -113,7 +121,9 @@ namespace CommonUtils.Editor.Publitch {
 						errorMessage = null;
 						//publishResult = publishProcess.StandardOutput.ReadToEnd();
 						fetchStatusProcess = executeButler($"status {buildId}");
-						EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
+						LastPublishDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+
+						//EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
 					} else {
 						errorMessage = "An error occurred while publishing.";
 					}
@@ -157,58 +167,13 @@ namespace CommonUtils.Editor.Publitch {
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
 		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
-			if (TryParseProgressFromButlerString(e?.Data, out var pct)) {
+			if (ButlerParser.TryParseProgress(e?.Data, out var pct)) {
 				publishProgressPct = pct;
 			} else {
 				Debug.LogWarning($"Didn't find percentage in string: '{e?.Data}'");
 			}
 
 			publishData = e?.Data;
-		}
-
-		internal static bool TryParseProgressFromButlerString(string butlerOutput, out float progress) {
-			progress = 0f;
-			if (string.IsNullOrEmpty(butlerOutput)) return false;
-			var foundPct = false;
-
-			var i = 0;
-			while (i < butlerOutput.Length) {
-				var num = (int)char.GetNumericValue(butlerOutput[i]);
-				if (num >= 0) {
-					var pctBuilder = new StringBuilder();
-					pctBuilder.Append(num);
-					var foundPeriod = false;
-					i++;
-					while (i < butlerOutput.Length && butlerOutput[i] != '%') {
-						num = (int)char.GetNumericValue(butlerOutput[i]);
-						if (num>=0) {
-							pctBuilder.Append(num);
-						} else if (butlerOutput[i] == '.') {
-							if (foundPeriod) {
-								Debug.LogError($"Bad percentage info in butler string: {butlerOutput}");
-								return false;
-							}
-							pctBuilder.Append(".");
-							foundPeriod = true;
-						} else {
-							Debug.LogError($"Unexpected character in string received from butler: '{butlerOutput}'");
-							return false;
-						}
-						i++;
-					}
-
-					foundPct = true;
-
-					if (float.TryParse(pctBuilder.ToString(), out var pct)) {
-						progress = pct;
-					}
-
-					break;
-				}
-				i++;
-			}
-
-			return foundPct;
 		}
 
 		private void OnGUI() {
@@ -271,6 +236,7 @@ namespace CommonUtils.Editor.Publitch {
 				}
 
 				EditorGUILayout.Space();
+				if(!string.IsNullOrEmpty(LastPublishDateTime)) EditorGUILayout.LabelField("Last published:", LastPublishDateTime);
 				if (publishProcess == null) {
 					if (GUILayout.Button("Publitch NOW")) {
 						publishData = string.Empty;
@@ -288,10 +254,9 @@ namespace CommonUtils.Editor.Publitch {
 					Repaint();
 				}
 
-				var progressBarRect = EditorGUILayout.GetControlRect();
-				EditorGUI.ProgressBar(progressBarRect, publishProgressPct / 100f, $"{publishProgressPct}%");
-
 				if (!string.IsNullOrEmpty(publishData)) {
+					var progressBarRect = EditorGUILayout.GetControlRect();
+					EditorGUI.ProgressBar(progressBarRect, publishProgressPct / 100f, $"{publishProgressPct}%");
 					EditorGUILayout.TextArea(publishData);
 				}
 			}
