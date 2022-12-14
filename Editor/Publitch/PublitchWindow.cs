@@ -17,6 +17,7 @@ namespace CommonUtils.Editor.Publitch {
 		private const string EDITOR_PREF_KEY_USER = "User";
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
 		private const string EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME = "LastPublishDateTime";
+		private const string EDITOR_PREF_KEY_LAST_BUILD_DATETIME = "LastBuiltDateTime";
 		#endregion
 
 		#region Statics (To create the editor menu and save preferences)
@@ -59,6 +60,10 @@ namespace CommonUtils.Editor.Publitch {
 		internal static string LastPublishDateTime {
 			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME));
 			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), value);
+		}
+		internal static string LastBuiltDateTime {
+			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME));
+			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), value);
 		}
 
 		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
@@ -240,7 +245,8 @@ namespace CommonUtils.Editor.Publitch {
 				}
 
 				EditorGUILayout.Space();
-				if(!string.IsNullOrEmpty(LastPublishDateTime)) EditorGUILayout.LabelField("Last published:", LastPublishDateTime);
+				if(!string.IsNullOrEmpty(LastBuiltDateTime)) EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
+				if(!string.IsNullOrEmpty(LastPublishDateTime)) EditorGUILayout.LabelField("Last published", LastPublishDateTime);
 				if (publishProcess == null) {
 					if (GUILayout.Button("Publitch NOW")) {
 						publishData = string.Empty;
@@ -269,6 +275,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		[PostProcessBuild]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
+			LastBuiltDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 			BuildTarget = target; // TODO is this really needed
 			BuildPath = pathToBuiltProject;
 		}

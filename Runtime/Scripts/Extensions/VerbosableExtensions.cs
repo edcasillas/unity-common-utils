@@ -13,7 +13,7 @@ namespace CommonUtils.Extensions {
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, string message)
 			where TVerbosable : Object, IVerbosable {
-			if (verbosable.IsVerbose) Debug.Log(message, verbosable);
+			if (verbosable.IsVerbose) Debug.Log($"[{typeof(TVerbosable).Name}] {message}", verbosable);
 		}
 
 		/// <summary>
