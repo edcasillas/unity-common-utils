@@ -1,7 +1,5 @@
 using CommonUtils.Editor.Publitch;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests.Editor.Publitch {
 	public class PublitchParseStatusTests
@@ -15,12 +13,13 @@ namespace Tests.Editor.Publitch {
 |         |          | ∙ #673904 (from #673902) |         |
 +---------+----------+--------------------------+---------+
 ";
-			var result = ButlerParser.TryParseStatus(butlerOutput, out var channelName, out var upload, out var build, out var version);
+			var status = new ButlerStatus();
+			var result = ButlerStatus.TryParse(butlerOutput, ref status);
 			Assert.IsTrue(result, $"Failed to parse : {butlerOutput}");
-			Assert.AreEqual("html", channelName);
-			Assert.AreEqual("#6952149", upload);
-			Assert.AreEqual("√ #673902 (from #673895)", build);
-			Assert.AreEqual("33", version);
+			Assert.AreEqual("html", status.ChannelName);
+			Assert.AreEqual("#6952149", status.Upload);
+			Assert.AreEqual("√ #673902 (from #673895)", status.Build);
+			Assert.AreEqual("33", status.Version);
 		}
 	}
 }

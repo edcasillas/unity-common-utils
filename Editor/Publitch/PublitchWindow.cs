@@ -71,7 +71,7 @@ namespace CommonUtils.Editor.Publitch {
 		private string version;
 
 		private Process fetchStatusProcess;
-		private string status;
+		private ButlerStatus status = new ButlerStatus();
 
 		private Process publishProcess;
 		private string publishResult;
@@ -79,6 +79,7 @@ namespace CommonUtils.Editor.Publitch {
 		private void OnEnable() {
 			fetchVersionProcess = checkButlerVersion();
 			EditorApplication.update += Update;
+			if(!string.IsNullOrEmpty(buildId)) fetchStatusProcess = executeButler($"status {buildId}");
 		}
 
 		private void OnDisable() => EditorApplication.update -= Update;
@@ -105,8 +106,8 @@ namespace CommonUtils.Editor.Publitch {
 			if (fetchStatusProcess != null) {
 				if (fetchStatusProcess.HasExited) {
 					if (fetchStatusProcess.ExitCode == 0) {
-						status = fetchStatusProcess.StandardOutput.ReadToEnd();
-						// TODO Parse butler status
+						var statusString = fetchStatusProcess.StandardOutput.ReadToEnd();
+						ButlerStatus.TryParse(statusString, ref status);
 					} else {
 						errorMessage = "An error occurred while trying to fetch the status of the project.";
 					}
@@ -230,8 +231,11 @@ namespace CommonUtils.Editor.Publitch {
 					EditorGUILayout.HelpBox($"Fetching status for {timeRunning.TotalSeconds} seconds" , MessageType.Info);
 					Repaint();
 				} else {
-					if (!string.IsNullOrEmpty(status)) {
-						EditorGUILayout.TextArea(status);
+					if (status.HasData) {
+						EditorGUILayout.TextField("Channel", status.ChannelName);
+						EditorGUILayout.TextField("Upload", status.Upload);
+						EditorGUILayout.TextField("Build", status.Build);
+						EditorGUILayout.TextField("Version", status.Version);
 					}
 				}
 
