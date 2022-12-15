@@ -8,7 +8,7 @@ namespace CommonUtils.Input.ButtonExternalControllers {
         void Unsubscribe(IButtonExternalController button);
     }
 
-    public class ButtonExternalControllerBlocker : MonoBehaviour, IButtonExternalControllerBlocker {
+    public class ButtonExternalControllerBlocker : EnhancedMonoBehaviour, IButtonExternalControllerBlocker {
         private readonly HashSet<IButtonExternalController> _subscribers = new HashSet<IButtonExternalController>();
         [ShowInInspector] public IEnumerable<IButtonExternalController> Subscribers => _subscribers;
 

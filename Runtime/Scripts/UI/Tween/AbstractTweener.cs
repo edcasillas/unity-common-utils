@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace CommonUtils.UI.Tween {
-	public abstract class AbstractTweener<T> : DebuggableMonoBehaviour {
+	public abstract class AbstractTweener<T> : EnhancedMonoBehaviour {
 		#region Inspector fields
 		[SerializeField] protected T targetValue;
 

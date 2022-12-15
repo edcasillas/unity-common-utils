@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
 	[RequireComponent(typeof(Selectable))]
-	public abstract class AbstractButtonExternalController : MonoBehaviour, IVerbosable, IButtonExternalController {
+	public abstract class AbstractButtonExternalController : EnhancedMonoBehaviour, IButtonExternalController {
 #pragma warning disable 649
 		[SerializeField] private bool isBlockedBySceneLoader = true;
 		/// <summary>
@@ -23,8 +23,6 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 
 		[Tooltip("Disable the functionality of this binding when Unity Remote is connected.")]
 		[SerializeField] private bool disableWithUnityRemote;
-
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
 
 		#region Properties
@@ -45,8 +43,6 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		private readonly HashSet<IButtonExternalControllerBlocker> _currentlyBlockedBy = new HashSet<IButtonExternalControllerBlocker>();
 
 		[ShowInInspector] public IEnumerable<IButtonExternalControllerBlocker> CurrentlyBlockedBy => _currentlyBlockedBy;
-
-		public bool IsVerbose => verbose;
 		#endregion
 
 		#region Unity Lifecycle
