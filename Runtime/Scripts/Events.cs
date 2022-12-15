@@ -22,6 +22,9 @@ namespace CommonUtils {
 	public class StringEvent : UnityEvent<string> { }
 
 	[Serializable]
+	public class Vector2Event : UnityEvent<Vector2> { }
+
+	[Serializable]
 	public class Vector3Event : UnityEvent<Vector3> { }
 
 	[Serializable]
