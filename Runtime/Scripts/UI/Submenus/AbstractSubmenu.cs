@@ -9,7 +9,7 @@ namespace CommonUtils.UI.Submenus {
 	/// Base class for submenus animated through iTween.
 	/// </summary>
     [RequireComponent(typeof(RectTransform), typeof(AudioSource))]
-	public abstract class AbstractSubmenu : EnhancedMonoBehaviour {
+	public abstract class AbstractSubmenu : EnhancedMonoBehaviour, ISubmenu {
 		[Serializable]
 		public class SubMenuEvents {
 			public UnityEvent OnShown;
@@ -122,6 +122,11 @@ namespace CommonUtils.UI.Submenus {
 			IsShown = false;
 			animate(ShownValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
+
+		public void SubscribeOnShown(UnityAction action) => events.OnShown.AddListener(action);
+		public void SubscribeOnHidden(UnityAction action) => events.OnHidden.AddListener(action);
+		public void UnsubscribeOnShown(UnityAction action) => events.OnShown.RemoveListener(action);
+		public void UnsubscribeOnHidden(UnityAction action) => events.OnHidden.RemoveListener(action);
 		#endregion
 
 		#region Abstract Methods
@@ -145,7 +150,6 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Private Methods
-
 		[ShowInInspector]
 		internal void Init() {
 			if (IsInitialized) return;
@@ -186,7 +190,6 @@ namespace CommonUtils.UI.Submenus {
 			Hide();
 			HideCoroutine = null;
 		}
-
 		#endregion
 	}
 }
