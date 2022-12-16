@@ -35,14 +35,6 @@ namespace CommonUtils.UI.Submenus {
 				break;
 			}
 			ShownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
-
-			if (gameObject.activeSelf) {
-				IsShown = true;
-				OnAnimationUpdated(ShownValue);
-			} else {
-				IsShown = false;
-				OnAnimationUpdated(HiddenValue);
-			}
 		}
 
 		public override void OnAnimationUpdated(Vector2 updatedValue) => RectTransform.anchoredPosition = updatedValue;

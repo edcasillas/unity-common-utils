@@ -279,10 +279,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba85344aa9ab141e9b2036d1a644fb04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  verbose: 0
+  verbose: 1
   EaseIn: 22
   EaseOut: 0
-  AnimDuration: 0.5
+  AnimDuration: 1
   Feedback: {fileID: 0}
   PlayFeedbackOnShow: 0
   PlayFeedbackOnHide: 0

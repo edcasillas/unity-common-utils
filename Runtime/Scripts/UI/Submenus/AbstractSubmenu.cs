@@ -76,6 +76,9 @@ namespace CommonUtils.UI.Submenus {
 				return audioSource;
 			}
 		}
+
+		[ShowInInspector]
+		protected Vector2 CurrentValue { get; private set; }
 		#endregion
 
 		#region Fields
@@ -128,6 +131,7 @@ namespace CommonUtils.UI.Submenus {
 		public void UnsubscribeOnShown(UnityAction action) => events.OnShown.RemoveListener(action);
 		public void UnsubscribeOnHidden(UnityAction action) => events.OnHidden.RemoveListener(action);
 
+		[ShowInInspector]
 		public void CleanupiTween() { // For now this is for debugging purposes.
 			var itweens = GetComponents<iTween>();
 			foreach (var itween in itweens) {
@@ -161,6 +165,15 @@ namespace CommonUtils.UI.Submenus {
 		internal void Init() {
 			if (IsInitialized) return;
 			OnInit();
+
+			if (gameObject.activeSelf) {
+				IsShown = true;
+				internalOnAnimationUpdated(ShownValue);
+			} else {
+				IsShown = false;
+				internalOnAnimationUpdated(HiddenValue);
+			}
+
 			IsInitialized = true;
 		}
 
@@ -170,7 +183,7 @@ namespace CommonUtils.UI.Submenus {
 				"to", end,
 				"time", AnimDuration,
 				"onupdatetarget", gameObject,
-				"onupdate", nameof(OnAnimationUpdated),
+				"onupdate", nameof(internalOnAnimationUpdated),
 				"oncompletetarget", gameObject,
 				"oncomplete", onComplete,
 				"easeType", easeType,
@@ -179,6 +192,11 @@ namespace CommonUtils.UI.Submenus {
 			if(playSound) {
 				this.PlayFeedback();
 			}
+		}
+
+		private void internalOnAnimationUpdated(Vector2 updatedValue) {
+			CurrentValue = updatedValue;
+			OnAnimationUpdated(updatedValue);
 		}
 
 		protected void PlayFeedback() {
