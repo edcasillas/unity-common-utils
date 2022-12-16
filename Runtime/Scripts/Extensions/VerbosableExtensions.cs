@@ -13,7 +13,7 @@ namespace CommonUtils.Extensions {
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, string message)
 			where TVerbosable : Object, IVerbosable {
-			if (verbosable.IsVerbose) Debug.Log($"[{typeof(TVerbosable).Name}] {message}", verbosable);
+			if (verbosable.IsVerbose) Debug.Log($"[{getVerbosableTag(verbosable)}] {message}", verbosable);
 		}
 
 		/// <summary>
@@ -46,7 +46,9 @@ namespace CommonUtils.Extensions {
 		/// <param name="verbosable">Verbosable component writing the message.</param>
 		/// <param name="message">Message to be sent to the console.</param>
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
-		public static void DebugLog2<TVerbosable>(this TVerbosable verbosable, string message) // TODO Find a way to resolve naming conflicts
+		public static void
+			DebugLog2<TVerbosable>(this TVerbosable verbosable,
+				string message) // TODO Find a way to resolve naming conflicts
 			where TVerbosable : IVerbosable, IUnityComponent {
 			if (verbosable.IsVerbose) Debug.Log(message, verbosable.gameObject);
 		}
@@ -61,7 +63,7 @@ namespace CommonUtils.Extensions {
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate)
 			where TVerbosable : Object, IVerbosable {
-			if (verbosable.IsVerbose) Debug.Log(messageDelegate.Invoke(), verbosable);
+			if (verbosable.IsVerbose) Debug.Log($"[{getVerbosableTag(verbosable)}] {messageDelegate.Invoke()}", verbosable);
 		}
 
 		/// <summary>
@@ -76,5 +78,18 @@ namespace CommonUtils.Extensions {
 			where TVerbosable : IVerbosable, IUnityComponent {
 			if (verbosable.IsVerbose) Debug.Log(messageDelegate.Invoke(), verbosable.gameObject);
 		}
+
+		/// <summary>
+		/// Writes an error <paramref name="message"/> to the console.
+		/// </summary>
+		/// <param name="verbosable">Verbosable component writing the message.</param>
+		/// <param name="message">Message to be sent to the console.</param>
+		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
+		public static void LogError<TVerbosable>(this TVerbosable verbosable, string message)
+			where TVerbosable : Object, IVerbosable
+			=> Debug.LogError($"[{getVerbosableTag(verbosable)}] {message}", verbosable);
+
+		private static string getVerbosableTag<TVerbosable>(TVerbosable verbosable)
+			where TVerbosable : Object, IVerbosable => $"[{typeof(TVerbosable).Name}:{verbosable.name}]";
 	}
 }

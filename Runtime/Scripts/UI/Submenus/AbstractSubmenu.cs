@@ -9,7 +9,7 @@ namespace CommonUtils.UI.Submenus {
 	/// Base class for submenus animated through iTween.
 	/// </summary>
     [RequireComponent(typeof(RectTransform), typeof(AudioSource))]
-	public abstract class AbstractSubmenu : MonoBehaviour , IVerbosable {
+	public abstract class AbstractSubmenu : EnhancedMonoBehaviour {
 		[Serializable]
 		public class SubMenuEvents {
 			public UnityEvent OnShown;
@@ -43,11 +43,6 @@ namespace CommonUtils.UI.Submenus {
 		public int AutoHide = 0;
 
 		[SerializeField] private SubMenuEvents events;
-
-		/// <summary>
-		/// When <c>true</c>, writes debug messages on the console when submenus are being shown or hidden.
-		/// </summary>
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
 
@@ -81,8 +76,6 @@ namespace CommonUtils.UI.Submenus {
 				return audioSource;
 			}
 		}
-
-		public bool IsVerbose => verbose;
 		#endregion
 
 		#region Fields
@@ -90,10 +83,13 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Public Methods
-
 		[ShowInInspector]
 		public virtual void Show() {
 			this.DebugLog(() => $"Will show {name}");
+			if (EaseIn == iTween.EaseType.punch) {
+				this.LogError("Ease type 'Punch' is not supported.");
+				return;
+			}
 			Init();
 			if(HideCoroutine != null) {
 				this.DebugLog("Stopping hide coroutine.");
@@ -113,13 +109,19 @@ namespace CommonUtils.UI.Submenus {
 		public virtual void Hide() {
 			if (!IsInitialized) {
 				Debug.LogError($"Cannot hide submenu '{name}' before is initialized. Please call Init(); first.");
+				return;
 			}
+
+			if (EaseOut == iTween.EaseType.punch) {
+				this.LogError("Ease type 'Punch' is not supported.");
+				return;
+			}
+
 			if(!IsShown) return;
 			this.DebugLog($"Will hide {name}");
 			IsShown = false;
 			animate(ShownValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
-
 		#endregion
 
 		#region Abstract Methods
