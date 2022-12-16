@@ -127,6 +127,13 @@ namespace CommonUtils.UI.Submenus {
 		public void SubscribeOnHidden(UnityAction action) => events.OnHidden.AddListener(action);
 		public void UnsubscribeOnShown(UnityAction action) => events.OnShown.RemoveListener(action);
 		public void UnsubscribeOnHidden(UnityAction action) => events.OnHidden.RemoveListener(action);
+
+		public void CleanupiTween() { // For now this is for debugging purposes.
+			var itweens = GetComponents<iTween>();
+			foreach (var itween in itweens) {
+				Destroy(itween);
+			}
+		}
 		#endregion
 
 		#region Abstract Methods

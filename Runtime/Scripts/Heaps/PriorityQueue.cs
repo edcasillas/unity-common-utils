@@ -144,6 +144,8 @@ namespace CommonUtils.Heaps {
 			return string.Join("\n", strLevels);
 		}
 
+		public string DataToString() => string.Join(", ", Data);
+
 		/// <summary>
 		/// Fixes the heap assuming a conflict at the specified <paramref name="index"/> of the heap.
 		/// If the priority of the item at <paramref name="index"/> is higher than its parent, bubbles up the item at <paramref name="index"/>,

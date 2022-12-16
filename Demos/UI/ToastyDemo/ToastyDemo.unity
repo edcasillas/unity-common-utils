@@ -304,6 +304,7 @@ MonoBehaviour:
   verbose: 0
   toastPrefab: {fileID: 6999586876915035025, guid: b1124cd9638d8824d98dc5282b7e7528,
     type: 3}
+  maxShown: 4
 --- !u!1 &996458581
 GameObject:
   m_ObjectHideFlags: 0

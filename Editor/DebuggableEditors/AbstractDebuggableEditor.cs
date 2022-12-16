@@ -3,7 +3,6 @@ using CommonUtils.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,6 +15,8 @@ namespace CommonUtils.Editor.DebuggableEditors {
     /// </summary>
     /// <typeparam name="T">Type of <see cref="MonoBehaviour"/> for which this class will be a custom editor.</typeparam>
     public abstract class AbstractDebuggableEditor<T> : UnityEditor.Editor where T : MonoBehaviour {
+		private static readonly ComponentsCache cache = new ComponentsCache(100);
+
 		/// <summary>
         /// Gets a strongly typed reference of the <see cref="UnityEditor.Editor.target"/> of this custom editor.
         /// </summary>
@@ -33,13 +34,10 @@ namespace CommonUtils.Editor.DebuggableEditors {
 		/// </summary>
 		protected virtual bool DebugAllMonoBehaviorPropertiesAndMethods => false;
 
-		private ICollection<ReflectedProperty> debuggableProperties;
-		private ICollection<ReflectedMethod> debuggableMethods;
-        private bool showConfig;
-        private bool showDebug = true;
+		private DebuggableComponentData componentData;
 
-        protected virtual void OnEnable() {
-            if (!target) return;
+		protected virtual void OnEnable() {
+			if (!target) return;
 
             try {
                 Subject = (T) target;
@@ -48,11 +46,10 @@ namespace CommonUtils.Editor.DebuggableEditors {
                 Debug.LogError($"Could not set the subject of the debuggable editor for the type '{typeof(T)}'. Will use the default inspector.", target);
             }
 
-			debuggableProperties = target.GetType().GetDebuggableProperties(DebugAllPropertiesAndMethods, DebugAllMonoBehaviorPropertiesAndMethods);
-			debuggableMethods = target.GetType().GetDebuggableMethods(DebugAllPropertiesAndMethods, DebugAllMonoBehaviorPropertiesAndMethods);
+			componentData = cache.Get(Subject, DebugAllPropertiesAndMethods, DebugAllMonoBehaviorPropertiesAndMethods);
 		}
 
-        public override void OnInspectorGUI() {
+		public override void OnInspectorGUI() {
             if (!Subject) {
                 DrawDefaultInspector();
                 return;
@@ -69,12 +66,12 @@ namespace CommonUtils.Editor.DebuggableEditors {
                 return;
             }
 
-			if (!debuggableProperties.Any() && !debuggableMethods.Any()) {
+			if (!componentData.HasDebuggableMembers()) {
 				EditorGUILayout.HelpBox($"This component has a Debuggable Editor ({GetType().Name}) but no properties or methods have been tagged as Debuggable. Use the [ShowInInspector] attribute on properties and methods to expose them in this Editor.", MessageType.Info);
 			}
 
-            showConfig = EditorExtensions.Collapse(showConfig, "Configuration", RenderConfig);
-            showDebug = EditorExtensions.Collapse(showDebug, "Debug", RenderDebug);
+            componentData.ShowConfig = EditorExtensions.Collapse(componentData.ShowConfig, "Configuration", RenderConfig);
+            componentData.ShowDebug = EditorExtensions.Collapse(componentData.ShowDebug, "Debug", RenderDebug);
 			EditorUtility.SetDirty(target);
         }
 
@@ -87,7 +84,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 		/// <summary>
 		/// Inheritors must override this method to include any debug fields that might be useful in play mode.
 		/// </summary>
-		protected virtual void RenderDebug() => renderDebuggableMembers(Subject, debuggableProperties, debuggableMethods);
+		protected virtual void RenderDebug() => renderDebuggableMembers(Subject, componentData.DebuggableProperties, componentData.DebuggableMethods);
 
 		private void renderDebuggableMembers(object instance, ICollection<ReflectedProperty> properties, ICollection<ReflectedMethod> methods) {
 			foreach (var prop in properties) {
