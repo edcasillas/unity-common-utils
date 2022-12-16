@@ -83,6 +83,12 @@ namespace CommonUtils.UI.Submenus {
 
 		#region Fields
 		protected Coroutine HideCoroutine;
+
+		private float distanceBetweenHiddenAndShown;
+		#endregion
+
+		#region Unity Lifecycle
+		private void Start() => Init();
 		#endregion
 
 		#region Public Methods
@@ -111,7 +117,7 @@ namespace CommonUtils.UI.Submenus {
 		[ShowInInspector]
 		public virtual void Hide() {
 			if (!IsInitialized) {
-				Debug.LogError($"Cannot hide submenu '{name}' before is initialized. Please call Init(); first.");
+				this.LogError($"Cannot hide submenu '{name}' before is initialized. Please call Init(); first.");
 				return;
 			}
 
@@ -130,14 +136,6 @@ namespace CommonUtils.UI.Submenus {
 		public void SubscribeOnHidden(UnityAction action) => events.OnHidden.AddListener(action);
 		public void UnsubscribeOnShown(UnityAction action) => events.OnShown.RemoveListener(action);
 		public void UnsubscribeOnHidden(UnityAction action) => events.OnHidden.RemoveListener(action);
-
-		[ShowInInspector]
-		public void CleanupiTween() { // For now this is for debugging purposes.
-			var itweens = GetComponents<iTween>();
-			foreach (var itween in itweens) {
-				Destroy(itween);
-			}
-		}
 		#endregion
 
 		#region Abstract Methods
@@ -166,6 +164,8 @@ namespace CommonUtils.UI.Submenus {
 			if (IsInitialized) return;
 			OnInit();
 
+			distanceBetweenHiddenAndShown = Vector2.Distance(HiddenValue, ShownValue);
+
 			if (gameObject.activeSelf) {
 				IsShown = true;
 				internalOnAnimationUpdated(ShownValue);
@@ -182,7 +182,7 @@ namespace CommonUtils.UI.Submenus {
 			iTween.ValueTo(gameObject, iTween.Hash(
 				"from", start,
 				"to", end,
-				"time", AnimDuration,
+				"time", getProportionalAnimDuration(start, end),
 				"onupdatetarget", gameObject,
 				"onupdate", nameof(internalOnAnimationUpdated),
 				"oncompletetarget", gameObject,
@@ -193,6 +193,11 @@ namespace CommonUtils.UI.Submenus {
 			if(playSound) {
 				this.PlayFeedback();
 			}
+		}
+
+		private float getProportionalAnimDuration(Vector2 start, Vector2 end) {
+			var distance = Vector2.Distance(start, end);
+			return (distance * AnimDuration) / distanceBetweenHiddenAndShown;
 		}
 
 		private void internalOnAnimationUpdated(Vector2 updatedValue) {
