@@ -104,7 +104,7 @@ namespace CommonUtils.UI.Submenus {
 			if(!IsShown) {
 				IsShown = true;
 				gameObject.SetActive(true);
-				animate(HiddenValue, ShownValue, nameof(OnShown), EaseIn, PlayFeedbackOnShow);
+				animate(CurrentValue, ShownValue, nameof(OnShown), EaseIn, PlayFeedbackOnShow);
 			}
 		}
 
@@ -123,7 +123,7 @@ namespace CommonUtils.UI.Submenus {
 			if(!IsShown) return;
 			this.DebugLog($"Will hide {name}");
 			IsShown = false;
-			animate(ShownValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
+			animate(CurrentValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
 
 		public void SubscribeOnShown(UnityAction action) => events.OnShown.AddListener(action);
@@ -178,6 +178,7 @@ namespace CommonUtils.UI.Submenus {
 		}
 
 		private void animate(Vector2 start, Vector2 end, string onComplete, iTween.EaseType easeType, bool playSound) {
+			iTween.Stop(gameObject);
 			iTween.ValueTo(gameObject, iTween.Hash(
 				"from", start,
 				"to", end,
