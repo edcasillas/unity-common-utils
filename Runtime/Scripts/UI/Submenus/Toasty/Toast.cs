@@ -13,6 +13,7 @@ namespace CommonUtils.UI.Submenus.Toasty {
 
 		[ShowInInspector] public float FontSize { get; private set; }
 		[ShowInInspector] public bool ShouldEnableFontAutoSize { get; private set; }
+		[ShowInInspector] public float WaitTimeToHide { get; private set; }
 
 		protected override void OnInit() {
 			// For now we are only concerned about the height of the toast, assuming the width will be controlled by the manager.
@@ -57,7 +58,6 @@ namespace CommonUtils.UI.Submenus.Toasty {
 			text.fontSize = (updatedValue.y * FontSize) / ShownValue.y; // rule of three
 		}
 
-		[ShowInInspector] public float WaitTimeToHide { get; private set; }
 		protected override IEnumerator WaitAndHide() {
 			WaitTimeToHide = AutoHide;
 			while (WaitTimeToHide > 0) {
