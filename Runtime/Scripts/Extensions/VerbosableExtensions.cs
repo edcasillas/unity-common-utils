@@ -13,7 +13,7 @@ namespace CommonUtils.Extensions {
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, string message)
 			where TVerbosable : Object, IVerbosable {
-			if (verbosable.IsVerbose) Debug.Log($"[{getVerbosableTag(verbosable)}] {message}", verbosable);
+			if (verbosable.IsVerbose) Debug.Log($"{getVerbosableTag(verbosable)} {message}", verbosable);
 		}
 
 		/// <summary>
@@ -63,7 +63,7 @@ namespace CommonUtils.Extensions {
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void DebugLog<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate)
 			where TVerbosable : Object, IVerbosable {
-			if (verbosable.IsVerbose) Debug.Log($"[{getVerbosableTag(verbosable)}] {messageDelegate.Invoke()}", verbosable);
+			if (verbosable.IsVerbose) Debug.Log($"{getVerbosableTag(verbosable)} {messageDelegate.Invoke()}", verbosable);
 		}
 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace CommonUtils.Extensions {
 		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
 		public static void LogError<TVerbosable>(this TVerbosable verbosable, string message)
 			where TVerbosable : Object, IVerbosable
-			=> Debug.LogError($"[{getVerbosableTag(verbosable)}] {message}", verbosable);
+			=> Debug.LogError($"{getVerbosableTag(verbosable)} {message}", verbosable);
 
 		private static string getVerbosableTag<TVerbosable>(TVerbosable verbosable)
 			where TVerbosable : Object, IVerbosable => $"[{typeof(TVerbosable).Name}:{verbosable.name}]";
