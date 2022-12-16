@@ -93,6 +93,24 @@ namespace CommonUtils.UI.Submenus {
 
 		#region Public Methods
 		[ShowInInspector]
+		public void Init() {
+			if (IsInitialized) return;
+			OnInit();
+
+			distanceBetweenHiddenAndShown = Vector2.Distance(HiddenValue, ShownValue);
+
+			if (gameObject.activeSelf) {
+				IsShown = true;
+				internalOnAnimationUpdated(ShownValue);
+			} else {
+				IsShown = false;
+				internalOnAnimationUpdated(HiddenValue);
+			}
+
+			IsInitialized = true;
+		}
+
+		[ShowInInspector]
 		public virtual void Show() {
 			this.DebugLog(() => $"Will show {name}");
 			if (EaseIn == iTween.EaseType.punch) {
@@ -159,24 +177,6 @@ namespace CommonUtils.UI.Submenus {
 		#endregion
 
 		#region Private Methods
-		[ShowInInspector]
-		internal void Init() {
-			if (IsInitialized) return;
-			OnInit();
-
-			distanceBetweenHiddenAndShown = Vector2.Distance(HiddenValue, ShownValue);
-
-			if (gameObject.activeSelf) {
-				IsShown = true;
-				internalOnAnimationUpdated(ShownValue);
-			} else {
-				IsShown = false;
-				internalOnAnimationUpdated(HiddenValue);
-			}
-
-			IsInitialized = true;
-		}
-
 		private void animate(Vector2 start, Vector2 end, string onComplete, iTween.EaseType easeType, bool playSound) {
 			iTween.Stop(gameObject);
 			iTween.ValueTo(gameObject, iTween.Hash(

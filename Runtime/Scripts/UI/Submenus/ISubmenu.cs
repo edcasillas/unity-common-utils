@@ -11,6 +11,8 @@ namespace CommonUtils.UI.Submenus {
 		/// <remarks>Formerly called 'IsOpen'.</remarks>
 		bool IsShown { get; }
 
+		void Init();
+
 		void Show();
 		void Hide();
 
