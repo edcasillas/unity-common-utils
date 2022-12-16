@@ -24,8 +24,9 @@ namespace CommonUtils.UI.Submenus.Toasty {
 		[ShowInInspector] public int PendingToastsCount => pendingToasts.Count;
 
 		[ShowInInspector]
-		public void Show(string message, Sprite sprite) {
+		public void Show(string message, Sprite sprite, bool enqueueOnMaxReached = true) {
 			if (maxShown > 0 && ActiveToastsCount >= maxShown) {
+				if(enqueueOnMaxReached) pendingToasts.Enqueue(new ToastConfig() { Message = message, Sprite = sprite });
 				return;
 			}
 
@@ -39,10 +40,7 @@ namespace CommonUtils.UI.Submenus.Toasty {
 			Toast result;
 			if (!Pool.Any()) {
 				result = Instantiate(toastPrefab, transform);
-				result.SubscribeOnHidden(() => {
-					ActiveToastsCount--;
-					Pool.Enqueue(result);
-				});
+				result.SubscribeOnHidden(() => onToastHidden(result));
 				return result;
 			} else {
 				result = Pool.Dequeue();
@@ -50,6 +48,16 @@ namespace CommonUtils.UI.Submenus.Toasty {
 			}
 
 			return result;
+		}
+
+		private void onToastHidden(Toast toast) {
+			ActiveToastsCount--;
+			Pool.Enqueue(toast);
+
+			if (PendingToastsCount > 0) {
+				var config = pendingToasts.Dequeue();
+				Show(config.Message, config.Sprite);
+			}
 		}
 	}
 }
