@@ -14,7 +14,9 @@ namespace CommonUtils {
 		[SerializeField] private bool autoPlay = true;
 
 		private VideoPlayer videoPlayer;
-		private string status;
+
+		[ShowInInspector] public bool IsPlaying => videoPlayer.isPlaying;
+		[ShowInInspector] public bool IsPaused => videoPlayer.isPaused;
 
 		#region Unity Lifecycle
 		private void Awake() {
@@ -25,7 +27,6 @@ namespace CommonUtils {
 
 		private void Start() {
 			if(!autoPlay) return;
-			this.DebugLog(() => $"Trying to run video from {videoPlayer.url}");
 			Play();
 		}
 		#endregion
@@ -34,6 +35,7 @@ namespace CommonUtils {
 		[ShowInInspector]
 		public void Play() {
 			if(videoPlayer.isPlaying) return;
+			this.DebugLog(() => $"Trying to run video from {videoPlayer.url}");
 			// Restart from beginning when done.
 			videoPlayer.isLooping = true;
 			videoPlayer.Play();
@@ -42,6 +44,7 @@ namespace CommonUtils {
 		[ShowInInspector]
 		public void Pause() {
 			if(videoPlayer.isPaused) return;
+			this.DebugLog("Pausing video.");
 			videoPlayer.Pause();
 		}
 		#endregion
