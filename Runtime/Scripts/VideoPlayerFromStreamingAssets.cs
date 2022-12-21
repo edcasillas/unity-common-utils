@@ -47,6 +47,9 @@ namespace CommonUtils {
 			this.DebugLog("Pausing video.");
 			videoPlayer.Pause();
 		}
+
+		[ShowInInspector]
+		public void StepForward() => videoPlayer.StepForward();
 		#endregion
 	}
 }
