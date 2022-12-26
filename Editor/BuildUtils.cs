@@ -88,13 +88,16 @@ namespace CommonUtils.Editor {
 			entry.assetPath = AssetDatabase.GetAssetPath(sceneObject);
 			entry.assetGUID = new GUID(AssetDatabase.AssetPathToGUID(entry.assetPath));
 
+            int actualValidBuildIndex = 0;
 			for (var index = 0; index < EditorBuildSettings.scenes.Length; ++index) {
 				if (entry.assetGUID.Equals(EditorBuildSettings.scenes[index].guid)) {
 					entry.scene      = EditorBuildSettings.scenes[index];
-					entry.buildIndex = index;
+					entry.buildIndex = actualValidBuildIndex;
 					return entry;
 				}
-			}
+
+                actualValidBuildIndex += EditorBuildSettings.scenes[index].enabled ? 1 : 0;
+            }
 
 			return entry;
 		}
@@ -203,9 +206,9 @@ namespace CommonUtils.Editor {
 		/// Open the default Unity Build Settings window
 		/// </summary>
 		public static void OpenBuildSettings() => EditorWindow.GetWindow(typeof(BuildPlayerWindow));
-		
+
 		public static SceneAsset GetSceneAssetFromPath(string scenePath) => string.IsNullOrEmpty(scenePath) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
-		
+
 		public static string GetScenePath(SceneAsset sceneAsset) => sceneAsset == null ? string.Empty : AssetDatabase.GetAssetPath(sceneAsset);
 	}
 }
