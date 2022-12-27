@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CommonUtils.Extensions {
@@ -105,5 +106,7 @@ namespace CommonUtils.Extensions {
 			temporaryStoredTransformData.Remove(transform);
 		}
 		#endregion
+
+		public static Transform FindChildWithTag(this Transform parent, string tag) => parent.Cast<Transform>().FirstOrDefault(child => child.CompareTag(tag));
 	}
 }
