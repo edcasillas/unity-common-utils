@@ -1,5 +1,4 @@
-﻿using CommonUtils.Extensions;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CommonUtils.UI.Submenus {
 	[AddComponentMenu("UI/Animated Submenu/Scaled Submenu")]
