@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.ReorderableInspector;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -16,12 +17,12 @@ using Random = UnityEngine.Random;
 
 namespace CommonUtils {
 	[AddComponentMenu("UI/Scene Loader")]
-	public class SceneLoader : MonoBehaviour, IVerbosable {
+	public class SceneLoader : EnhancedMonoBehaviour {
 		private const int MAX_PREVIOUS_SCENES = 5;
-		
+
 		#region Static access members
 		private static readonly Stack<int> previousScenes = new Stack<int>();
-		
+
 		private static SceneLoader _instance;
 		private static SceneLoader instance {
 			get {
@@ -87,7 +88,7 @@ namespace CommonUtils {
 			}
 			onReadyToActivate(asyncLoad);
 		}
-		
+
 		private static void pushCurrentScene() {
 			previousScenes.Push(SceneManager.GetActiveScene().buildIndex);
 			#region Trim previous scenes stack when MAX_PREVIOUS_SCENES is reached
@@ -112,8 +113,12 @@ namespace CommonUtils {
 
 		#region Inspector fields
 #pragma warning disable 649
+		[Obsolete]
+		[FormerlySerializedAs("suggestionsLabel")]
 		[FormerlySerializedAs("SuggestionsLabel")]
-		[SerializeField] private Text suggestionsLabel;
+		[SerializeField] private Text suggestionsLabel_deprecated;
+
+		[SerializeField] private TMP_Text suggestionsLabel;
 
 		[SerializeField] private Slider progressSlider;
 
@@ -134,12 +139,8 @@ namespace CommonUtils {
 
 		[FormerlySerializedAs("SuggestionsChangeEvery")]
 		[SerializeField] [Range(1f, 5f)] private float suggestionsChangeEvery = 1f;
-
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
-
-		public bool IsVerbose => verbose;
 
 		private CoroutinerInstance suggestionsCoroutine;
 		private List<string> suggestionsToShow;
@@ -157,7 +158,7 @@ namespace CommonUtils {
 		}
 
 		private void Start() {
-			if(suggestionsLabel) initSuggestions();
+			if(suggestionsLabel_deprecated || suggestionsLabel) initSuggestions();
 		}
 
 		private void OnDestroy() {
@@ -178,7 +179,7 @@ namespace CommonUtils {
 		/// <param name="sceneIndex">Build index of the scene to load.</param>
 		public void Load(int sceneIndex) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel_deprecated || suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(sceneIndex), "Loading scene");
 		}
@@ -190,7 +191,7 @@ namespace CommonUtils {
 		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
 		public void Load(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel_deprecated || suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(sceneIndex, onReadyToActivate), "Loading scene");
 		}
@@ -201,11 +202,11 @@ namespace CommonUtils {
 		/// <param name="scenePath">Path of the scene to load.</param>
 		public void Load(string scenePath) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel_deprecated || suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath), "Loading scene");
 		}
-		
+
 		/// <summary>
 		/// Loads the scene with the specified <paramref name="scenePath"/> and executes the <paramref name="onReadyToActivate"/> callback when it's fully loaded and ready to activate.
 		/// </summary>
@@ -213,7 +214,7 @@ namespace CommonUtils {
 		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
 		public void Load(string scenePath, Action<AsyncOperation> onReadyToActivate) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel_deprecated) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath, onReadyToActivate), "Loading scene");
 		}
@@ -269,14 +270,19 @@ namespace CommonUtils {
 			if(suggestionsToShow == null) {
 				initSuggestions();
 			}
-			if(suggestionsLabel && suggestionsToShow != null && suggestionsToShow.Count > 0) {
+			if((suggestionsLabel_deprecated || suggestionsLabel) && suggestionsToShow != null && suggestionsToShow.Count > 0) {
 				while(true) {
-					suggestionsLabel.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
+					if (suggestionsLabel_deprecated) {
+						suggestionsLabel_deprecated.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
+					} else {
+						suggestionsLabel.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
+					}
 					yield return new WaitForSeconds(suggestionsChangeEvery);
 				}
 			} else {
 				this.DebugLog("There are no suggestions to show.");
-				suggestionsLabel.text = string.Empty;
+				if(suggestionsLabel_deprecated) suggestionsLabel_deprecated.text = string.Empty;
+				else if (suggestionsLabel) suggestionsLabel.text = string.Empty;
 			}
 		}
 
