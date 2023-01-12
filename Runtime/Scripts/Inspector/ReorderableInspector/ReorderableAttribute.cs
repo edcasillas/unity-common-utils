@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace CommonUtils.Inspector.ReorderableInspector {
 	/// <summary>
@@ -7,8 +8,11 @@ namespace CommonUtils.Inspector.ReorderableInspector {
 	/// <remarks>
 	/// Please note this attribute conflicts with the UnityEngine.ReorderableAttribute that was introduced in alpha
 	/// versions of Unity 2020.2. This attribute was removed later on the beta version, so the conflict won't be fixed.
-	/// If you're experimenting this conflict, please upgrade to beta.
+	/// If you're experimenting this conflict, please upgrade your version of Unity.
 	/// </remarks>
+	#if UNITY_2020_2_OR_NEWER
+	[Obsolete("This attribute is no longer needed in this version of Unity to make lists reorderable.")]
+	#endif
 	public class ReorderableAttribute : PropertyAttribute
 	{
 		public string ElementHeader { get; protected set; }
