@@ -119,19 +119,19 @@ namespace CommonUtils {
 		[SerializeField] private Slider progressSlider;
 
 		[FormerlySerializedAs("Suggestions")]
-		[SerializeField] [Reorderable] private string[] suggestions;
+		[SerializeField] private string[] suggestions;
 
 		[FormerlySerializedAs("WebOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] webOnlySuggestions;
+		[SerializeField] private string[] webOnlySuggestions;
 
 		[FormerlySerializedAs("AndroidOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] androidOnlySuggestions;
+		[SerializeField] private string[] androidOnlySuggestions;
 
 		[FormerlySerializedAs("IOSOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] iOSOnlySuggestions;
+		[SerializeField] private string[] iOSOnlySuggestions;
 
 		[FormerlySerializedAs("MobileOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] mobileOnlySuggestions;
+		[SerializeField] private string[] mobileOnlySuggestions;
 
 		[FormerlySerializedAs("SuggestionsChangeEvery")]
 		[SerializeField] [Range(1f, 5f)] private float suggestionsChangeEvery = 1f;

@@ -9,7 +9,7 @@ namespace CommonUtils.DynamicEnums {
 	public class DynamicEnum {
 #pragma warning disable 649
 		[SerializeField] private string name;
-		[SerializeField] [Reorderable] private string[] values;
+		[SerializeField] private string[] values;
 #pragma warning restore 649
 
 		public string Name => name;
