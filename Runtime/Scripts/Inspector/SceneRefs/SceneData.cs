@@ -33,8 +33,8 @@ namespace CommonUtils.Inspector.SceneRefs {
 
 			return entry;
 			#else
-            Debug.LogError($"{nameof(SceneData)}.{nameof(GetFrom)} is an Editor only method. Returning null");
-            return null;
+            // SceneData.GetFrom is an Editor only method and should not be used in any other context.
+			return null;
 			#endif
 		}
 	}
