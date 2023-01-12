@@ -1,5 +1,4 @@
-﻿using CommonUtils.Inspector.ReorderableInspector;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Demos.UI.SettingsFields {
 	public class ClearButtonController : MonoBehaviour {
