@@ -24,7 +24,7 @@ namespace CommonUtils.Editor {
             var passCount = 0;
 
             do {
-                passCount = selection.Sum(go => go.transform.RemoveChildren(child => !child.gameObject.activeSelf));
+                passCount = selection.Sum(go => go.transform.DestroyAllChildren(child => !child.gameObject.activeSelf));
                 result += passCount;
             } while (passCount > 0);
 

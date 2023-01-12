@@ -113,10 +113,6 @@ namespace CommonUtils {
 
 		#region Inspector fields
 #pragma warning disable 649
-		[Obsolete]
-		[FormerlySerializedAs("suggestionsLabel")]
-		[FormerlySerializedAs("SuggestionsLabel")]
-		[SerializeField] private Text suggestionsLabel_deprecated;
 
 		[SerializeField] private TMP_Text suggestionsLabel;
 
@@ -158,7 +154,7 @@ namespace CommonUtils {
 		}
 
 		private void Start() {
-			if(suggestionsLabel_deprecated || suggestionsLabel) initSuggestions();
+			if(suggestionsLabel) initSuggestions();
 		}
 
 		private void OnDestroy() {
@@ -179,7 +175,7 @@ namespace CommonUtils {
 		/// <param name="sceneIndex">Build index of the scene to load.</param>
 		public void Load(int sceneIndex) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel_deprecated || suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(sceneIndex), "Loading scene");
 		}
@@ -191,7 +187,7 @@ namespace CommonUtils {
 		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
 		public void Load(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel_deprecated || suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(sceneIndex, onReadyToActivate), "Loading scene");
 		}
@@ -202,7 +198,7 @@ namespace CommonUtils {
 		/// <param name="scenePath">Path of the scene to load.</param>
 		public void Load(string scenePath) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel_deprecated || suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath), "Loading scene");
 		}
@@ -214,7 +210,7 @@ namespace CommonUtils {
 		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
 		public void Load(string scenePath, Action<AsyncOperation> onReadyToActivate) {
 			gameObject.SetActive(true);
-			if(suggestionsLabel_deprecated) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
+			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath, onReadyToActivate), "Loading scene");
 		}
@@ -270,20 +266,15 @@ namespace CommonUtils {
 			if(suggestionsToShow == null) {
 				initSuggestions();
 			}
-			if((suggestionsLabel_deprecated || suggestionsLabel) && suggestionsToShow != null && suggestionsToShow.Count > 0) {
-				while(true) {
-					if (suggestionsLabel_deprecated) {
-						suggestionsLabel_deprecated.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
-					} else {
-						suggestionsLabel.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
-					}
+			if(suggestionsLabel && suggestionsToShow != null && suggestionsToShow.Count > 0) {
+				while (true) {
+					suggestionsLabel.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
 					yield return new WaitForSeconds(suggestionsChangeEvery);
 				}
-			} else {
-				this.DebugLog("There are no suggestions to show.");
-				if(suggestionsLabel_deprecated) suggestionsLabel_deprecated.text = string.Empty;
-				else if (suggestionsLabel) suggestionsLabel.text = string.Empty;
 			}
+
+			this.DebugLog("There are no suggestions to show.");
+			if (suggestionsLabel) suggestionsLabel.text = string.Empty;
 		}
 
 		private void initSuggestions() {
