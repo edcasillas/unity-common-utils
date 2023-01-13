@@ -1,4 +1,5 @@
 using CommonUtils.Extensions;
+using CommonUtils.Inspector.HelpBox;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,29 @@ namespace CommonUtils.ObjectPooling {
 	public partial class PrefabPoolManager : EnhancedMonoBehaviour {
 		private readonly Dictionary<string, PrefabPool> pools = new Dictionary<string, PrefabPool>();
 
+		#region Inspector fields
+		[HelpBox("To configure a pool for some prefab, create an empty child of this manager, then under it add a " +
+				 "few instances of the prefab, making sure they're deactivated. Finally, add an item to this list " +
+				 "referencing the container and its prefab. If this configuration is omitted, pools will be created " +
+				 "at runtime when an IObjectFromPool is instantiated.")]
 		[SerializeField] private PrefabPool[] preconfiguredPools;
+
+		[Space]
+		[HelpBox("When an additional object needs to be instantiated, the PrefabPoolManager will look in the " +
+				 "Resources folder for its prefab. To avoid the performance impact of loading from Resources, add" +
+				 " those prefabs to this list.", HelpBoxMessageType.Info)]
 		[SerializeField] private List<GameObject> prefabs;
+		#endregion
 
 		public Dictionary<string, string> PoolsStatus
 			=> pools.ToDictionary(p => p.Key, p => $"Initial count: {p.Value.InitialCount}; Current count: {p.Value.CurrentCount}");
 
+		/// <summary>
+		/// Maps the name of the prefab to the prefab itself to get constant time access to prefabs by their name.
+		/// </summary>
 		private Dictionary<string, GameObject> prefabCache;
+
+		[ShowInInspector] public IEnumerable<GameObject> CachedPrefabs => prefabCache.Values;
 
 		#region Unity Lifecycle
 		protected virtual void Awake() {

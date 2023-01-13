@@ -24,6 +24,12 @@ namespace CommonUtils.ObjectPooling {
 			container.SetParent(parent);
 		}
 
+		/// <summary>
+		/// Initializes the prefab pool:
+		/// 1. Assigns the PoolId property of each preconfigured object (children).
+		/// 2. Adds each preconfigured object to the pool queue.
+		/// 3. Initializes the count of initial objects.
+		/// </summary>
 		public void Setup() {
 			foreach (Transform childTransform in Container) {
 				if(childTransform == Container) continue;
