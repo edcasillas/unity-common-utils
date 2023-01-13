@@ -1,8 +1,8 @@
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.HelpBox;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace CommonUtils.ObjectPooling {
@@ -35,9 +35,6 @@ namespace CommonUtils.ObjectPooling {
 				 " those prefabs to this list.", HelpBoxMessageType.Info)]
 		[SerializeField] private List<GameObject> prefabs;
 		#endregion
-
-		public Dictionary<string, string> PoolsStatus
-			=> pools.ToDictionary(p => p.Key, p => $"Initial count: {p.Value.InitialCount}; Current count: {p.Value.CurrentCount}");
 
 		/// <summary>
 		/// Maps the name of the prefab to the prefab itself to get constant time access to prefabs by their name.
@@ -147,6 +144,17 @@ namespace CommonUtils.ObjectPooling {
 			if (!prefab) return;
 			pools.Add(prefab.name, new PrefabPool(prefab, transform));
 			Debug.LogWarning($"Pool of {prefab.name} has been registered at runtime. For better performance add a preconfigured pool for this prefab.");
+		}
+
+		private bool contains(IObjectFromPool objectFromPool) {
+			if (string.IsNullOrEmpty(objectFromPool.PoolId))
+				throw new ArgumentException("The PoolId of the object cannot be null or empty.");
+
+			if (!pools.ContainsKey(objectFromPool.PoolId)) {
+				return false;
+			}
+
+			return pools[objectFromPool.PoolId].Contains(objectFromPool);
 		}
 	}
 }

@@ -68,5 +68,7 @@ namespace CommonUtils.ObjectPooling {
 			obj.gameObject.transform.SetParent(Container);
 			if(pool.Enqueue(obj)) obj.OnReturnedToPool();
 		}
+
+		public bool Contains(IObjectFromPool obj) => pool.Contains(obj);
 	}
 }

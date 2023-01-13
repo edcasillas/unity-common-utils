@@ -37,5 +37,7 @@ namespace CommonUtils.ObjectPooling {
 			}
 			Instance.recycleAll();
 		}
+
+		public static bool Contains(IObjectFromPool objectFromPool) => Instance.contains(objectFromPool);
 	}
 }
