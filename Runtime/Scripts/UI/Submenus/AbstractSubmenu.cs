@@ -33,7 +33,6 @@ namespace CommonUtils.UI.Submenus {
 		/// <summary>
 		/// Duration of in/out animations in seconds.
 		/// </summary>
-		[Range(0, 1)]
 		public float AnimDuration = 0.5f;
 
 		public AudioClip Feedback;
@@ -150,6 +149,17 @@ namespace CommonUtils.UI.Submenus {
 			animate(CurrentValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
 
+		[ShowInInspector]
+		public void HideImmediately() {
+			if(!IsShown) return;
+			this.DebugLog("Hiding without animation.");
+			iTween.Stop(gameObject);
+			IsShown = false;
+			internalOnAnimationUpdated(HiddenValue);
+			OnHidden();
+
+		}
+
 		public void SubscribeOnShown(UnityAction action) => events.OnShown.AddListener(action);
 		public void SubscribeOnHidden(UnityAction action) => events.OnHidden.AddListener(action);
 		public void UnsubscribeOnShown(UnityAction action) => events.OnShown.RemoveListener(action);
@@ -191,7 +201,7 @@ namespace CommonUtils.UI.Submenus {
 				"ignoretimescale", true
 			));
 			if(playSound) {
-				this.PlayFeedback();
+				PlayFeedback();
 			}
 		}
 
