@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -9,7 +8,7 @@ namespace CommonUtils.ObjectPooling {
 	public class PrefabPool {
 		[SerializeField] private Transform container;
 		[SerializeField] private GameObject prefab;
-		private readonly Queue<IObjectFromPool> pool = new Queue<IObjectFromPool>();
+		private readonly UniqueItemsQueue<IObjectFromPool> pool = new UniqueItemsQueue<IObjectFromPool>();
 
 		public GameObject Prefab => prefab;
 		public Transform Container => container;
@@ -66,9 +65,8 @@ namespace CommonUtils.ObjectPooling {
 
 		public void Store(IObjectFromPool obj) {
 			obj.gameObject.SetActive(false);
-			pool.Enqueue(obj);
 			obj.gameObject.transform.SetParent(Container);
-			obj.OnReturnedToPool();
+			if(pool.Enqueue(obj)) obj.OnReturnedToPool();
 		}
 	}
 }

@@ -137,6 +137,12 @@ namespace CommonUtils.ObjectPooling {
 				pools[poolable.PoolId].Store(poolable);
 		}
 
+		private void recycleAll() {
+			foreach (var objectFromPool in GetComponentsInChildren<IObjectFromPool>()) {
+				Destroy(objectFromPool.gameObject);
+			}
+		}
+
 		private void registerPoolAtRuntime(GameObject prefab) {
 			if (!prefab) return;
 			pools.Add(prefab.name, new PrefabPool(prefab, transform));

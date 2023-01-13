@@ -16,6 +16,7 @@ namespace CommonUtils.UI.Submenus.Toasty {
 		[HelpBox("Optional but recommended. If maxShown is greater than zero, the amount of toasts that can be shown at the same time in the screen will be limited. ")]
 		[SerializeField] private int maxShown = 0;
 
+		// TODO Can we reuse the PrefabPool here?
 		[ShowInInspector] public Queue<Toast> Pool { get; } = new Queue<Toast>();
 
 		[ShowInInspector] public int ActiveToastsCount { get; private set; }

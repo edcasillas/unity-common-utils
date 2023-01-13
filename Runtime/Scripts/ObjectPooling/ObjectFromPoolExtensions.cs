@@ -3,7 +3,7 @@ namespace CommonUtils.ObjectPooling {
 		/// <summary>
 		/// "Destroys" this object and returns it to the pool.
 		/// </summary>
-		public static void DestroyMe(this IObjectFromPool objectFromPool)
+		public static void Recycle(this IObjectFromPool objectFromPool)
 			=> PrefabPoolManager.DestroyAndReturnToPool(objectFromPool.gameObject);
 	}
 }

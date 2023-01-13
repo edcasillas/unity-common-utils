@@ -29,5 +29,13 @@ namespace CommonUtils.ObjectPooling {
 			}
 			GameObject.Destroy(gameObject);
 		}
+
+		public static void RecycleAll() {
+			if (!Instance) {
+				Debug.LogError($"Cannot recycle objects because there is no instance of {nameof(PrefabPoolManager)}");
+				return;
+			}
+			Instance.recycleAll();
+		}
 	}
 }
