@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,20 @@ namespace CommonUtils {
 			routineHandler.ProcessWork(coroutine, preventDestroyOnSceneChange);
 			// Return the CoroutinerInstance handling the coroutine.
 			return routineHandler;
+		}
+
+		public static CoroutinerInstance WaitForFrames(Action action, int framesToWait = 1,
+			string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false) => StartCoroutine(
+			waitUntilNextFrame(action, framesToWait),
+			gameObjectName,
+			preventDestroyOnSceneChange);
+
+		private static IEnumerator waitUntilNextFrame(Action action, int framesToWait) {
+			while (framesToWait > 0) {
+				yield return null;
+				framesToWait--;
+			}
+			action.Invoke();
 		}
 	}
 
