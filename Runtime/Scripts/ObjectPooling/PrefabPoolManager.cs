@@ -6,6 +6,19 @@ using System.Linq;
 using UnityEngine;
 
 namespace CommonUtils.ObjectPooling {
+	/// <summary>
+	/// This is the main component of the Object pooling functionality.
+	/// </summary>
+	/// <remarks>
+	/// This manager can be used in any game, and it's also ready to be used with Photon by implementing IPunPrefabPool.
+	/// In order to use this manager in a game connected with Photon, create and use a derived class like this:
+	///
+	/// <code>
+	/// public class PunPrefabPoolManager : PrefabPoolManager, IPunPrefabPool { }
+	/// </code>
+	///
+	/// No other code should be necessary since the interface is already covered here.
+	/// </remarks>
 	public partial class PrefabPoolManager : EnhancedMonoBehaviour {
 		private readonly Dictionary<string, PrefabPool> pools = new Dictionary<string, PrefabPool>();
 
@@ -13,7 +26,7 @@ namespace CommonUtils.ObjectPooling {
 		[HelpBox("To configure a pool for some prefab, create an empty child of this manager, then under it add a " +
 				 "few instances of the prefab, making sure they're deactivated. Finally, add an item to this list " +
 				 "referencing the container and its prefab. If this configuration is omitted, pools will be created " +
-				 "at runtime when an IObjectFromPool is instantiated.")]
+				 "at runtime when an IObjectFromPool is instantiated.", HelpBoxMessageType.Info)]
 		[SerializeField] private PrefabPool[] preconfiguredPools;
 
 		[Space]
