@@ -9,9 +9,15 @@ namespace CommonUtils.Extensions {
 		/// </summary>
 		/// <typeparam name="T">Type of items inside the collection.</typeparam>
 		/// <param name="collection">Collection of items from which to pick a random item.</param>
+		/// <param name="startIndex">First allowed index for the random result. Default is zero.</param>
+		/// <param name="endIndex">Final allowed index for the random result. If not specified, defaults to the last index of the <paramref name="collection"/>.</param>
 		/// <returns>Random item inside the collection, or its default value (e.g. null) if the collection is null or empty.</returns>
-		public static T PickRandom<T>(this IEnumerable<T> collection) =>
-			!collection.IsNullOrEmpty() ? collection.ElementAt(Random.Range(0, collection.Count())) : default;
+		public static T PickRandom<T>(this IEnumerable<T> collection, int startIndex = 0, int? endIndex = null) {
+			var list = collection.ToList();
+			return !list.IsNullOrEmpty() ?
+				list.ElementAt(Random.Range(startIndex, endIndex ?? list.Count())) :
+				default;
+		}
 
 		/// <summary>
 		/// Gets a value indicating whether this collection is null or empty.
