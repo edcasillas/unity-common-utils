@@ -26,7 +26,7 @@ namespace CommonUtils.Extensions {
 		/// when the verbosable object is not an <see cref="IUnityComponent"/>.</remarks>
 		public static void DebugLogNoContext<TVerbosable>(this TVerbosable verbosable, string message)
 			where TVerbosable : IVerbosable {
-			if (verbosable.IsVerbose) Debug.Log(message);
+			if (verbosable.IsVerbose) Debug.Log($"[{typeof(TVerbosable).Name}] {message}");
 		}
 
 		/// <summary>
@@ -88,6 +88,16 @@ namespace CommonUtils.Extensions {
 		public static void LogError<TVerbosable>(this TVerbosable verbosable, string message)
 			where TVerbosable : Object, IVerbosable
 			=> Debug.LogError($"{getVerbosableTag(verbosable)} {message}", verbosable);
+
+		/// <summary>
+		/// Writes an error <paramref name="message"/> to the console.
+		/// </summary>
+		/// <param name="verbosable">Verbosable component writing the message.</param>
+		/// <param name="message">Message to be sent to the console.</param>
+		/// <typeparam name="TVerbosable">Type of verbosable component.</typeparam>
+		public static void LogErrorNoContext<TVerbosable>(this TVerbosable verbosable, string message)
+			where TVerbosable : IVerbosable
+			=> Debug.LogError($"[{typeof(TVerbosable).Name}] {message}");
 
 		private static string getVerbosableTag<TVerbosable>(TVerbosable verbosable)
 			where TVerbosable : Object, IVerbosable => $"[{typeof(TVerbosable).Name}:{verbosable.name}]";
