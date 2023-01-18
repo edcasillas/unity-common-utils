@@ -1,3 +1,4 @@
+using CommonUtils.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -110,10 +111,18 @@ namespace CommonUtils.Coroutines {
 		/// </summary>
 		private readonly IList<Coroutine> runningCoroutines = new List<Coroutine>();
 
+		/// <summary>
+		/// Used when running multiple coroutines to keep track of which of them already finished.
+		/// A float is used instead of a simple bool because in the near future we want to integrate more
+		/// granular progress (10%, 50%, etc)
+		/// </summary>
+		private readonly IList<float> progress;
+
 		public Queue<CoroutinerInstance> InstancePool { get; set; }
 
 		[ShowInInspector] public int RunningCoroutinesCount => runningCoroutines.Count;
-		[ShowInInspector] public float Progress { get; private set; }
+
+		[ShowInInspector] public float OverallProgress => progress.Any() ? progress.Sum() / progress.Count() : 0f;
 
 		/// <summary>
 		/// Processes the work.
@@ -131,16 +140,45 @@ namespace CommonUtils.Coroutines {
 			return result;
 		}
 
-		/*internal void ProcessWork(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null) {
-			var progress = new List<float>();
+		#region ProcessWork with multiple coroutines
+		internal void ProcessWork(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null) {
+			#region Input validation
+			if (runningCoroutines.Any()) {
+				throw new InvalidOperationException(
+					$"{runningCoroutines.Count} coroutines are still running in this instance.");
+			}
+			if (coroutines.IsNullOrEmpty()) {
+				throw new ArgumentException("At least one coroutine is required.", nameof(coroutines));
+			}
+			if (onFinishedAll == null) throw new ArgumentNullException(nameof(onFinishedAll));
+			#endregion
 
 			for (var i = 0; i < coroutines.Count(); i++) {
 				progress.Add(0);
-				StartCoroutine(executeCoroutine(coroutines.ElementAt(0), progress, i));
+				StartCoroutine(executeCoroutine(coroutines.ElementAt(0), i));
 			}
 
-			StartCoroutine(waitForAllFinished(progress, onFinishedAll, onProgress));
-		}*/
+			StartCoroutine(waitForAllFinished(onFinishedAll, onProgress));
+		}
+
+		private IEnumerator executeCoroutine(IEnumerator coroutine, int progressIndex) {
+			yield return coroutine;
+			progress[progressIndex] = 1;
+		}
+
+		private IEnumerator waitForAllFinished(Action onFinishedAll, Action<float> onProgress) {
+			var prevProgress = 0f;
+			do {
+				if(prevProgress >= OverallProgress) continue;
+				onProgress?.Invoke(OverallProgress);
+				prevProgress = OverallProgress;
+				yield return null;
+			} while (OverallProgress < 1);
+
+			onProgress?.Invoke(1f);
+			onFinishedAll.Invoke();
+		}
+		#endregion
 
 		/// <summary>
 		/// Stops the coroutine and destroys the GameObject running the coroutine.
@@ -157,6 +195,7 @@ namespace CommonUtils.Coroutines {
 
 		private void OnFinished() {
 			runningCoroutines.Clear();
+			progress.Clear();
 			if(InstancePool == null) Destroy(gameObject);
 			else {
 				name = "Idle Coroutiner";
