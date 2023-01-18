@@ -4,18 +4,11 @@ using UnityEngine;
 
 namespace CommonUtils.Coroutines {
 	public static class CoroutineExtensions {
-		private static bool verbose = true;
-
 		#region StartCoroutineWithTimeout
 		public static Coroutine StartCoroutineWithTimeout(this MonoBehaviour monoBehaviour, IEnumerator coroutine, Action onFinished, Action onTimeout, float timeout) {
 			var isFinished = false;
-			var runningCoroutine = monoBehaviour.StartCoroutineWithFinishCallback(coroutine,
-				() => {
-					debugLog("Coroutine finished, callback has been called and we'll mark it as finished.");
-					isFinished = true;
-				});
+			var runningCoroutine = monoBehaviour.StartCoroutineWithFinishCallback(coroutine, () => { isFinished = true; });
 			monoBehaviour.WaitUntil(() => isFinished, onFinished,()=> {
-				debugLog("Coroutine has timed out. Will stop the coroutine and execute onTimeout");
 				monoBehaviour.StopCoroutine(runningCoroutine);
 				onTimeout?.Invoke();
 			}, timeout);
@@ -30,9 +23,7 @@ namespace CommonUtils.Coroutines {
 			=> monoBehaviour.StartCoroutine(executeCoroutineWithFinishCallback(coroutine, callback));
 
 		private static IEnumerator executeCoroutineWithFinishCallback(IEnumerator coroutine, Action callback) {
-			debugLog("Will execute coroutine");
 			yield return coroutine;
-			debugLog("Coroutine finished, executing callback");
 			callback.Invoke();
 		}
 		#endregion
@@ -88,11 +79,5 @@ namespace CommonUtils.Coroutines {
 			then.Invoke();
 		}
 		#endregion
-
-		private static void debugLog(string message) {
-			if (verbose) {
-				Debug.Log($"[{nameof(CoroutineExtensions)}] {message}");
-			}
-		}
 	}
 }
