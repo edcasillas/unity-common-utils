@@ -8,15 +8,9 @@ using Object = UnityEngine.Object;
 
 namespace CommonUtils.Coroutines {
 	/// <summary>
-	/// Creates a <see cref="MonoBehaviour"/> instance through which static classes can call <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>.
+	/// Contains methods to execute coroutines that can be called from any class, either deriving from <see cref="MonoBehaviour"/> or not.
 	/// </summary>
-	/// <author>Sebastiaan Fehr (Seb@TheBinaryMill.com)</author>
-	/// <description>
-	/// Classes that do not inherit from MonoBehaviour, or static methods within MonoBehaviours are inertly unable to
-	/// call StartCoroutine, as this method is not static and does not exist on Object.This Class creates a proxy
-	/// through which StartCoroutine can be called.
-	/// </description>
-	/// <modified_by>Ed Casillas</modified_by>
+	/// <author>Ed Casillas</author>
 	public static class Coroutiner {
 		#region Pools
 		private static readonly Queue<CoroutinerInstance> instancePool = new Queue<CoroutinerInstance>();
@@ -30,12 +24,21 @@ namespace CommonUtils.Coroutines {
 		#endregion
 
 		/// <summary>
-		/// Creates a temporary <see cref="GameObject"/> to handle a <see cref="Coroutine"/>; this GameObject is destroyed when coroutine is finished.
+		/// Creates a temporary <see cref="GameObject"/> to handle a <see cref="Coroutine"/>.
+		/// This method allows classes not deriving from <see cref="MonoBehaviour"/> to execute coroutines (e.g. static classes).
 		/// </summary>
 		/// <returns>The <see cref="CoroutinerInstance"/> component running the coroutine.</returns>
 		/// <param name="coroutine">Coroutine to run.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutine.</param>
 		/// <param name="preventDestroyOnSceneChange">Should this coroutine continue running during a scene change?</param>
+		/// <param name="verbose">Should this coroutiner instance log messages to the console?</param>
+		/// <remarks>
+		/// Classes that do not inherit from MonoBehaviour, or static methods within MonoBehaviours are inertly unable to
+		/// call StartCoroutine, as this method is not static and does not exist on Object.This Class creates a proxy
+		/// through which StartCoroutine can be called.
+		///
+		/// Original credit to Sebastiaan Fehr (Seb@TheBinaryMill.com)
+		/// </remarks>
 		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, bool verbose = false) {
 			if (coroutine == null) throw new ArgumentNullException(nameof(coroutine));
 
@@ -47,6 +50,18 @@ namespace CommonUtils.Coroutines {
 			return routineHandler;
 		}
 
+		/// <summary>
+		/// Starts a collection of <paramref name="coroutines"/> and defines callbacks to inform the caller as they
+		/// become completed.
+		/// </summary>
+		/// <param name="coroutines">Collection of coroutines to be executed.</param>
+		/// <param name="onFinishedAll">Callback to be executed when all coroutines are finished.</param>
+		/// <param name="onProgress">Callback to be executed when some progress has been done executing the coroutines.</param>
+		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutines.</param>
+		/// <param name="preventDestroyOnSceneChange">Should these coroutines continue running during a scene change?</param>
+		/// <param name="verbose">Should this coroutiner instance log messages to the console?</param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		public static CoroutinerInstance StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, bool verbose = false) {
 			if (coroutines.IsNullOrEmpty()) {
 				throw new ArgumentException($"{nameof(coroutines)} parameter cannot be null or empty.",
