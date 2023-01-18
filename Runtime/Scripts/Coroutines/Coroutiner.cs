@@ -48,6 +48,21 @@ namespace CommonUtils.Coroutines {
 			return routineHandler;
 		}
 
+		public static CoroutinerInstance StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false) {
+			if (coroutines.IsNullOrEmpty()) {
+				throw new ArgumentException($"{nameof(coroutines)} parameter cannot be null or empty.",
+					nameof(coroutines));
+			}
+
+			var routineHandler = getInstance(preventDestroyOnSceneChange);
+			routineHandler.name = gameObjectName;
+
+			// Actually start the coroutines
+			routineHandler.ProcessWork(coroutines, onFinishedAll, onProgress);
+			// Return the CoroutinerInstance handling the coroutine.
+			return routineHandler;
+		}
+
 		private static CoroutinerInstance getInstance(bool dontDestroyOnLoad) {
 			CoroutinerInstance result = null;
 
@@ -121,7 +136,6 @@ namespace CommonUtils.Coroutines {
 		public Queue<CoroutinerInstance> InstancePool { get; set; }
 
 		[ShowInInspector] public int RunningCoroutinesCount => runningCoroutines.Count;
-
 		[ShowInInspector] public float OverallProgress => progress.Any() ? progress.Sum() / progress.Count() : 0f;
 
 		/// <summary>
