@@ -25,6 +25,8 @@ namespace CommonUtils {
 		/// <param name="coroutine">Coroutine to run.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutine.</param>
 		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false) {
+			if (coroutine == null) throw new ArgumentNullException(nameof(coroutine));
+
 			CoroutinerInstance routineHandler = null;
 
 			while (!routineHandler) {
@@ -76,8 +78,7 @@ namespace CommonUtils {
 		/// </summary>
 		/// <returns>Running coroutine.</returns>
 		/// <param name="coroutine">Coroutine method to run.</param>
-		public Coroutine ProcessWork(IEnumerator coroutine, bool preventDestroyOnSceneChange)
-		{
+		internal Coroutine ProcessWork(IEnumerator coroutine, bool preventDestroyOnSceneChange) {
 			if(preventDestroyOnSceneChange) DontDestroyOnLoad(this);
 			runningCoroutine = StartCoroutine(DestroyWhenComplete(coroutine));
 			return runningCoroutine;
