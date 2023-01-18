@@ -47,6 +47,7 @@ namespace CommonUtils.Coroutines {
 			return routineHandler;
 		}
 
+		#region WaitForFrames
 		public static CoroutinerInstance WaitForFrames(Action action, int framesToWait = 1,
 			string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false) => StartCoroutine(
 			waitUntilNextFrame(action, framesToWait),
@@ -60,6 +61,7 @@ namespace CommonUtils.Coroutines {
 			}
 			action.Invoke();
 		}
+		#endregion
 	}
 
 	/// <summary>
@@ -80,9 +82,20 @@ namespace CommonUtils.Coroutines {
 		/// <param name="coroutine">Coroutine method to run.</param>
 		internal Coroutine ProcessWork(IEnumerator coroutine, bool preventDestroyOnSceneChange) {
 			if(preventDestroyOnSceneChange) DontDestroyOnLoad(this);
-			runningCoroutine = StartCoroutine(DestroyWhenComplete(coroutine));
+			runningCoroutine = this.StartCoroutineWithFinishCallback(coroutine, OnFinished);
 			return runningCoroutine;
 		}
+
+		/*internal void ProcessWork(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null) {
+			var progress = new List<float>();
+
+			for (var i = 0; i < coroutines.Count(); i++) {
+				progress.Add(0);
+				StartCoroutine(executeCoroutine(coroutines.ElementAt(0), progress, i));
+			}
+
+			StartCoroutine(waitForAllFinished(progress, onFinishedAll, onProgress));
+		}*/
 
 		/// <summary>
 		/// Stops the coroutine and destroys the GameObject running the coroutine.
@@ -92,16 +105,6 @@ namespace CommonUtils.Coroutines {
 				StopCoroutine(runningCoroutine);
 			}
 
-			OnFinished();
-		}
-
-		/// <summary>
-		/// Destroy the game object when the coroutine has finished.
-		/// </summary>
-		/// <returns>The when complete.</returns>
-		/// <param name="iterationResult">Iteration result.</param>
-		public IEnumerator DestroyWhenComplete(IEnumerator iterationResult) {
-			yield return StartCoroutine(iterationResult);
 			OnFinished();
 		}
 

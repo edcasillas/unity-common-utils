@@ -3,9 +3,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace CommonUtils.Coroutines {
-	public class CoroutineOrchestrator {
+	public static class CoroutineOrchestrator {
+
+
 		public static void StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null) {
 			if (coroutines.IsNullOrEmpty()) {
 				throw new ArgumentException("At least one coroutine is required.", nameof(coroutines));
@@ -39,6 +42,4 @@ namespace CommonUtils.Coroutines {
 			onFinishedAll.Invoke();
 		}
 	}
-
-	//public static
 }
