@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CommonUtils.Coroutines {
 	/// <summary>
@@ -16,35 +17,71 @@ namespace CommonUtils.Coroutines {
 	/// </description>
 	/// <modified_by>Ed Casillas</modified_by>
 	public static class Coroutiner {
+		#region Pools
 		private static readonly Queue<CoroutinerInstance> instancePool = new Queue<CoroutinerInstance>();
+
+		/// <summary>
+		/// A pool of instances marked as DontDestroyOnLoad. This must be different than the regular instance pool
+		/// because we can't revert a DontDestroyOnLoad, and we don't want our coroutines to keep running between scenes
+		/// unless explicitly specified during the call to <see cref="StartCoroutine"/>.
+		/// </summary>
+		private static readonly Queue<CoroutinerInstance> persistentInstancePool = new Queue<CoroutinerInstance>();
+		#endregion
 
 		/// <summary>
 		/// Creates a temporary <see cref="GameObject"/> to handle a <see cref="Coroutine"/>; this GameObject is destroyed when coroutine is finished.
 		/// </summary>
-		/// <returns>The CoroutinerInstance component running the coroutine.</returns>
+		/// <returns>The <see cref="CoroutinerInstance"/> component running the coroutine.</returns>
 		/// <param name="coroutine">Coroutine to run.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutine.</param>
+		/// <param name="preventDestroyOnSceneChange">Should this coroutine continue running during a scene change?</param>
 		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false) {
 			if (coroutine == null) throw new ArgumentNullException(nameof(coroutine));
 
-			CoroutinerInstance routineHandler = null;
-
-			while (!routineHandler) {
-				if (instancePool.Any()) routineHandler = instancePool.Dequeue();
-				else {
-					// Create empty GameObject to handle task.
-					var routeneHandlerGo = new GameObject(gameObjectName);
-
-					// Attach script to run coroutines
-					routineHandler              = routeneHandlerGo.AddComponent<CoroutinerInstance>();
-					routineHandler.InstancePool = instancePool;
-				}
-			}
+			var routineHandler = getInstance(preventDestroyOnSceneChange);
+			routineHandler.name = gameObjectName;
 
 			// Actually start the coroutine
 			routineHandler.ProcessWork(coroutine, preventDestroyOnSceneChange);
 			// Return the CoroutinerInstance handling the coroutine.
 			return routineHandler;
+		}
+
+		private static CoroutinerInstance getInstance(bool dontDestroyOnLoad) {
+			CoroutinerInstance result = null;
+
+			/*
+			 * NOTE Even if we're able to retrieve an instance value from the pool, it doesn't mean that instance is
+			 * valid; it might be the case that the instance has been destroyed, thus !result will return false; this
+			 * is why we iterate until we have a valid instance.
+			 */
+			while (!result) {
+				switch (dontDestroyOnLoad) {
+					case true when persistentInstancePool.Any():
+						result = persistentInstancePool.Dequeue();
+						break;
+					case false when instancePool.Any():
+						result = instancePool.Dequeue();
+						break;
+					default: {
+						// Create empty GameObject to handle task.
+						var routineHandler = new GameObject();
+
+						// Attach script to run coroutines
+						result = routineHandler.AddComponent<CoroutinerInstance>();
+						if (dontDestroyOnLoad) {
+							Object.DontDestroyOnLoad(result);
+							result.InstancePool = persistentInstancePool;
+						} else {
+							result.InstancePool = instancePool;
+						}
+
+						break;
+					}
+				}
+			}
+
+			return result;
 		}
 
 		#region WaitForFrames
