@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace CommonUtils {
+namespace CommonUtils.Coroutines {
 	/// <summary>
 	/// Creates a <see cref="MonoBehaviour"/> instance through which static classes can call <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>.
 	/// </summary>
