@@ -1,5 +1,6 @@
 using CommonUtils.Coroutines;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -7,6 +8,31 @@ using UnityEngine.TestTools;
 namespace CommonUtils.Tests.PlayMode.Coroutines {
 	public class CoroutineExtensionsTests {
 		private class TestComponent : MonoBehaviour {}
+
+		#region StartCoroutineWithFinishCallback_ExecutesCallbackWhenFinished
+		[UnityTest]
+		[Timeout(7000)]
+		public IEnumerator StartCoroutineWithFinishCallback_ExecutesCallbackWhenFinished() {
+			var subject = new GameObject().AddComponent<TestComponent>();
+
+			var coroutineFinished = false;
+			var callbackExecuted = false;
+
+			subject.StartCoroutineWithFinishCallback(waitThenExecute(1f,
+					() => { coroutineFinished = true; }),
+				() => { callbackExecuted = true; });
+
+			yield return new WaitUntil(() => callbackExecuted);
+
+			Assert.IsTrue(callbackExecuted, "Callback was not executed");
+			Assert.IsTrue(coroutineFinished, "Coroutine didn't finish before callback");
+		}
+
+		private IEnumerator waitThenExecute(float waitSeconds, Action action) {
+			yield return new WaitForSeconds(waitSeconds);
+			action.Invoke();
+		}
+		#endregion
 
 		[UnityTest]
 		[Timeout(7000)]
@@ -22,9 +48,11 @@ namespace CommonUtils.Tests.PlayMode.Coroutines {
 				simpleWaitForSecondsRoutine(5),
 				() => {
 					finished = true;
+					Debug.Log($"Coroutine has been marked as finished.");
 				},
 				() => {
 					timedout = true;
+					Debug.Log($"Coroutine has been marked as timed out.");
 				},
 				1f);
 
@@ -42,6 +70,7 @@ namespace CommonUtils.Tests.PlayMode.Coroutines {
 
 		private IEnumerator simpleWaitForSecondsRoutine(float seconds) {
 			yield return new WaitForSeconds(seconds);
+			Debug.Log($"{nameof(simpleWaitForSecondsRoutine)} finished.");
 		}
 	}
 }

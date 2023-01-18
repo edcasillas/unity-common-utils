@@ -4,11 +4,18 @@ using UnityEngine;
 
 namespace CommonUtils.Coroutines {
 	public static class CoroutineExtensions {
+		private static bool verbose = true;
+
 		#region StartCoroutineWithTimeout
 		public static Coroutine StartCoroutineWithTimeout(this MonoBehaviour monoBehaviour, IEnumerator coroutine, Action onFinished, Action onTimeout, float timeout) {
 			var isFinished = false;
-			var runningCoroutine = monoBehaviour.StartCoroutineWithFinishCallback(coroutine, () => { isFinished = true; });
+			var runningCoroutine = monoBehaviour.StartCoroutineWithFinishCallback(coroutine,
+				() => {
+					debugLog("Coroutine finished, callback has been called and we'll mark it as finished.");
+					isFinished = true;
+				});
 			monoBehaviour.WaitUntil(() => isFinished, onFinished,()=> {
+				debugLog("Coroutine has timed out. Will stop the coroutine and execute onTimeout");
 				monoBehaviour.StopCoroutine(runningCoroutine);
 				onTimeout?.Invoke();
 			}, timeout);
@@ -20,10 +27,12 @@ namespace CommonUtils.Coroutines {
 
 		#region StartCoroutineWithFinishCallback
 		public static Coroutine StartCoroutineWithFinishCallback(this MonoBehaviour monoBehaviour, IEnumerator coroutine, Action callback)
-			=> monoBehaviour.StartCoroutine(executeCoroutineWithFinishCallback(monoBehaviour, coroutine, callback));
+			=> monoBehaviour.StartCoroutine(executeCoroutineWithFinishCallback(coroutine, callback));
 
-		private static IEnumerator executeCoroutineWithFinishCallback(MonoBehaviour monoBehaviour, IEnumerator coroutine, Action callback) {
-			yield return monoBehaviour.StartCoroutine(coroutine);
+		private static IEnumerator executeCoroutineWithFinishCallback(IEnumerator coroutine, Action callback) {
+			debugLog("Will execute coroutine");
+			yield return coroutine;
+			debugLog("Coroutine finished, executing callback");
 			callback.Invoke();
 		}
 		#endregion
@@ -45,9 +54,9 @@ namespace CommonUtils.Coroutines {
 		#region WaitForSeconds
 		public static Coroutine WaitForSeconds(this MonoBehaviour monoBehaviour, Action action, float secondsToWait = 1)
 			=> monoBehaviour.StartCoroutine(
-				WaitForSeconds(action, secondsToWait));
+				waitForSeconds(action, secondsToWait));
 
-		internal static IEnumerator WaitForSeconds(Action action, float secondsToWait) {
+		private static IEnumerator waitForSeconds(Action action, float secondsToWait) {
 			yield return new WaitForSeconds(secondsToWait);
 			action.Invoke();
 		}
@@ -62,16 +71,28 @@ namespace CommonUtils.Coroutines {
 				throw new ArgumentException(
 					"In order to specify a timeout, please include both timeout and OnTimeout parameters.");
 
-			return monoBehaviour.StartCoroutine(doWaitUntil(condition, then, timeout));
+			return monoBehaviour.StartCoroutine(doWaitUntil(condition, then, onTimeout, timeout));
 		}
 
-		private static IEnumerator doWaitUntil(Func<bool> condition, Action then, float? timeout = null) {
+		private static IEnumerator doWaitUntil(Func<bool> condition, Action then, Action onTimeout = null, float? timeout = null) {
 			while (!condition.Invoke() && timeout is null or > 0) {
 				yield return null;
 				timeout -= Time.deltaTime;
 			}
+
+			if (timeout <= 0) {
+				onTimeout?.Invoke();
+				yield break;
+			}
+
 			then.Invoke();
 		}
 		#endregion
+
+		private static void debugLog(string message) {
+			if (verbose) {
+				Debug.Log($"[{nameof(CoroutineExtensions)}] {message}");
+			}
+		}
 	}
 }
