@@ -115,22 +115,6 @@ namespace CommonUtils.Coroutines {
 
 			return result;
 		}
-
-		#region WaitForFrames
-		public static CoroutinerInstance WaitForFrames(Action action, int framesToWait = 1,
-			string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false) => StartCoroutine(
-			waitUntilNextFrame(action, framesToWait),
-			gameObjectName,
-			preventDestroyOnSceneChange);
-
-		private static IEnumerator waitUntilNextFrame(Action action, int framesToWait) {
-			while (framesToWait > 0) {
-				yield return null;
-				framesToWait--;
-			}
-			action.Invoke();
-		}
-		#endregion
 	}
 
 	/// <summary>
@@ -147,7 +131,7 @@ namespace CommonUtils.Coroutines {
 		/// A float is used instead of a simple bool because in the near future we want to integrate more
 		/// granular progress (10%, 50%, etc)
 		/// </summary>
-		private readonly IList<float> progress;
+		private readonly IList<float> progress = new List<float>();
 
 		public Queue<CoroutinerInstance> InstancePool { get; set; }
 
