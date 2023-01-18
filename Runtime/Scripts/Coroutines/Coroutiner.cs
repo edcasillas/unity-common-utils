@@ -42,7 +42,7 @@ namespace CommonUtils.Coroutines {
 			routineHandler.name = gameObjectName;
 
 			// Actually start the coroutine
-			routineHandler.ProcessWork(coroutine, preventDestroyOnSceneChange);
+			routineHandler.ProcessWork(coroutine);
 			// Return the CoroutinerInstance handling the coroutine.
 			return routineHandler;
 		}
@@ -104,23 +104,31 @@ namespace CommonUtils.Coroutines {
 	/// <summary>
 	/// GameObject component to handle coroutines.
 	/// </summary>
-	public class CoroutinerInstance : MonoBehaviour {
+	public class CoroutinerInstance : EnhancedMonoBehaviour {
 		/// <summary>
 		/// The running coroutine.
 		/// </summary>
-		private Coroutine runningCoroutine;
+		private readonly IList<Coroutine> runningCoroutines = new List<Coroutine>();
 
 		public Queue<CoroutinerInstance> InstancePool { get; set; }
+
+		[ShowInInspector] public int RunningCoroutinesCount => runningCoroutines.Count;
+		[ShowInInspector] public float Progress { get; private set; }
 
 		/// <summary>
 		/// Processes the work.
 		/// </summary>
 		/// <returns>Running coroutine.</returns>
 		/// <param name="coroutine">Coroutine method to run.</param>
-		internal Coroutine ProcessWork(IEnumerator coroutine, bool preventDestroyOnSceneChange) {
-			if(preventDestroyOnSceneChange) DontDestroyOnLoad(this);
-			runningCoroutine = this.StartCoroutineWithFinishCallback(coroutine, OnFinished);
-			return runningCoroutine;
+		internal Coroutine ProcessWork(IEnumerator coroutine) {
+			if (runningCoroutines.Any()) {
+				throw new InvalidOperationException(
+					$"{runningCoroutines.Count} coroutines are still running in this instance.");
+			}
+
+			var result = this.StartCoroutineWithFinishCallback(coroutine, OnFinished);
+			runningCoroutines.Add(result);
+			return result;
 		}
 
 		/*internal void ProcessWork(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null) {
@@ -138,14 +146,17 @@ namespace CommonUtils.Coroutines {
 		/// Stops the coroutine and destroys the GameObject running the coroutine.
 		/// </summary>
 		public void StopAndDestroy() {
-			if (runningCoroutine != null) {
-				StopCoroutine(runningCoroutine);
+			if (runningCoroutines.Any()) {
+				foreach (var runningCoroutine in runningCoroutines) {
+					StopCoroutine(runningCoroutine);
+				}
 			}
 
 			OnFinished();
 		}
 
 		private void OnFinished() {
+			runningCoroutines.Clear();
 			if(InstancePool == null) Destroy(gameObject);
 			else {
 				name = "Idle Coroutiner";
