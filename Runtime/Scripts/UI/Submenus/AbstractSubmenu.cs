@@ -149,6 +149,13 @@ namespace CommonUtils.UI.Submenus {
 			animate(CurrentValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
 
+		/// <summary>
+		/// Hides this submenu without performing any animations or sounds.
+		/// </summary>
+		/// <remarks>
+		/// Use this method instead of GameObject.SetActive(false) to keep consistency with the data of the submenu
+		/// to be able to show and hide again with animations.
+		/// </remarks>
 		[ShowInInspector]
 		public void HideImmediately() {
 			if(!IsShown) return;
