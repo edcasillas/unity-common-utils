@@ -11,7 +11,7 @@ namespace CommonUtils.Tests.PlayMode.Coroutines {
 		[Timeout(7000)]
 		public IEnumerator StartCoroutines_Pass() {
 			var coroutines = new List<IEnumerator>();
-			for (var i = 0; i < 10; i++) {
+			for (var i = 0; i < 15; i++) {
 				coroutines.Add(waitRandom());
 			}
 			Debug.Log($"{coroutines.Count} coroutines will be executed in this test.");
@@ -32,7 +32,7 @@ namespace CommonUtils.Tests.PlayMode.Coroutines {
 				Debug.Log("Test timed out");
 			}
 
-			Debug.Log($"WaitUntil has finished. Coroutiner reports progress: {coroutiner}");
+			Debug.Log($"WaitUntil has finished. Coroutiner reports progress: {coroutiner.OverallProgress}");
 
 			Assert.IsTrue(allFinished);
 		}
