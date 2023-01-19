@@ -88,9 +88,11 @@ namespace CommonUtils.Coroutines {
 				switch (dontDestroyOnLoad) {
 					case true when persistentInstancePool.Any():
 						result = persistentInstancePool.Dequeue();
+						if(verbose) Debug.Log("A coroutine instance has been fetched from the pool.");
 						break;
 					case false when instancePool.Any():
 						result = instancePool.Dequeue();
+						if(verbose) Debug.Log("A coroutine instance has been fetched from the pool.");
 						break;
 					default: {
 						// Create empty GameObject to handle task.
@@ -104,6 +106,8 @@ namespace CommonUtils.Coroutines {
 						} else {
 							result.InstancePool = instancePool;
 						}
+
+						if(verbose) Debug.Log("A new coroutiner instance has been created.");
 
 						break;
 					}
@@ -171,9 +175,11 @@ namespace CommonUtils.Coroutines {
 			this.DebugLog(() => $"Starting {coroutines.Count} coroutines.");
 			for (var i = 0; i < coroutines.Count(); i++) {
 				progress.Add(0);
-				StartCoroutine(executeCoroutine(coroutines.ElementAt(0), i));
+				this.DebugLog($"Starting coroutine {i}");
+				StartCoroutine(executeCoroutine(coroutines.ElementAt(i), i));
 			}
 
+			this.DebugLog($"Starting coroutine to wait for all finished.");
 			StartCoroutine(waitForAllFinished(onFinishedAll, onProgress));
 		}
 
@@ -186,11 +192,11 @@ namespace CommonUtils.Coroutines {
 		private IEnumerator waitForAllFinished(Action onFinishedAll, Action<float> onProgress) {
 			var prevProgress = 0f;
 			do {
-				if(prevProgress >= OverallProgress) continue;
+				yield return null;
+				if (prevProgress >= OverallProgress) continue;
 				this.DebugLog(() => $"Progress: {OverallProgress * 100}%");
 				onProgress?.Invoke(OverallProgress);
 				prevProgress = OverallProgress;
-				yield return null;
 			} while (OverallProgress < 1);
 
 			onProgress?.Invoke(1f);
