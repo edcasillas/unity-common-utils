@@ -16,6 +16,9 @@ namespace CommonUtils {
 		public static T GetCachedComponent<T>(this GameObject gameObject) where T : Component =>
 			getComponentFrom<T>(gameObject);
 
+		public static T GetCachedComponent<T>(this MonoBehaviour monoBehaviour) where T : Component
+			=> getComponentFrom<T>(monoBehaviour.gameObject);
+
 		private static T getComponentFrom<T>(GameObject go, bool addIfNotFound = false) where T : Component {
 			if (!go) return default;
 
