@@ -40,7 +40,7 @@ namespace CommonUtils {
 		/// <param name="capacity"></param>
 		public UniqueItemsQueue(int capacity) {
 			queue = new Queue<T>(capacity);
-			hashSet = new HashSet<T>(capacity);
+			hashSet = new HashSet<T>();
 		}
 
 		/// <summary>
@@ -88,6 +88,7 @@ namespace CommonUtils {
 			hashSet.TrimExcess();
 		}
 
+#if UNITY_2022_1_OR_NEWER
 		public bool TryDequeue(out T result) {
 			if (!queue.TryDequeue(out result)) return false;
 			hashSet.Remove(result);
@@ -95,6 +96,7 @@ namespace CommonUtils {
 		}
 
 		public bool TryPeek(out T result) => queue.TryPeek(out result);
+#endif
 
 		/// <summary>
 		/// Removes all Objects from the queue.

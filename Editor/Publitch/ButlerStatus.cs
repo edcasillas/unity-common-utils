@@ -10,10 +10,10 @@ namespace CommonUtils.Editor.Publitch {
 		internal static bool TryParse(string butlerOutput, ref ButlerStatus status) {
 			if (string.IsNullOrEmpty(butlerOutput)) return false;
 
-			var lines = butlerOutput.Split("\n");
+			var lines = butlerOutput.Split('\n');
 			if (lines.Length < 4) return false;
 
-			var columns = lines[3].Split("|");
+			var columns = lines[3].Split('|');
 			if (columns.Length < 5) return false;
 
 			status.ChannelName = columns[1].Trim();

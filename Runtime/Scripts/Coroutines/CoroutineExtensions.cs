@@ -66,7 +66,7 @@ namespace CommonUtils.Coroutines {
 		}
 
 		private static IEnumerator doWaitUntil(Func<bool> condition, Action then, Action onTimeout = null, float? timeout = null) {
-			while (!condition.Invoke() && timeout is null or > 0) {
+			while (!condition.Invoke() && (!timeout.HasValue || timeout.Value > 0)) {
 				yield return null;
 				timeout -= Time.deltaTime;
 			}

@@ -97,7 +97,8 @@ namespace CommonUtils.Editor.Publitch {
 						if (!string.IsNullOrEmpty(version)) {
 							var indexOfComma = version.IndexOf(',');
 							if (indexOfComma > 0) {
-								version = version[..indexOfComma];
+								version = version.Substring(0, indexOfComma);
+								//version = version[..indexOfComma];
 							}
 						}
 					} else {

@@ -57,8 +57,8 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 
 		#region Dictionary Implementation
 		public bool IsReadOnly => innerDictionary != null;
-		public ICollection<int> Keys => IsReadOnly ? innerDictionary.Keys : innerList.Select(kvp => kvp.Key).ToList();
-		public ICollection<TValue> Values => IsReadOnly ? innerDictionary.Values : innerList.Select(kvp => kvp.Value).ToList();
+		public ICollection<int> Keys => IsReadOnly ? innerDictionary.Keys.ToList() : innerList.Select(kvp => kvp.Key).ToList();
+		public ICollection<TValue> Values => IsReadOnly ? innerDictionary.Values.ToList() : innerList.Select(kvp => kvp.Value).ToList();
 
 		public IEnumerator<KeyValuePair<int, TValue>> GetEnumerator() =>
 			IsReadOnly ? innerDictionary.GetEnumerator() :
