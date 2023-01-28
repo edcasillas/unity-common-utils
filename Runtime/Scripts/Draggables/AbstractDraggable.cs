@@ -2,8 +2,7 @@ using UnityEngine;
 
 namespace CommonUtils.Draggables {
 	public abstract class AbstractDraggable : EnhancedMonoBehaviour {
-		[SerializeField]
-		private Camera defaultCamera;
+		[SerializeField] private Camera defaultCamera;
 
 		private Camera camRef;
 

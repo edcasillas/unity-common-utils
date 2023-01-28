@@ -152,11 +152,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 357340361}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0472e047c759b48cca3a8ddcc8152adb, type: 3}
+  m_Script: {fileID: 11500000, guid: 2a7b3034b7cc540ccb064133fba78da4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  verbose: 1
+  verbose: 0
   defaultCamera: {fileID: 1907317963}
+  freezeX: 0
+  freezeY: 0
+  freezeZ: 0
 --- !u!135 &357340363
 SphereCollider:
   m_ObjectHideFlags: 0
