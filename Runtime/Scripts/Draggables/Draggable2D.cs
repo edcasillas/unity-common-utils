@@ -1,23 +1,8 @@
 using UnityEngine;
 
-namespace CommonUtils {
-	public class Draggable : EnhancedMonoBehaviour {
-		[SerializeField] private Camera defaultCamera;
-
-		private Camera camRef;
-		[ShowInInspector]
-		public Camera Camera {
-			get {
-				if (!camRef) {
-					camRef = defaultCamera;
-					if (!camRef) camRef = Camera.main;
-				}
-
-				return camRef;
-			}
-			set => camRef = value;
-		}
-
+namespace CommonUtils.Draggables {
+	[RequireComponent(typeof(Collider2D))]
+	public class Draggable2D : AbstractDraggable {
 		[ShowInInspector] public Vector3 MousePositionOffset { get; private set; }
 
 		private void OnMouseDown() => MousePositionOffset = transform.position - getMouseWorldPosition();
