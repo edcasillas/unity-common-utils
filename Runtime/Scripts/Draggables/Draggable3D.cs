@@ -1,3 +1,5 @@
+using CommonUtils.Extensions;
+using System;
 using UnityEngine;
 
 namespace CommonUtils.Draggables {
@@ -6,6 +8,10 @@ namespace CommonUtils.Draggables {
 		[SerializeField] private bool freezeX;
 		[SerializeField] private bool freezeY;
 		[SerializeField] private bool freezeZ;
+
+		private void OnMouseDown() => this.DebugLog(() => $"Drag start on {name}.");
+
+		private void OnMouseUp() => this.DebugLog(() => $"Drag end on {name}.");
 
 		private void OnMouseDrag() {
 			var distanceToScreen = Camera.WorldToScreenPoint(transform.position).z;

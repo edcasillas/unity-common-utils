@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a7b3034b7cc540ccb064133fba78da4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  verbose: 0
+  verbose: 1
   defaultCamera: {fileID: 1907317963}
   freezeX: 0
   freezeY: 0
