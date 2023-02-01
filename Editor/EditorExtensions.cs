@@ -92,12 +92,6 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
-		[Obsolete("This variant of ReadonlyEnumerable is deprecated and will be removed in the near future. Please change this call to use the variant without generics.")]
-		public static bool ReadonlyEnumerable<T>(bool fold, IEnumerable<T> enumerable, string displayName) where T : Object => ReadonlyEnumerable(fold, (IEnumerable)enumerable, displayName);
-
-		[Obsolete("This variant of ReadonlyEnumerable is deprecated and will be removed in the near future. Please change this call to use the variant without generics.")]
-		public static bool ReadonlyEnumerable(bool fold, IEnumerable<string> enumerable, string displayName) => ReadonlyEnumerable(fold, (IEnumerable)enumerable, displayName);
-
 		/// <summary>
 		/// Creates a collapsible area.
 		/// </summary>
