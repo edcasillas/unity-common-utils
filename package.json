@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "displayName": "Common Utils for Unity",
   "description": "Common utility library for Unity projects",
-  "unity": "2018.4",
+  "unity": "2021.1",
   "author": {
     "name": "Ed Casillas",
     "email": "ed@exagames-studio.com",
     "url": "https://edu.itch.io"
-  }
+  },
+  "type": "library"
 }
