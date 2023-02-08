@@ -29,6 +29,10 @@ namespace CommonUtils.Extensions {
 			if (verbosable.IsVerbose) Debug.Log($"[{typeof(TVerbosable).Name}] {message}");
 		}
 
+		public static void DebugLogNoContext<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate) where TVerbosable : IVerbosable {
+			if (verbosable.IsVerbose) Debug.Log($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
+		}
+
 		/// <summary>
 		/// Writes a <paramref name="message"/> to the console if the <paramref name="verbosable"/> has its <see cref="IVerbosable.IsVerbose"/> property set to true.
 		/// </summary>
