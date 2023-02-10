@@ -1,3 +1,4 @@
+using CommonUtils.Extensions;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,13 +14,11 @@ namespace CommonUtils {
 
 		private static void onSceneUnloaded(Scene arg0) => cachedObjects.Clear();
 
-		public static T GetCachedComponent<T>(this GameObject gameObject) where T : Component =>
-			getComponentFrom<T>(gameObject);
+		public static T GetCachedComponent<T>(this GameObject gameObject) => getComponentFrom<T>(gameObject);
 
-		public static T GetCachedComponent<T>(this MonoBehaviour monoBehaviour) where T : Component
-			=> getComponentFrom<T>(monoBehaviour.gameObject);
+		public static T GetCachedComponent<T>(this MonoBehaviour monoBehaviour) => getComponentFrom<T>(monoBehaviour.gameObject);
 
-		private static T getComponentFrom<T>(GameObject go, bool addIfNotFound = false) where T : Component {
+		private static T getComponentFrom<T>(GameObject go) {
 			if (!go) return default;
 
 			var t = typeof(T);
@@ -27,9 +26,8 @@ namespace CommonUtils {
 			if (!cachedObjects.ContainsKey(go)) cachedObjects.Add(go, new Dictionary<Type, object>());
 			if (!cachedObjects[go].ContainsKey(t)) {
 				var component = go.GetComponent<T>();
-				if (!component && addIfNotFound) component = go.AddComponent<T>();
-				if (component) cachedObjects[go].Add(t, go.GetComponent<T>());
-				else return null;
+				if (!component.IsNullOrDestroyed()) cachedObjects[go].Add(t, component);
+				else return default;
 			}
 
 			return (T) cachedObjects[go][t];
