@@ -97,7 +97,7 @@ public class TextureScale
 		#if UNITY_2022_1_OR_NEWER
 		tex.Reinitialize(newWidth, newHeight);
 		#else
-		tex.Resize(newWidth, newHeight);
+		tex.Reinitialize(newWidth, newHeight);
 		#endif
 
 		tex.SetPixels(newColors);

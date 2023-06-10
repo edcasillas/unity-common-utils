@@ -7,7 +7,7 @@ using UnityEditor;
 #if UNITY_2022_1_OR_NEWER
 using UnityEditor.SceneManagement;
 #else
-using UnityEditor.Experimental.SceneManagement;
+
 #endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -139,7 +139,7 @@ namespace CommonUtils.Editor {
 		}
 
 		private static void refresh() {
-			var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+			var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
 			if (prefabStage) {
 				//Debug.Log("In prefab");
 				context = prefabStage;
@@ -155,10 +155,10 @@ namespace CommonUtils.Editor {
 
 		private static bool hasContextChanged() {
 			if (context == null || bindings == null || unmappedButtons == null) return true;
-			var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+			var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
 #if UNITY_2019_4_OR_NEWER
 			if (prefabStage) {
-				return (PrefabStage) context != prefabStage;
+				return (UnityEditor.SceneManagement.PrefabStage) context != prefabStage;
 			}
 #else
 			if (prefabStage) {
