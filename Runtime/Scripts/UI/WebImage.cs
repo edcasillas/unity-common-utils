@@ -1,4 +1,5 @@
 ﻿using CommonUtils.WebResources;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +22,8 @@ namespace CommonUtils.UI {
 				return _rawImage;
 			}
 		}
+		
+		private Texture cachedTexture2D { get; set; }
 		#endregion
 
 		public override void Load() {
@@ -28,7 +31,8 @@ namespace CommonUtils.UI {
 			WebLoader.LoadWebTexture(Url,
 				response => {
 					if (response.IsSuccess) {
-						rawImage.texture = response.Data;
+						cachedTexture2D = response.Data;
+						rawImage.texture = cachedTexture2D;
 						Status = DownloadStatus.Loaded;
 						OnResourceReady.Invoke();
 					} else {
@@ -36,6 +40,10 @@ namespace CommonUtils.UI {
 						Status = DownloadStatus.Error;
 					}
 				});
+		}
+
+		private void OnDestroy() {
+			if(cachedTexture2D) Destroy(cachedTexture2D);
 		}
 	}
 }
