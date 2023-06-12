@@ -4,11 +4,6 @@ using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers;
 using UnityEditor;
-#if UNITY_2022_1_OR_NEWER
-using UnityEditor.SceneManagement;
-#else
-
-#endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -139,7 +134,11 @@ namespace CommonUtils.Editor {
 		}
 
 		private static void refresh() {
+			#if UNITY_2021_2_OR_NEWER
 			var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+			#else
+			var prefabStage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+			#endif
 			if (prefabStage) {
 				//Debug.Log("In prefab");
 				context = prefabStage;
@@ -155,10 +154,20 @@ namespace CommonUtils.Editor {
 
 		private static bool hasContextChanged() {
 			if (context == null || bindings == null || unmappedButtons == null) return true;
+
+			#if UNITY_2021_2_OR_NEWER
 			var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-#if UNITY_2019_4_OR_NEWER
+			#else
+			var prefabStage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+			#endif
+
+#if UNITY_2021_2_OR_NEWER
 			if (prefabStage) {
 				return (UnityEditor.SceneManagement.PrefabStage) context != prefabStage;
+			}
+#elif UNITY_2019_4_OR_NEWER
+			if (prefabStage) {
+				return (UnityEditor.Experimental.SceneManagement.PrefabStage) context != prefabStage;
 			}
 #else
 			if (prefabStage) {
