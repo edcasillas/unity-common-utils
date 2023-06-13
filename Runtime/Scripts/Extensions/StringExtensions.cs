@@ -13,6 +13,12 @@ namespace CommonUtils.Extensions {
 			Debug.Log($"Text {input} has been copied to clipboard.");
 		}
 
+		public static string GetFromClipboard() {
+			var textEditor = new TextEditor();
+			textEditor.Paste();
+			return textEditor.text;
+		}
+
 		/// <summary>
 		/// Returns a string with the specified count of white spaces.
 		/// </summary>
