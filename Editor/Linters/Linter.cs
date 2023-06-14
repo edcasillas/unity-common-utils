@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -17,38 +16,39 @@ namespace CommonUtils.Editor.Linters
 
 		private static void onCompilationStarted(object obj) {
 			// Get the list of modified C# files in the local branch
-			var modifiedFiles = getModifiedCSharpFiles();
-
+			var modifiedFiles = GetModifiedCSharpFiles();
 			Debug.Log($"Will analyze {modifiedFiles.Length} files: {string.Join(",", modifiedFiles)}");
 		}
 		
 		private static string[] getAllFilesInProject() => Directory.GetFiles(Application.dataPath, "*.cs", SearchOption.AllDirectories);
 		
-		/// <summary>
-		/// Execute Git command to get a list of modified C# files in the local branch
-		/// </summary>
-		private static string[] getModifiedCSharpFiles()
+		private static string[] GetModifiedCSharpFiles()
 		{
-			var output = ExecuteGitCommand("diff --name-only --diff-filter=ACMRTUXB `git rev-parse --abbrev-ref --symbolic-full-name @{u}`...HEAD -- '*.cs'");
-			Debug.Log($"Git got '{output}'");
-			var filePaths = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-			return filePaths;
-		}
-		
-		private static string ExecuteGitCommand(string command)
-		{
-			// Execute a Git command and return the output
-			var processInfo = new System.Diagnostics.ProcessStartInfo("git", command)
+			var modifiedFiles = new List<string>();
+
+			// Execute Git command to get a list of modified C# files in the local branch
+			var processInfo = new System.Diagnostics.ProcessStartInfo("git", "diff --name-only")
 			{
 				RedirectStandardOutput = true,
 				UseShellExecute = false,
 				CreateNoWindow = true
 			};
 
-			var process = System.Diagnostics.Process.Start(processInfo);
-			string output = process.StandardOutput.ReadToEnd();
+			var process = new System.Diagnostics.Process();
+			process.StartInfo = processInfo;
+			process.OutputDataReceived += (sender, e) =>
+			{
+				if (!string.IsNullOrEmpty(e.Data))
+				{
+					modifiedFiles.Add(e.Data);
+				}
+			};
+
+			process.Start();
+			process.BeginOutputReadLine();
 			process.WaitForExit();
-			return output;
+
+			return modifiedFiles.ToArray();
 		}
 	}
 	
