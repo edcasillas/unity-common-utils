@@ -84,7 +84,6 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 #else
         public int TabIndex { get; set; }
         public bool HasFocus { get; set; }
-        bool IsInteractable() => false;
 #endif
     }
 }
