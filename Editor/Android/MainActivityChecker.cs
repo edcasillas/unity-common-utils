@@ -28,7 +28,6 @@ namespace CommonUtils.Editor.Android {
 
 			if (GUILayout.Button("Get Main Activity Name")) {
 				if (File.Exists(manifestPath)) {
-					Debug.Log($"Analyzing '{manifestPath}'");
 					mainActivityName = AndroidManifestParser.GetMainActivityName(manifestPath);
 					if (string.IsNullOrEmpty(mainActivityName)) {
 						EditorUtility.DisplayDialog("Check Main Activity", "Main activity not found!", "Ok");
@@ -42,6 +41,7 @@ namespace CommonUtils.Editor.Android {
 
 			EditorGUILayout.LabelField("Main Activity Name", EditorStyles.boldLabel);
 			EditorGUILayout.TextField(mainActivityName);
+			if (GUILayout.Button("Clear")) mainActivityName = string.Empty;
 
 			EditorGUILayout.Space();
 		}

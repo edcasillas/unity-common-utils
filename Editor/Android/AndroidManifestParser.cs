@@ -3,23 +3,18 @@ using System.Xml;
 namespace CommonUtils.Editor.Android {
 	public class AndroidManifestParser {
 		public static string GetMainActivityName(string manifestPath) {
-			XmlDocument manifestXml = new XmlDocument();
+			var manifestXml = new XmlDocument();
 			manifestXml.Load(manifestPath);
 
-			XmlNamespaceManager namespaceManager = new XmlNamespaceManager(manifestXml.NameTable);
+			var namespaceManager = new XmlNamespaceManager(manifestXml.NameTable);
+			namespaceManager.AddNamespace("x", "urn:AndroidManifest-schema");
 			namespaceManager.AddNamespace("android", "http://schemas.android.com/apk/res/android");
 
-			XmlNode activityNode = manifestXml.SelectSingleNode(
-				"//activity[intent-filter/action[@android:name='android.intent.action.MAIN']]",
-				namespaceManager);
-			if (activityNode != null) {
-				XmlAttribute activityNameAttribute = activityNode.Attributes["android:name"];
-				if (activityNameAttribute != null) {
-					string activityName = activityNameAttribute.Value;
-					if (!string.IsNullOrEmpty(activityName)) {
-						return activityName;
-					}
-				}
+			var activityNode = manifestXml.SelectSingleNode("//activity[intent-filter/action[@android:name='android.intent.action.MAIN']]", namespaceManager);
+			var activityNameAttribute = activityNode?.Attributes?["android:name"];
+			var activityName = activityNameAttribute?.Value;
+			if (!string.IsNullOrEmpty(activityName)) {
+				return activityName;
 			}
 
 			// Fallback to the default main activity name defined by Unity
