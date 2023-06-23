@@ -151,5 +151,12 @@ namespace CommonUtils.Editor {
 			EditorGUILayout.ObjectField(label, MonoScript.FromMonoBehaviour(target), target.GetType(), false);
 			GUI.enabled = true;
 		}
+		
+		public static void ShowLoadingSpinner(this EditorWindow editorWindow, string label) {
+			EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+			var spinnerRect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth, EditorGUIUtility.singleLineHeight);
+			EditorGUI.ProgressBar(spinnerRect, -1f, string.Empty);
+			editorWindow.Repaint();
+		}
 	}
 }
