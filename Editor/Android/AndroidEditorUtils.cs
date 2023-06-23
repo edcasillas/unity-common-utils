@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Android;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace CommonUtils.Editor.Android {
 	public static class AndroidEditorUtils {
@@ -65,7 +66,12 @@ namespace CommonUtils.Editor.Android {
 				var split = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 				if (split.Length >= 4) {
 					var id = split[0];
-					var model = split[4].Replace("model:", string.Empty).Replace("_", " ");
+					string model = string.Empty;
+					for (int i = 1; i < split.Length; i++) {
+						if (split[i].StartsWith("model:")) {
+							model = split[i].Replace("model:", string.Empty).Replace("_", " ");
+						}
+					}
 					devices[id] = model;
 				}
 			}
@@ -75,29 +81,36 @@ namespace CommonUtils.Editor.Android {
 			return devices;
 		}
 
-		public static string DeviceSelector(string selectedDevice, Dictionary<string, string> deviceList) {
-			if (deviceList.IsNullOrEmpty()) {
+		public static KeyValuePair<string, string> DeviceSelector(KeyValuePair<string, string> selectedDevice, Dictionary<string, string> deviceList)
+		{
+			if (deviceList.IsNullOrEmpty())
+			{
 				EditorGUILayout.HelpBox("No Android devices are connected", MessageType.Warning);
-				return null;
+				return default;
 			}
 
-			var deviceArray = convertDictionaryToArray(deviceList);
-			var selectedIndex = string.IsNullOrEmpty(selectedDevice) ? 0 : Array.IndexOf(deviceArray, selectedDevice);
+			var deviceArray = ConvertDictionaryToArray(deviceList);
+			var selectedIndex = string.IsNullOrEmpty(selectedDevice.Key) ? 0 : Array.IndexOf(deviceArray, $"{selectedDevice.Value} ({selectedDevice.Key})");
 			if (selectedIndex < 0) selectedIndex = 0;
 			var newIndex = EditorGUILayout.Popup("Select Device", selectedIndex, deviceArray);
-			return deviceList.ElementAt(newIndex).Key;
+			var selectedKey = deviceList.ElementAt(newIndex).Key;
+			deviceList.TryGetValue(selectedKey, out var selectedValue);
+			return new KeyValuePair<string, string>(selectedKey, selectedValue);
 		}
 
-		private static string[] convertDictionaryToArray(Dictionary<string, string> dictionary) {
+		private static string[] ConvertDictionaryToArray(Dictionary<string, string> dictionary)
+		{
 			var array = new string[dictionary.Count];
 			var index = 0;
-			foreach (var pair in dictionary) {
+			foreach (var pair in dictionary)
+			{
 				array[index] = $"{pair.Value} ({pair.Key})";
 				index++;
 			}
 
 			return array;
 		}
+
 
 	}
 }

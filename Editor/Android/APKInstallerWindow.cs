@@ -2,158 +2,189 @@ using UnityEditor;
 using UnityEngine;
 using System.Diagnostics;
 using System;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Collections.Generic;
 using Debug = UnityEngine.Debug;
 
-namespace CommonUtils.Editor.Android {
-	public class APKInstallerWindow : EditorWindow {
-		private const string menuPath = "Tools/Android/Install APK...";
+namespace CommonUtils.Editor.Android
+{
+    public class APKInstallerWindow : EditorWindow
+    {
+        private const string menuPath = "Tools/Android/Install APK...";
 
-		private string selectedDevice = string.Empty;
-		private string apkPath = string.Empty;
-		private bool isInstalling = false;
-		private bool installationSuccess = false;
+        private string selectedDeviceId = string.Empty;
+        private string selectedDeviceName = string.Empty;
+        private string apkPath = string.Empty;
+        private bool isInstalling = false;
+        private bool installationSuccess = false;
 
-		[MenuItem(menuPath)]
-		private static void openWindow() {
-			var window = GetWindow<APKInstallerWindow>();
-			window.titleContent = new GUIContent("Install APK");
-			window.minSize = new Vector2(400f, 200f);
-			window.Show();
-		}
+        [MenuItem(menuPath)]
+        private static void openWindow()
+        {
+            var window = GetWindow<APKInstallerWindow>();
+            window.titleContent = new GUIContent("Install APK");
+            window.minSize = new Vector2(400f, 200f);
+            window.Show();
+        }
 
-		private void OnGUI() {
-			EditorGUILayout.Space();
+        private void OnGUI()
+        {
+            EditorGUILayout.Space();
 
-			if (!AndroidEditorUtils.IsADBInstalled()) {
-				EditorGUILayout.HelpBox(
-					"ADB is not installed. Please make sure Android SDK is correctly installed and configured.",
-					MessageType.Error);
-				return;
-			}
+            if (!AndroidEditorUtils.IsADBInstalled())
+            {
+                EditorGUILayout.HelpBox(
+                    "ADB is not installed. Please make sure Android SDK is correctly installed and configured.",
+                    MessageType.Error);
+                return;
+            }
 
-			var connectedDevices = AndroidEditorUtils.GetConnectedDevices();
-			selectedDevice = AndroidEditorUtils.DeviceSelector(selectedDevice, connectedDevices);
-			drawAPKField();
-			drawInstallButton();
-			drawCancelButton();
-		}
-		
-		private void drawAPKField() {
-			EditorGUILayout.LabelField("APK", EditorStyles.boldLabel);
+            var connectedDevices = AndroidEditorUtils.GetConnectedDevices();
+            var selectedDevice = new KeyValuePair<string, string>(selectedDeviceId, selectedDeviceName);
+            selectedDevice = AndroidEditorUtils.DeviceSelector(selectedDevice, connectedDevices);
+            selectedDeviceId = selectedDevice.Key;
+            selectedDeviceName = selectedDevice.Value;
 
-			EditorGUILayout.BeginHorizontal();
+            drawAPKField();
+            drawInstallButton();
+            drawCancelButton();
+        }
 
-			apkPath = EditorGUILayout.TextField(apkPath);
+        private void drawAPKField()
+        {
+            EditorGUILayout.LabelField("APK", EditorStyles.boldLabel);
 
-			if (GUILayout.Button("Browse", GUILayout.Width(80))) {
-				apkPath = EditorUtility.OpenFilePanel("Select APK", "", "apk");
-			}
+            EditorGUILayout.BeginHorizontal();
 
-			EditorGUILayout.EndHorizontal();
+            apkPath = EditorGUILayout.TextField(apkPath);
 
-			EditorGUILayout.Space();
-		}
+            if (GUILayout.Button("Browse", GUILayout.Width(80)))
+            {
+                apkPath = EditorUtility.OpenFilePanel("Select APK", "", "apk");
+            }
 
-		private void drawInstallButton() {
-			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(selectedDevice) || string.IsNullOrEmpty(apkPath));
+            EditorGUILayout.EndHorizontal();
 
-			EditorGUILayout.Space();
+            EditorGUILayout.Space();
+        }
 
-			if (isInstalling) {
-				EditorGUILayout.LabelField("Installing APK...", EditorStyles.boldLabel);
-			} else {
-				if (GUILayout.Button("Install", GUILayout.Height(30))) {
-					installAPKAsync();
-				}
-			}
+        private void drawInstallButton()
+        {
+            EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(selectedDeviceId) || string.IsNullOrEmpty(apkPath));
 
-			EditorGUI.EndDisabledGroup();
-		}
+            EditorGUILayout.Space();
 
-		private void drawCancelButton() {
-			if(!isInstalling) return;
+            if (isInstalling)
+            {
+                EditorGUILayout.LabelField($"Installing {Path.GetFileName(apkPath)} on {selectedDeviceName}...", EditorStyles.boldLabel);
+            }
+            else
+            {
+                if (GUILayout.Button($"Install {Path.GetFileName(apkPath)}", GUILayout.Height(30)))
+                {
+                    installAPKAsync();
+                }
+            }
 
-			EditorGUILayout.Space();
+            EditorGUI.EndDisabledGroup();
+        }
 
-			if (GUILayout.Button("Cancel", GUILayout.Height(30))) {
-				// Cancel installation
-				isInstalling = false;
-				installationSuccess = false;
+        private void drawCancelButton()
+        {
+            if (!isInstalling) return;
 
-				// Kill the ADB process if it's still running
-				killADBProcess();
-			}
-		}
+            EditorGUILayout.Space();
 
-		private async void installAPKAsync() {
-			isInstalling = true;
-			installationSuccess = false;
+            if (GUILayout.Button("Cancel", GUILayout.Height(30)))
+            {
+                // Cancel installation
+                isInstalling = false;
+                installationSuccess = false;
 
-			var command = $"-s {selectedDevice} install -r \"{apkPath}\"";
-			var startInfo = new ProcessStartInfo {
-				FileName = AndroidEditorUtils.ADBPath,
-				Arguments = command,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true,
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				WindowStyle = ProcessWindowStyle.Hidden
-			};
+                // Kill the ADB process if it's still running
+                killADBProcess();
+            }
+        }
 
-			var installOutput = new StringBuilder();
-			installOutput.AppendLine($"adb {command}");
+        private async void installAPKAsync()
+        {
+            isInstalling = true;
+            installationSuccess = false;
 
-			try {
-				await Task.Run(() => {
-					using (var process = new Process()) {
-						process.StartInfo = startInfo;
-						process.OutputDataReceived += (_, e) => {
-							installOutput.AppendLine(e.Data);
-						};
+            var command = $"-s {selectedDeviceId} install -r \"{apkPath}\"";
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = AndroidEditorUtils.ADBPath,
+                Arguments = command,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
 
-						process.Start();
-						process.BeginOutputReadLine();
+            var installOutput = new System.Text.StringBuilder();
+            installOutput.AppendLine($"adb {command}");
+            var exitCode = 0;
 
-						process.WaitForExit();
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    using (var process = new Process())
+                    {
+                        process.StartInfo = startInfo;
+                        process.OutputDataReceived += (_, e) =>
+                        {
+                            installOutput.AppendLine(e.Data);
+                        };
 
-						// Check the exit code to determine if the installation was successful
-						installationSuccess = process.ExitCode == 0;
-					}
-				});
-			} catch (Exception exception) {
-				isInstalling = false;
-				showInstallationResult(false, $"An error occurred: {exception.Message}");
-			} finally {
-				isInstalling = false;
-				Debug.Log(installOutput.ToString());
-				showInstallationResult(installationSuccess, null);
-			}
-		}
+                        process.Start();
+                        process.BeginOutputReadLine();
 
-		private void showInstallationResult(bool success, string message) {
-			var resultMessage = success ? "APK installation succeeded." : "APK installation failed.";
-			if (!string.IsNullOrEmpty(message)) {
-				resultMessage += Environment.NewLine + message;
-			}
+                        process.WaitForExit();
 
-			EditorUtility.DisplayDialog("APK Installation", resultMessage, "OK");
-		}
+                        // Check the exit code to determine if the installation was successful
+                        installationSuccess = process.ExitCode == 0;
+                        exitCode = process.ExitCode;
+                    }
+                });
+                showInstallationResult(installationSuccess,
+                    installationSuccess ?
+                        $"{Path.GetFileName(apkPath)} was successfully installed on {selectedDeviceName}" :
+                        $"Could not install {Path.GetFileName(apkPath)} on {selectedDeviceName}. Exit code = {exitCode}");
+            }
+            catch (Exception exception)
+            {
+                showInstallationResult(false, $"An error occurred: {exception.Message}");
+            }
+            finally
+            {
+                isInstalling = false;
+                Debug.Log(installOutput.ToString());
+            }
+        }
 
-		private void killADBProcess() {
-			var startInfo = new ProcessStartInfo {
-				FileName = AndroidEditorUtils.ADBPath,
-				Arguments = "kill-server",
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				WindowStyle = ProcessWindowStyle.Hidden
-			};
+        private void showInstallationResult(bool success, string message) =>
+            EditorUtility.DisplayDialog(success ? "APK installation succeeded." : "APK installation failed.",
+                message,
+                "OK");
 
-			var process = new Process();
-			process.StartInfo = startInfo;
-			process.Start();
-			process.WaitForExit();
-		}
-	}
+        private static void killADBProcess()
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = AndroidEditorUtils.ADBPath,
+                Arguments = "kill-server",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            var process = new Process();
+            process.StartInfo = startInfo;
+            process.Start();
+            process.WaitForExit();
+        }
+    }
 }
