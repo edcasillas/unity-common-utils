@@ -2,65 +2,49 @@ using CommonUtils.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Android;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
-namespace CommonUtils.Editor.Android
-{
-    public static class AndroidEditorUtils
-    {
-        public static bool IsADBInstalled()
-        {
-            var adbPath = GetADBPath();
-            if (string.IsNullOrEmpty(adbPath))
-                return false;
+namespace CommonUtils.Editor.Android {
+	public static class AndroidEditorUtils {
+		public static string ADBPath => Path.Combine(AndroidExternalToolsSettings.sdkRootPath, "platform-tools", getADBExecutableName());
+		
+		public static bool IsADBInstalled() {
+			var adbPath = ADBPath;
+			if (string.IsNullOrEmpty(adbPath))
+				return false;
 
-            var process = new Process();
-            process.StartInfo.FileName = adbPath;
-            process.StartInfo.Arguments = "version";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
+			var process = new Process();
+			process.StartInfo.FileName = adbPath;
+			process.StartInfo.Arguments = "version";
+			process.StartInfo.RedirectStandardOutput = true;
+			process.StartInfo.RedirectStandardError = true;
+			process.StartInfo.UseShellExecute = false;
+			process.StartInfo.CreateNoWindow = true;
 
-            process.Start();
-            process.WaitForExit();
+			process.Start();
+			process.WaitForExit();
 
-            var exitCode = process.ExitCode;
-            process.Close();
+			var exitCode = process.ExitCode;
+			process.Close();
 
-            return exitCode == 0;
-        }
+			return exitCode == 0;
+		}
 
-        public static string GetADBPath()
-        {
-            var androidSdkRoot = AndroidExternalToolsSettings.sdkRootPath;
-            if (string.IsNullOrEmpty(androidSdkRoot))
-            {
-                Debug.LogError("Android SDK path not found. Make sure the path is set in Unity preferences (External Tools).");
-                return null;
-            }
-
-            var adbPath = androidSdkRoot + "/platform-tools/adb";
-            if (Application.platform == RuntimePlatform.WindowsEditor)
-                adbPath += ".exe";
-
-            if (!System.IO.File.Exists(adbPath))
-            {
-                Debug.LogError("ADB executable not found. Make sure the Android SDK is installed correctly.");
-                return null;
-            }
-
-            return adbPath;
-        }
+		private static string getADBExecutableName() => Application.platform switch {
+			RuntimePlatform.WindowsEditor => "adb.exe",
+			RuntimePlatform.OSXEditor => "adb",
+			RuntimePlatform.LinuxEditor => "adb",
+			_ => throw new NotSupportedException("Unsupported platform."),
+		};
 
 		public static Dictionary<string, string> GetConnectedDevices() {
 			var devices = new Dictionary<string, string>();
 
-			var adbPath = GetADBPath();
+			var adbPath = ADBPath;
 			if (string.IsNullOrEmpty(adbPath))
 				return devices;
 
@@ -96,11 +80,11 @@ namespace CommonUtils.Editor.Android
 				EditorGUILayout.HelpBox("No Android devices are connected", MessageType.Warning);
 				return null;
 			}
-			
+
 			var deviceArray = convertDictionaryToArray(deviceList);
 			var selectedIndex = string.IsNullOrEmpty(selectedDevice) ? 0 : Array.IndexOf(deviceArray, selectedDevice);
 			if (selectedIndex < 0) selectedIndex = 0;
-            var newIndex = EditorGUILayout.Popup("Select Device", selectedIndex, deviceArray);
+			var newIndex = EditorGUILayout.Popup("Select Device", selectedIndex, deviceArray);
 			return deviceList.ElementAt(newIndex).Key;
 		}
 
