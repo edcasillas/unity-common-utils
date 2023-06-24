@@ -100,7 +100,7 @@ namespace CommonUtils.Editor.Android {
                 installationSuccess = false;
 
                 // Kill the ADB process if it's still running
-                killADBProcess();
+                ADBUtils.KillADBProcess();
             }
         }
 
@@ -109,7 +109,7 @@ namespace CommonUtils.Editor.Android {
             installationSuccess = false;
 
             var command = $"-s {selectedDeviceId} install -r{(forceOverride ? " -d" : "")} \"{apkPath}\"";
-            var installOutput = await RunADBCommandAsync(command);
+            var installOutput = await ADBUtils.RunADBCommandAsync(command);
 
             installationSuccess = installOutput.exitCode == 0;
 
@@ -143,34 +143,6 @@ namespace CommonUtils.Editor.Android {
             Debug.Log(string.Join("\n\n", installOutputs.Select(output => output.output)));
         }
 
-		private async Task<(string output, int exitCode)> RunADBCommandAsync(string command) => await Task.Run(() => {
-			var startInfo = new ProcessStartInfo {
-				FileName = ADBUtils.ADBPath,
-				Arguments = command,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true,
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				WindowStyle = ProcessWindowStyle.Hidden
-			};
-
-			using var process = new Process();
-			process.StartInfo = startInfo;
-
-			var output = new System.Text.StringBuilder();
-			process.OutputDataReceived += (_, e) => {
-				output.AppendLine(e.Data);
-			};
-
-			process.Start();
-			process.BeginOutputReadLine();
-			process.WaitForExit();
-
-			var exitCode = process.ExitCode;
-
-			return (output.ToString(), exitCode);
-		});
-
 		private async Task<List<(string output, int exitCode, string deviceName)>> RunADBCommandsAsync(List<string> commands, List<string> deviceNames) {
             var outputs = new List<(string output, int exitCode, string deviceName)>();
 
@@ -178,7 +150,7 @@ namespace CommonUtils.Editor.Android {
                 var command = commands[i];
                 var deviceName = deviceNames[i];
 
-                var output = await RunADBCommandAsync(command);
+                var output = await ADBUtils.RunADBCommandAsync(command);
                 outputs.Add((output.output, output.exitCode, deviceName));
             }
 
@@ -196,20 +168,5 @@ namespace CommonUtils.Editor.Android {
 
             EditorUtility.DisplayDialog("APK Installation", resultMessage, "OK");
         }
-
-        private static void killADBProcess() {
-            var startInfo = new ProcessStartInfo {
-                FileName = ADBUtils.ADBPath,
-                Arguments = "kill-server",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
-
-            var process = new Process();
-            process.StartInfo = startInfo;
-            process.Start();
-            process.WaitForExit();
-        }
-    }
+	}
 }

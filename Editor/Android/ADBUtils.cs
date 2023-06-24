@@ -2,68 +2,41 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEditor.Android;
 using UnityEngine;
 
 namespace CommonUtils.Editor.Android {
-	public static class ADBUtils {
-		public static string ADBPath => Path.Combine(AndroidExternalToolsSettings.sdkRootPath, "platform-tools", getADBExecutableName());
-		
-		public static bool IsADBInstalled() {
-			var adbPath = ADBPath;
-			if (string.IsNullOrEmpty(adbPath))
-				return false;
+    public static class ADBUtils {
+        private static string adbPath => Path.Combine(AndroidExternalToolsSettings.sdkRootPath, "platform-tools", getADBExecutableName());
 
-			var process = new Process();
-			process.StartInfo.FileName = adbPath;
-			process.StartInfo.Arguments = "version";
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.RedirectStandardError = true;
-			process.StartInfo.UseShellExecute = false;
-			process.StartInfo.CreateNoWindow = true;
+        public static bool IsADBInstalled() {
+            var adb = adbPath;
+            if (string.IsNullOrEmpty(adb))
+                return false;
 
-			process.Start();
-			process.WaitForExit();
+            var (_, exitCode) = runADBCommand("version");
+            return exitCode == 0;
+        }
 
-			var exitCode = process.ExitCode;
-			process.Close();
+        public static Dictionary<string, string> GetConnectedDevices() {
+            var devices = new Dictionary<string, string>();
 
-			return exitCode == 0;
-		}
-		
-		private static string getADBExecutableName() => Application.platform switch {
-			RuntimePlatform.WindowsEditor => "adb.exe",
-			RuntimePlatform.OSXEditor => "adb",
-			RuntimePlatform.LinuxEditor => "adb",
-			_ => throw new NotSupportedException("Unsupported platform."),
-		};
-		
-		public static Dictionary<string, string> GetConnectedDevices() {
-			var devices = new Dictionary<string, string>();
+            var adbPath = ADBUtils.adbPath;
+            if (string.IsNullOrEmpty(adbPath))
+                return devices;
 
-			var adbPath = ADBPath;
-			if (string.IsNullOrEmpty(adbPath))
-				return devices;
+            var (output, _) = runADBCommand("devices -l");
 
-			var process = new Process();
-			process.StartInfo.FileName = adbPath;
-			process.StartInfo.Arguments = "devices -l";
-			process.StartInfo.RedirectStandardOutput = true;
-			process.StartInfo.RedirectStandardError = true;
-			process.StartInfo.UseShellExecute = false;
-			process.StartInfo.CreateNoWindow = true;
-
-			process.Start();
-			process.WaitForExit();
-
-			while (!process.StandardOutput.EndOfStream) {
-				var line = process.StandardOutput.ReadLine();
+			using var reader = new StringReader(output);
+			string line;
+			while ((line = reader.ReadLine()) != null) {
 				if (string.IsNullOrWhiteSpace(line) || line == "List of devices attached") continue;
 				var split = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 				if (split.Length >= 4) {
 					var id = split[0];
-					string model = string.Empty;
-					for (int i = 1; i < split.Length; i++) {
+					var model = string.Empty;
+					for (var i = 1; i < split.Length; i++) {
 						if (split[i].StartsWith("model:")) {
 							model = split[i].Replace("model:", string.Empty).Replace("_", " ");
 						}
@@ -72,9 +45,90 @@ namespace CommonUtils.Editor.Android {
 				}
 			}
 
-			process.Close();
-
 			return devices;
+        }
+
+        public static async Task<(string output, int exitCode)> RunADBCommandAsync(string command) => await Task.Run(() => {
+			var startInfo = new ProcessStartInfo {
+				FileName = ADBUtils.adbPath,
+				Arguments = command,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				WindowStyle = ProcessWindowStyle.Hidden
+			};
+
+			using var process = new Process();
+			process.StartInfo = startInfo;
+
+			var output = new System.Text.StringBuilder();
+			process.OutputDataReceived += (_, e) => {
+				output.AppendLine(e.Data);
+			};
+
+			process.Start();
+			process.BeginOutputReadLine();
+			process.WaitForExit();
+
+			var exitCode = process.ExitCode;
+
+			return (output.ToString(), exitCode);
+		});
+
+		public static void KillADBProcess() {
+            var startInfo = new ProcessStartInfo {
+                FileName = adbPath,
+                Arguments = "kill-server",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            runProcess(startInfo);
+        }
+
+        private static void runProcess(ProcessStartInfo startInfo) {
+            using (var process = new Process()) {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+            }
+        }
+
+        private static (string output, int exitCode) runADBCommand(string command) {
+            var startInfo = new ProcessStartInfo {
+                FileName = adbPath,
+                Arguments = command,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+			using var process = new Process();
+			process.StartInfo = startInfo;
+
+			var output = new System.Text.StringBuilder();
+			process.OutputDataReceived += (_, e) => {
+				output.AppendLine(e.Data);
+			};
+
+			process.Start();
+			process.BeginOutputReadLine();
+			process.WaitForExit();
+
+			var exitCode = process.ExitCode;
+
+			return (output.ToString(), exitCode);
 		}
-	}
+
+        private static string getADBExecutableName() => Application.platform switch {
+            RuntimePlatform.WindowsEditor => "adb.exe",
+            RuntimePlatform.OSXEditor => "adb",
+            RuntimePlatform.LinuxEditor => "adb",
+            _ => throw new NotSupportedException("Unsupported platform."),
+        };
+    }
 }
