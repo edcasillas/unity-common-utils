@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 
 namespace CommonUtils.Editor.Android {
@@ -30,14 +31,14 @@ namespace CommonUtils.Editor.Android {
         private void OnGUI() {
             EditorGUILayout.Space();
 
-            if (!AndroidEditorUtils.IsADBInstalled()) {
+            if (!ADBUtils.IsADBInstalled()) {
                 EditorGUILayout.HelpBox(
                     "ADB is not installed. Please make sure Android SDK is correctly installed and configured.",
                     MessageType.Error);
                 return;
             }
 
-            var connectedDevices = AndroidEditorUtils.GetConnectedDevices();
+            var connectedDevices = ADBUtils.GetConnectedDevices();
             var selectedDevice = new KeyValuePair<string, string>(selectedDeviceId, selectedDeviceName);
             selectedDevice = AndroidEditorUtils.DeviceSelector(selectedDevice, connectedDevices);
             selectedDeviceId = selectedDevice.Key;
@@ -50,7 +51,7 @@ namespace CommonUtils.Editor.Android {
 
             drawInstallButton();
             drawCancelButton();
-		}
+        }
 
         private void drawAPKField() {
             EditorGUILayout.LabelField("APK", EditorStyles.boldLabel);
@@ -74,8 +75,8 @@ namespace CommonUtils.Editor.Android {
             EditorGUILayout.Space();
 
             if (isInstalling) {
-				this.ShowLoadingSpinner($"Installing {Path.GetFileName(apkPath)}{(installOnAllDevices ? " on all devices" : "")}...");
-			} else {
+                this.ShowLoadingSpinner($"Installing {Path.GetFileName(apkPath)}{(installOnAllDevices ? " on all devices" : "")}...");
+            } else {
                 if (GUILayout.Button($"Install {Path.GetFileName(apkPath)}{(installOnAllDevices ? " on all devices" : "")}", GUILayout.Height(30))) {
                     if (installOnAllDevices) {
                         InstallAPKOnAllDevicesAsync();
@@ -108,112 +109,80 @@ namespace CommonUtils.Editor.Android {
             installationSuccess = false;
 
             var command = $"-s {selectedDeviceId} install -r{(forceOverride ? " -d" : "")} \"{apkPath}\"";
-            var startInfo = new ProcessStartInfo {
-                FileName = AndroidEditorUtils.ADBPath,
-                Arguments = command,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
+            var installOutput = await RunADBCommandAsync(command);
 
-            var installOutput = new System.Text.StringBuilder();
-            installOutput.AppendLine($"adb {command}");
-            var exitCode = 0;
+            installationSuccess = installOutput.exitCode == 0;
 
-            try {
-                await System.Threading.Tasks.Task.Run(() => {
-                    using (var process = new Process()) {
-                        process.StartInfo = startInfo;
-                        process.OutputDataReceived += (_, e) => {
-                            installOutput.AppendLine(e.Data);
-                        };
+            var resultMessage = installationSuccess
+                ? $"{Path.GetFileName(apkPath)} was successfully installed on {selectedDeviceName}"
+                : $"Could not install {Path.GetFileName(apkPath)} on {selectedDeviceName}. Exit code = {installOutput.exitCode}";
 
-                        process.Start();
-                        process.BeginOutputReadLine();
-
-                        process.WaitForExit();
-
-                        // Check the exit code to determine if the installation was successful
-                        installationSuccess = process.ExitCode == 0;
-                        exitCode = process.ExitCode;
-                    }
-                });
-                showInstallationResult(installationSuccess,
-                    installationSuccess ? $"{Path.GetFileName(apkPath)} was successfully installed on {selectedDeviceName}" : $"Could not install {Path.GetFileName(apkPath)} on {selectedDeviceName}. Exit code = {exitCode}",
-                    new List<string> { selectedDeviceName });
-            } catch (Exception exception) {
-                showInstallationResult(false, $"An error occurred: {exception.Message}");
-            } finally {
-                isInstalling = false;
-                Debug.Log(installOutput.ToString());
-            }
+            showInstallationResult(installationSuccess, resultMessage, new List<string> { selectedDeviceName });
+            isInstalling = false;
+            Debug.Log(installOutput.output);
         }
 
         private async void InstallAPKOnAllDevicesAsync() {
             isInstalling = true;
             installationSuccess = false;
 
-            var connectedDevices = AndroidEditorUtils.GetConnectedDevices();
-            var commands = new List<string>();
+            var connectedDevices = ADBUtils.GetConnectedDevices();
+            var commands = connectedDevices.Select(device => $"-s {device.Key} install -r{(forceOverride ? " -d" : "")} \"{apkPath}\"").ToList();
+            var installOutputs = await RunADBCommandsAsync(commands, connectedDevices.Values.ToList());
 
-            foreach (var device in connectedDevices) {
-                var deviceId = device.Key;
-                var command = $"-s {deviceId} install -r{(forceOverride ? " -d" : "")} \"{apkPath}\"";
-                commands.Add(command);
+            var exitCodes = installOutputs.ToDictionary(output => output.deviceName, output => output.exitCode);
+
+            var successDevices = exitCodes.Where(kv => kv.Value == 0).Select(kv => kv.Key).ToList();
+            var failureDevices = exitCodes.Where(kv => kv.Value != 0).Select(kv => kv.Key).ToList();
+
+            var successMessage = $"{Path.GetFileName(apkPath)} was successfully installed on all devices:\n{string.Join("\n", successDevices)}";
+            var failureMessage = $"Could not install {Path.GetFileName(apkPath)} on some devices. Devices:\n{string.Join("\n", failureDevices)}";
+            showInstallationResult(failureDevices.Count == 0, failureDevices.Count == 0 ? successMessage : failureMessage, successDevices);
+
+            isInstalling = false;
+            Debug.Log(string.Join("\n\n", installOutputs.Select(output => output.output)));
+        }
+
+		private async Task<(string output, int exitCode)> RunADBCommandAsync(string command) => await Task.Run(() => {
+			var startInfo = new ProcessStartInfo {
+				FileName = ADBUtils.ADBPath,
+				Arguments = command,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				WindowStyle = ProcessWindowStyle.Hidden
+			};
+
+			using var process = new Process();
+			process.StartInfo = startInfo;
+
+			var output = new System.Text.StringBuilder();
+			process.OutputDataReceived += (_, e) => {
+				output.AppendLine(e.Data);
+			};
+
+			process.Start();
+			process.BeginOutputReadLine();
+			process.WaitForExit();
+
+			var exitCode = process.ExitCode;
+
+			return (output.ToString(), exitCode);
+		});
+
+		private async Task<List<(string output, int exitCode, string deviceName)>> RunADBCommandsAsync(List<string> commands, List<string> deviceNames) {
+            var outputs = new List<(string output, int exitCode, string deviceName)>();
+
+            for (int i = 0; i < commands.Count; i++) {
+                var command = commands[i];
+                var deviceName = deviceNames[i];
+
+                var output = await RunADBCommandAsync(command);
+                outputs.Add((output.output, output.exitCode, deviceName));
             }
 
-            var installOutput = new System.Text.StringBuilder();
-            var exitCodes = new Dictionary<string, int>();
-
-            try {
-                await System.Threading.Tasks.Task.Run(() => {
-                    foreach (var command in commands) {
-                        var startInfo = new ProcessStartInfo {
-                            FileName = AndroidEditorUtils.ADBPath,
-                            Arguments = command,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            WindowStyle = ProcessWindowStyle.Hidden
-                        };
-
-                        var deviceName = connectedDevices[selectedDeviceId];
-                        installOutput.AppendLine($"adb {command}");
-                        var exitCode = 0;
-
-                        using (var process = new Process()) {
-                            process.StartInfo = startInfo;
-                            process.OutputDataReceived += (_, e) => {
-                                installOutput.AppendLine(e.Data);
-                            };
-
-                            process.Start();
-                            process.BeginOutputReadLine();
-
-                            process.WaitForExit();
-
-                            // Check the exit code to determine if the installation was successful
-                            exitCode = process.ExitCode;
-							if (!exitCodes.TryAdd(deviceName, exitCode)) exitCodes[deviceName] = exitCode;
-						}
-                    }
-                });
-
-                var successDevices = exitCodes.Where(kv => kv.Value == 0).Select(kv => kv.Key).ToList();
-                var failureDevices = exitCodes.Where(kv => kv.Value != 0).Select(kv => kv.Key).ToList();
-
-                var successMessage = $"{Path.GetFileName(apkPath)} was successfully installed on all devices:\n{string.Join("\n", successDevices)}";
-                var failureMessage = $"Could not install {Path.GetFileName(apkPath)} on some devices. Devices:\n{string.Join("\n", failureDevices)}";
-                showInstallationResult(failureDevices.Count == 0, failureDevices.Count == 0 ? successMessage : failureMessage, successDevices);
-            } catch (Exception exception) {
-                showInstallationResult(false, $"An error occurred: {exception.Message}");
-            } finally {
-                isInstalling = false;
-                Debug.Log(installOutput.ToString());
-            }
+            return outputs;
         }
 
         private void showInstallationResult(bool success, string message, List<string> deviceList = null) {
@@ -230,7 +199,7 @@ namespace CommonUtils.Editor.Android {
 
         private static void killADBProcess() {
             var startInfo = new ProcessStartInfo {
-                FileName = AndroidEditorUtils.ADBPath,
+                FileName = ADBUtils.ADBPath,
                 Arguments = "kill-server",
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -242,5 +211,5 @@ namespace CommonUtils.Editor.Android {
             process.Start();
             process.WaitForExit();
         }
-	}
+    }
 }
