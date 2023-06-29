@@ -1,4 +1,5 @@
-using UnityEditor;
+// TODO Linters are work in progress 
+/* using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -102,3 +103,4 @@ namespace CommonUtils.Editor
         }
     }
 }
+*/
