@@ -11,12 +11,14 @@ namespace CommonUtils.Editor {
 	/// A collection of methods to help showing useful data in CustomEditors.
 	/// </summary>
 	public static partial class EditorExtensions {
-		private static readonly GUIStyle _textureFieldLabelStyle = new GUIStyle(GUI.skin.label)
+		private static readonly GUIStyle textureFieldLabelStyle = new GUIStyle(GUI.skin.label)
 			{ alignment = TextAnchor.UpperCenter, fixedWidth = 70 };
+
+		private static readonly GUIStyle richLabelStyle = new GUIStyle(GUI.skin.label) { richText = true };
 
 		public static void ReadOnlyLabelField(string label, object value) => RichLabelField($"{label}: <b>{value}</b>");
 
-		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, GUI.skin.label);
+		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, richLabelStyle);
 
 		public static void ObjectField(string label, Object obj)
 			=> EditorGUILayout.ObjectField($"{label}:", obj, typeof(Object), false);
@@ -136,7 +138,7 @@ namespace CommonUtils.Editor {
 
 		public static Texture2D TextureField(string name, Texture2D texture) {
 			GUILayout.BeginVertical();
-			GUILayout.Label(name, _textureFieldLabelStyle);
+			GUILayout.Label(name, textureFieldLabelStyle);
 			var result = (Texture2D)EditorGUILayout.ObjectField(texture,
 				typeof(Texture2D),
 				false,
@@ -151,7 +153,7 @@ namespace CommonUtils.Editor {
 			EditorGUILayout.ObjectField(label, MonoScript.FromMonoBehaviour(target), target.GetType(), false);
 			GUI.enabled = true;
 		}
-		
+
 		public static void ShowLoadingSpinner(this EditorWindow editorWindow, string label) {
 			EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
 			var spinnerRect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth, EditorGUIUtility.singleLineHeight);
