@@ -53,7 +53,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 					ScreenshotManager.SaveToFolder = saveTo;
 					ScreenshotManager.FilePrefix = prefix;
 					ScreenshotManager.CurrentCount = currentCount;
-					instance.Close();
+					if(instance) instance.Close();
 				}
 			}
 		}
