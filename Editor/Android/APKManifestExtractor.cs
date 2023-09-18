@@ -1,3 +1,4 @@
+#if UNITY_2021_3_OR_NEWER
 using System.IO;
 using System.IO.Compression;
 using UnityEditor;
@@ -61,3 +62,4 @@ public class APKManifestExtractor : EditorWindow {
 		}
 	}
 }
+#endif
