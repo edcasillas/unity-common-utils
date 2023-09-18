@@ -32,7 +32,7 @@ namespace CommonUtils.Editor.Android {
 			string line;
 			while ((line = reader.ReadLine()) != null) {
 				if (string.IsNullOrWhiteSpace(line) || line == "List of devices attached") continue;
-				var split = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				var split = line.Split(new [] {' '}, StringSplitOptions.RemoveEmptyEntries);
 				if (split.Length >= 4) {
 					var id = split[0];
 					var model = string.Empty;
