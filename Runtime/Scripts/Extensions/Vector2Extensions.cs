@@ -32,10 +32,12 @@ namespace CommonUtils.Extensions {
 				.Replace(" ", string.Empty);
 			var components = trimmed.Split(',');
 			if (components.Length != 2) return defaultValue;
-			
+
 			if (!float.TryParse(components[0], out var x)) return defaultValue;
 			if (!float.TryParse(components[1], out var y)) return defaultValue;
 			return new Vector2(x, y);
 		}
+
+		public static Vector3 ToVector3(this Vector2 vector2, float zValue = 0) => new(vector2.x, vector2.y, zValue);
 	}
 }
