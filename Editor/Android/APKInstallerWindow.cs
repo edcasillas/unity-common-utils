@@ -47,7 +47,9 @@ namespace CommonUtils.Editor.Android {
             drawAPKField();
 
             forceOverride = EditorGUILayout.Toggle("Force override (downgrade)", forceOverride);
-            installOnAllDevices = EditorGUILayout.Toggle("Install on all devices", installOnAllDevices);
+			if (connectedDevices.Count > 1) {
+				installOnAllDevices = EditorGUILayout.Toggle("Install on all devices", installOnAllDevices);
+			}
 
             drawInstallButton();
             drawCancelButton();
