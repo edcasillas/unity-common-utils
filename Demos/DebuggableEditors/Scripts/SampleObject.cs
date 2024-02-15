@@ -11,6 +11,8 @@ namespace Demos.DebuggableEditors {
 
 		[ShowInInspector] public void Echo(string input = "Hello") => Debug.Log(input);
 
+		public void MethodWithoutAttribute(string input = "Goodbye") => Debug.Log(input);
+
 		[ShowInInspector] public int AddOne(int input) => input + 1;
 	}
 }
