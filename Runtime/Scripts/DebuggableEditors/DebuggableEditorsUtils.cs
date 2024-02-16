@@ -63,7 +63,7 @@ namespace CommonUtils.DebuggableEditors {
 				return new ReflectedProperty(p, showInInspectorAttribute?.DisplayName ?? p.Name.PascalToTitleCase()) {
 					SetterIsEnabled = showInInspectorAttribute?.EnableSetter == true || p.GetSetMethod() != null,
 					UseTextArea = showInInspectorAttribute?.UseTextArea == true,
-					HelpText = $"From {p.DeclaringType}"
+					HelpText = showInInspectorAttribute?.HasTooltip == true ? showInInspectorAttribute.Tooltip : $"From {p.DeclaringType}"
 				};
 			});
 			return result.ToList();

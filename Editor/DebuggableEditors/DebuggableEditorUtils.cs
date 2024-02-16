@@ -134,7 +134,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 				return value;
 			}*/
 
-			return EditorExtensions.RenderField(reflectedProperty.Type, reflectedProperty.DisplayName, value);
+			return EditorExtensions.RenderField(reflectedProperty.Type, reflectedProperty.DisplayName, value, reflectedProperty.HelpText);
 		}
 
 		private static bool TryRenderEnumerableField(object value, string displayName, ref bool fold) {
