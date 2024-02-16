@@ -51,44 +51,31 @@ namespace CommonUtils.DebuggableEditors {
 		private static readonly HashSet<MethodInfo> monoBehaviourMethods = new HashSet<MethodInfo>(typeof(MonoBehaviour).GetMethods(BindingFlags.Instance | BindingFlags.Public), new MethodInfoEqualityComparer());
 
 		public static ICollection<ReflectedProperty> GetDebuggableProperties(this Type t, bool debugAllProperties = false, bool debugAllMonoBehaviorProperties = false) {
-			var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-				.Where(prop => {
-					if (monoBehaviourProperties.Contains(prop)) {
-						return debugAllMonoBehaviorProperties && (prop.GetGetMethod()?.IsPublic == true ||
-																  prop.GetSetMethod()?.IsPublic == true);
-					}
-
-					if (debugAllProperties) {
-						return prop.GetGetMethod()?.IsPublic == true ||
-							   prop.GetSetMethod()?.IsPublic == true;
-					}
-
-					return Attribute.IsDefined(prop, typeof(ShowInInspectorAttribute));
-				});
-
-			if (debugAllProperties && !debugAllMonoBehaviorProperties) props = props.Except(monoBehaviourProperties);
-			if (!debugAllProperties && debugAllMonoBehaviorProperties) props = props.Concat(monoBehaviourProperties);
+			var props = t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(prop =>
+				monoBehaviourProperties.Contains(prop) ?
+					debugAllMonoBehaviorProperties && (prop.CanRead || prop.CanWrite) :
+					debugAllProperties ?
+						prop.CanRead || prop.CanWrite :
+						Attribute.IsDefined(prop, typeof(ShowInInspectorAttribute)));
 
 			var result = props.Select(p => {
 				var showInInspectorAttribute = p.GetCustomAttribute<ShowInInspectorAttribute>();
 				return new ReflectedProperty(p, showInInspectorAttribute?.DisplayName ?? p.Name.PascalToTitleCase()) {
 					SetterIsEnabled = showInInspectorAttribute?.EnableSetter == true || p.GetSetMethod() != null,
 					UseTextArea = showInInspectorAttribute?.UseTextArea == true,
+					HelpText = $"From {p.DeclaringType}"
 				};
 			});
 			return result.ToList();
 		}
 
 		public static ICollection<ReflectedMethod> GetDebuggableMethods(this Type t, bool debugAllMethods = false, bool debugAllMonoBehaviorMethods = false) {
-			var methods = t.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-				.Where(method => {
-					if (monoBehaviourMethods.Contains(method)) {
-						return debugAllMonoBehaviorMethods && method.IsPublic;
-					}
-
-					if (debugAllMethods) return method.IsPublic;
-					return Attribute.IsDefined(method, typeof(ShowInInspectorAttribute));
-				});
+			var methods = t.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(method =>
+				monoBehaviourMethods.Contains(method) ?
+					debugAllMonoBehaviorMethods && method.IsPublic :
+					debugAllMethods ?
+						method.IsPublic && !method.Name.StartsWith("get_") && !method.Name.StartsWith("set_") :
+						Attribute.IsDefined(method, typeof(ShowInInspectorAttribute)));
 
 			var result = methods.Select(m => {
 				var showInInspectorAttribute = m.GetCustomAttribute<ShowInInspectorAttribute>();

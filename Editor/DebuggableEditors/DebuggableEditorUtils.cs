@@ -111,7 +111,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 
 		private static object RenderEditorField(ReflectedProperty reflectedProperty, object value) {
 			if (reflectedProperty.UseTextArea) {
-				EditorGUILayout.LabelField(reflectedProperty.DisplayName);
+				EditorGUILayout.LabelField(new GUIContent(reflectedProperty.DisplayName, reflectedProperty.HelpText));
 				return EditorGUILayout.TextArea(value.ToString(), DebuggableEditorStyles.TextAreaStyle);
 			}
 

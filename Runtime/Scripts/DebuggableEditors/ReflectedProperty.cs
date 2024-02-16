@@ -7,6 +7,7 @@ namespace CommonUtils.DebuggableEditors {
 		public bool HasPublicSetter { get; }
 		public bool SetterIsEnabled { get; set; }
 		public bool UseTextArea { get; set; }
+		public string HelpText { get; set; }
 		public override Type Type => MemberInfo.PropertyType;
 
 		public ReflectedProperty(PropertyInfo propertyInfo, string displayName) : base(propertyInfo, displayName) {
