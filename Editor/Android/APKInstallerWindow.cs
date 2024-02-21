@@ -1,12 +1,10 @@
 using UnityEditor;
 using UnityEngine;
-using System.Diagnostics;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Debug = UnityEngine.Debug;
 
 namespace CommonUtils.Editor.Android {
     public class APKInstallerWindow : EditorWindow {
@@ -19,6 +17,7 @@ namespace CommonUtils.Editor.Android {
         private bool installationSuccess = false;
         private bool forceOverride = true;
         private bool installOnAllDevices = false;
+		private string installOutputText;
 
         [MenuItem(menuPath)]
         private static void openWindow() {
@@ -53,7 +52,15 @@ namespace CommonUtils.Editor.Android {
 
             drawInstallButton();
             drawCancelButton();
-        }
+
+			if (!isInstalling && !string.IsNullOrWhiteSpace(installOutputText)) {
+				EditorGUILayout.Space();
+				EditorGUILayout.HelpBox(
+					installationSuccess ? "Last install was a success." : "Last install was an error.",
+					installationSuccess ? MessageType.Info : MessageType.Error);
+				EditorGUILayout.TextArea(installOutputText);
+			}
+		}
 
         private void drawAPKField() {
             EditorGUILayout.LabelField("APK", EditorStyles.boldLabel);
@@ -100,6 +107,7 @@ namespace CommonUtils.Editor.Android {
                 // Cancel installation
                 isInstalling = false;
                 installationSuccess = false;
+				installOutputText = "Installation was cancelled";
 
                 // Kill the ADB process if it's still running
                 ADBUtils.KillADBProcess();
@@ -109,6 +117,7 @@ namespace CommonUtils.Editor.Android {
         private async void installAPKAsync() {
             isInstalling = true;
             installationSuccess = false;
+			installOutputText = null;
 
             var command = $"-s {selectedDeviceId} install -r{(forceOverride ? " -d" : "")} \"{apkPath}\"";
             var installOutput = await ADBUtils.RunADBCommandAsync(command);
@@ -121,12 +130,13 @@ namespace CommonUtils.Editor.Android {
 
             showInstallationResult(installationSuccess, resultMessage, new List<string> { selectedDeviceName });
             isInstalling = false;
-            Debug.Log(installOutput.output);
+			installOutputText = installOutput.output;
         }
 
         private async void InstallAPKOnAllDevicesAsync() {
             isInstalling = true;
             installationSuccess = false;
+			installOutputText = null;
 
             var connectedDevices = ADBUtils.GetConnectedDevices();
             var commands = connectedDevices.Select(device => $"-s {device.Key} install -r{(forceOverride ? " -d" : "")} \"{apkPath}\"").ToList();
@@ -142,7 +152,7 @@ namespace CommonUtils.Editor.Android {
             showInstallationResult(failureDevices.Count == 0, failureDevices.Count == 0 ? successMessage : failureMessage, successDevices);
 
             isInstalling = false;
-            Debug.Log(string.Join("\n\n", installOutputs.Select(output => output.output)));
+			installOutputText = string.Join("\n\n", installOutputs.Select(output => output.output));
         }
 
 		private async Task<List<(string output, int exitCode, string deviceName)>> RunADBCommandsAsync(List<string> commands, List<string> deviceNames) {
