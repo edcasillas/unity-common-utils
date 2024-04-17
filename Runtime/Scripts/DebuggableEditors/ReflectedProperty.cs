@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using UnityEngine;
 
 namespace CommonUtils.DebuggableEditors {
 	public class ReflectedProperty : AbstractReflectedMember<PropertyInfo>  {
@@ -17,6 +18,12 @@ namespace CommonUtils.DebuggableEditors {
 
 		public object GetValue(object instance) => MemberInfo.GetValue(instance);
 
-		public void SetValue(object instance, object value) => MemberInfo.SetValue(instance, value);
+		public void SetValue(object instance, object value) {
+			try {
+				MemberInfo.SetValue(instance, value);
+			} catch (Exception ex) {
+				Debug.LogError($"{ex.GetType().Name} occurred while setting the value of property \"{DisplayName}\": {ex.Message}");
+			}
+		}
 	}
 }

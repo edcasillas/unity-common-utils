@@ -56,8 +56,8 @@ namespace CommonUtils.Editor {
 
 			if (type == typeof(long)) {
 				return guiContent == null ?
-					EditorGUILayout.DoubleField((long)(value ?? default(long))) :
-					EditorGUILayout.DoubleField(guiContent, (long)(value ?? default(long)));
+					EditorGUILayout.LongField((long)(value ?? default(long))) :
+					EditorGUILayout.LongField(guiContent, (long)(value ?? default(long)));
 			}
 
 			if (type == typeof(ulong)) {

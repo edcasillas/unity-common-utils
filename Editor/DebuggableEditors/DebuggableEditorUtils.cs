@@ -49,8 +49,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 
 			reflectedProperty.RenderDebugInfoIfAny();
 
-			var newValue = RenderEditorField(reflectedProperty,
-				oldValue);
+			var newValue = RenderEditorField(reflectedProperty, oldValue);
 
 			if (reflectedProperty.SetterIsEnabled && reflectedProperty.HasPublicSetter && !oldValue.Equals(newValue)) {
 				reflectedProperty.SetValue(instance, newValue);
