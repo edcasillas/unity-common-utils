@@ -1,12 +1,11 @@
 {
   "name": "com.ecasillas.commonutils",
-  "version": "1.0.0",
+  "version": "2020.2.0",
   "displayName": "Common Utils for Unity",
   "description": "Common utility library for Unity projects",
-  "unity": "2021.1",
+  "unity": "2020.2",
   "author": {
     "name": "Ed Casillas",
-    "email": "ed@exagames-studio.com",
     "url": "https://edu.itch.io"
   },
   "type": "library"
