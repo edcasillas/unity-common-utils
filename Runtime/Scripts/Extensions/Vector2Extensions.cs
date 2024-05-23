@@ -38,6 +38,6 @@ namespace CommonUtils.Extensions {
 			return new Vector2(x, y);
 		}
 
-		public static Vector3 ToVector3(this Vector2 vector2, float zValue = 0) => new(vector2.x, vector2.y, zValue);
+		public static Vector3 ToVector3(this Vector2 vector2, float zValue = 0) => new Vector3(vector2.x, vector2.y, zValue);
 	}
 }

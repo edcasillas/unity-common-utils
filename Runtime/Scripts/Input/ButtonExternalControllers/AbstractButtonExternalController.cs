@@ -16,9 +16,6 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		/// Objects that can block this button when they're active.
 		/// </summary>
 		[Tooltip("Objects that can block this button when they're active.")]
-		#if !UNITY_2021_1_OR_NEWER
-		[Reorderable]
-		#endif
 		[SerializeField]  protected List<GameObject> IsBlockedBy;
 
 		[Tooltip("Disable the functionality of this binding when Unity Remote is connected.")]
