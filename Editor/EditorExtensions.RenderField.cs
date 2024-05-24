@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -23,6 +24,35 @@ namespace CommonUtils.Editor {
 		/// </remarks>
 		public static object RenderField(Type type, string displayName, object value, string tooltip = null) {
 			var guiContent = displayName != null ? new GUIContent(displayName, tooltip) : null;
+
+			// Check if the type is marked as [Serializable]
+			if (type.IsSerializable && !type.IsPrimitive && !type.IsEnum && type != typeof(string)) {
+				// Render the display name
+				if (guiContent != null) {
+					EditorGUILayout.LabelField(guiContent);
+				}
+
+				// Indent the fields
+				EditorGUI.indentLevel++;
+				foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
+					// Skip non-serializable fields
+					if (!field.IsPublic && !field.GetCustomAttributes(typeof(SerializeField), false).Any()) continue;
+
+					// Render each field recursively
+					var fieldValue = field.GetValue(value);
+					var fieldType = field.FieldType;
+					var fieldDisplayName = ObjectNames.NicifyVariableName(field.Name);
+					var newValue = RenderField(fieldType, fieldDisplayName, fieldValue);
+
+					// Set the new value back to the field
+					if (value != null && !Equals(newValue, fieldValue)) {
+						field.SetValue(value, newValue);
+					}
+				}
+				EditorGUI.indentLevel--;
+
+				return value;
+			}
 
 			if (type == typeof(bool)) {
 				return guiContent == null ?
