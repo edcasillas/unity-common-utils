@@ -21,79 +21,81 @@ namespace CommonUtils.Editor {
 		/// (default value for int). If we only used the value, the method would fallback to just print a label and
 		/// not allowing to set any value.
 		/// </remarks>
-		public static object RenderField(Type type, string displayName, object value) {
+		public static object RenderField(Type type, string displayName, object value, string tooltip = null) {
+			var guiContent = displayName != null ? new GUIContent(displayName, tooltip) : null;
+
 			if (type == typeof(bool)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.Toggle((bool)(value ?? default(bool))) :
-					EditorGUILayout.Toggle(displayName, (bool)(value ?? default(bool)));
+					EditorGUILayout.Toggle(guiContent, (bool)(value ?? default(bool)));
 			}
 
 			if (type == typeof(string)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.TextField((string)value) :
-					EditorGUILayout.TextField(displayName, (string)value);
+					EditorGUILayout.TextField(guiContent, (string)value);
 			}
 
 			if (type == typeof(int)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.IntField((int)(value ?? default(int))) :
-					EditorGUILayout.IntField(displayName, (int)(value ?? default(int)));
+					EditorGUILayout.IntField(guiContent, (int)(value ?? default(int)));
 			}
 
 			if (type == typeof(float)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.FloatField((float)(value ?? default(float))) :
-					EditorGUILayout.FloatField(displayName, (float)(value ?? default(float)));
+					EditorGUILayout.FloatField(guiContent, (float)(value ?? default(float)));
 			}
 
 			if (type == typeof(double)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.DoubleField((double)(value ?? default(double))) :
-					EditorGUILayout.DoubleField(displayName, (double)(value ?? default(double)));
+					EditorGUILayout.DoubleField(guiContent, (double)(value ?? default(double)));
 			}
 
 			if (type == typeof(long)) {
-				return string.IsNullOrEmpty(displayName) ?
-					EditorGUILayout.DoubleField((long)(value ?? default(long))) :
-					EditorGUILayout.DoubleField(displayName, (long)(value ?? default(long)));
+				return guiContent == null ?
+					EditorGUILayout.LongField((long)(value ?? default(long))) :
+					EditorGUILayout.LongField(guiContent, (long)(value ?? default(long)));
 			}
 
 			if (type == typeof(ulong)) {
 				var prev = (ulong)(value ?? default(ulong));
-				var result = Math.Abs(Math.Round(string.IsNullOrEmpty(displayName) ?
+				var result = Math.Abs(Math.Round(guiContent == null ?
 					EditorGUILayout.DoubleField(prev) :
-					EditorGUILayout.DoubleField(displayName, prev)));
+					EditorGUILayout.DoubleField(guiContent, prev)));
 				return (ulong)result;
 			}
 
 			if (type.IsSubclassOf(typeof(Object))) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.ObjectField((Object)value, type, true) :
-					EditorGUILayout.ObjectField(displayName, (Object)value, type, true);
+					EditorGUILayout.ObjectField(guiContent, (Object)value, type, true);
 			}
 
 			if (type == typeof(Bounds)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.BoundsField((Bounds)(value ?? default(Bounds))) :
-					EditorGUILayout.BoundsField(displayName, (Bounds)(value ?? default(Bounds)));
+					EditorGUILayout.BoundsField(guiContent, (Bounds)(value ?? default(Bounds)));
 			}
 
 			if (type == typeof(BoundsInt)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.BoundsIntField((BoundsInt)(value ?? default(BoundsInt))) :
-					EditorGUILayout.BoundsIntField(displayName, (BoundsInt)(value ?? default(BoundsInt)));
+					EditorGUILayout.BoundsIntField(guiContent, (BoundsInt)(value ?? default(BoundsInt)));
 			}
 
 			if (type == typeof(Color)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.ColorField((Color)(value ?? default(Color))) :
-					EditorGUILayout.ColorField(displayName, (Color)(value ?? default(Color)));
+					EditorGUILayout.ColorField(guiContent, (Color)(value ?? default(Color)));
 			}
 
 			if (type == typeof(AnimationCurve)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.CurveField((AnimationCurve)value) :
-					EditorGUILayout.CurveField(displayName, (AnimationCurve)value);
+					EditorGUILayout.CurveField(guiContent, (AnimationCurve)value);
 			}
 
 			if (type.IsEnum) {
@@ -101,67 +103,71 @@ namespace CommonUtils.Editor {
 					if (Enum.IsDefined(type, 0)) {
 						value = Enum.ToObject(type, 0);
 					} else {
-						EditorGUILayout.LabelField(displayName, "<null>");
+						if (guiContent == null) {
+							EditorGUILayout.LabelField("<null>");
+						} else {
+							EditorGUILayout.LabelField(guiContent, new GUIContent("<null>"));
+						}
 						return null;
 					}
 				}
 
 				return type.GetCustomAttributes(typeof(FlagsAttribute), true).Any() ?
-					(string.IsNullOrEmpty(displayName) ?
+					(guiContent == null ?
 						EditorGUILayout.EnumFlagsField((Enum)value) :
-						EditorGUILayout.EnumFlagsField(displayName, (Enum)value)) :
-					(string.IsNullOrEmpty(displayName) ?
+						EditorGUILayout.EnumFlagsField(guiContent, (Enum)value)) :
+					(guiContent == null ?
 						EditorGUILayout.EnumPopup((Enum)value) :
-						EditorGUILayout.EnumPopup(displayName, (Enum)value));
+						EditorGUILayout.EnumPopup(guiContent, (Enum)value));
 			}
 
 			if (type == typeof(Gradient)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.GradientField((Gradient)value) :
-					EditorGUILayout.GradientField(displayName, (Gradient)value);
+					EditorGUILayout.GradientField(guiContent, (Gradient)value);
 			}
 
 			if (type == typeof(Rect)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.RectField((Rect)(value ?? default(Rect))) :
-					EditorGUILayout.RectField(displayName, (Rect)(value ?? default(Rect)));
+					EditorGUILayout.RectField(guiContent, (Rect)(value ?? default(Rect)));
 			}
 
 			if (type == typeof(RectInt)) {
-				return string.IsNullOrEmpty(displayName) ?
+				return guiContent == null ?
 					EditorGUILayout.RectIntField((RectInt)(value ?? default(RectInt))) :
-					EditorGUILayout.RectIntField(displayName, (RectInt)(value ?? default(RectInt)));
+					EditorGUILayout.RectIntField(guiContent, (RectInt)(value ?? default(RectInt)));
 			}
 
 			if (type == typeof(Vector2)) {
 				// Vector2Field doesn't have a labelless override
-				return EditorGUILayout.Vector2Field(displayName, (Vector2)(value ?? default(Vector2)));
+				return EditorGUILayout.Vector2Field(guiContent, (Vector2)(value ?? default(Vector2)));
 			}
 
 			if (type == typeof(Vector3)) {
 				// Vector3Field doesn't have a labelless override
-				return EditorGUILayout.Vector3Field(displayName, (Vector3)(value ?? default(Vector3)));
+				return EditorGUILayout.Vector3Field(guiContent, (Vector3)(value ?? default(Vector3)));
 			}
 
 			if (type == typeof(Quaternion)) {
 				// Vector3Field doesn't have a labelless override
-				return Quaternion.Euler(EditorGUILayout.Vector3Field(displayName,
+				return Quaternion.Euler(EditorGUILayout.Vector3Field(guiContent,
 					((Quaternion)(value ?? default(Quaternion))).eulerAngles));
 			}
 
 			if (type == typeof(Vector4)) {
 				// Vector4Field doesn't have a labelless override
-				return EditorGUILayout.Vector4Field(displayName, (Vector4)(value ?? default(Vector4)));
+				return EditorGUILayout.Vector4Field(guiContent, (Vector4)(value ?? default(Vector4)));
 			}
 
 			if (type == typeof(Vector2Int)) {
 				// Vector2IntField doesn't have a labelless override
-				return EditorGUILayout.Vector2IntField(displayName, (Vector2Int)(value ?? default(Vector2Int)));
+				return EditorGUILayout.Vector2IntField(guiContent, (Vector2Int)(value ?? default(Vector2Int)));
 			}
 
 			if (type == typeof(Vector3Int)) {
 				// Vector3IntField doesn't have a labelless override
-				return EditorGUILayout.Vector3IntField(displayName, (Vector3Int)(value ?? default(Vector3Int)));
+				return EditorGUILayout.Vector3IntField(guiContent, (Vector3Int)(value ?? default(Vector3Int)));
 			}
 
 			if (type.IsGenericType) {
@@ -178,10 +184,10 @@ namespace CommonUtils.Editor {
 			}
 
 			// fallback
-			if (string.IsNullOrEmpty(displayName)) {
+			if (guiContent == null) {
 				EditorGUILayout.LabelField(value?.ToString() ?? "<null>");
 			} else {
-				EditorGUILayout.LabelField(displayName, value?.ToString() ?? "<null>");
+				EditorGUILayout.LabelField(guiContent, value?.ToString() ?? "<null>");
 			}
 
 			return value;
