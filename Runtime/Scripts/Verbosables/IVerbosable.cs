@@ -1,4 +1,4 @@
-﻿namespace CommonUtils {
+﻿namespace CommonUtils.Verbosables {
 	/// <summary>
 	/// Enables classes to conditionally send logs to the console.
 	/// </summary>

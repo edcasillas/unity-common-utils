@@ -1,9 +1,9 @@
-﻿using System;
-using CommonUtils.UnityComponents;
+﻿using CommonUtils.UnityComponents;
+using System;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace CommonUtils.Extensions {
+namespace CommonUtils.Verbosables {
 	public static class VerbosableExtensions {
 		/// <summary>
 		/// Writes a <paramref name="message"/> to the console if the <paramref name="verbosable"/> has its <see cref="IVerbosable.IsVerbose"/> property set to true.
