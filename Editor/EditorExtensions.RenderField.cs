@@ -187,7 +187,8 @@ namespace CommonUtils.Editor {
 			if (guiContent == null) {
 				EditorGUILayout.LabelField(value?.ToString() ?? "<null>");
 			} else {
-				EditorGUILayout.LabelField(guiContent, value?.ToString() ?? "<null>");
+				var contents = new GUIContent(value?.ToString() ?? "<null>");
+				EditorGUILayout.LabelField(guiContent, contents);
 			}
 
 			return value;
