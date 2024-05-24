@@ -1,9 +1,9 @@
 {
   "name": "com.ecasillas.commonutils",
-  "version": "1.0.0",
+  "version": "2021.3.1",
   "displayName": "Common Utils for Unity",
   "description": "Common utility library for Unity projects",
-  "unity": "2021.1",
+  "unity": "2021.3",
   "author": {
     "name": "Ed Casillas",
     "email": "ed@exagames-studio.com",
