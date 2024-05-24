@@ -8,52 +8,101 @@ using Object = UnityEngine.Object;
 namespace CommonUtils.Verbosables {
 	public static class VerbosableExtensions {
 		public static void Log<TVerbosable>(this TVerbosable verbosable, string message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : Object, IVerbosable {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug)) Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
+					break;
+			}
 		}
 
 		public static void Log<TVerbosable>(this TVerbosable verbosable, object message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : Object, IVerbosable {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug)) Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
+					break;
+			}
 		}
 
 		public static void Log<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate, LogLevel logLevel = LogLevel.Debug) where TVerbosable : Object, IVerbosable {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug)) Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
+					break;
+			}
 		}
 
 		public static void Log2<TVerbosable>(this TVerbosable verbosable, string message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable, IUnityComponent {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug)) Debug.Log($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
+					break;
+			}
 		}
 
 		public static void Log2<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable, IUnityComponent {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug)) Debug.Log(messageDelegate.Invoke(), verbosable.gameObject);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning(messageDelegate.Invoke(), verbosable.gameObject);
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError(messageDelegate.Invoke(), verbosable.gameObject);
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log(messageDelegate.Invoke(), verbosable.gameObject);
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning(messageDelegate.Invoke(), verbosable.gameObject);
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError(messageDelegate.Invoke(), verbosable.gameObject);
+					break;
+			}
 		}
 
 		public static void LogNoContext<TVerbosable>(this TVerbosable verbosable, string message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug)) Debug.Log($"[{typeof(TVerbosable).Name}] {message}");
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning($"[{typeof(TVerbosable).Name}] {message}");
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError($"[{typeof(TVerbosable).Name}] {message}");
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log($"[{typeof(TVerbosable).Name}] {message}");
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning($"[{typeof(TVerbosable).Name}] {message}");
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError($"[{typeof(TVerbosable).Name}] {message}");
+					break;
+			}
 		}
 
 		public static void LogNoContext<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable {
-			if (verbosable.Verbosity.HasFlag(Verbosity.Debug))Debug.Log($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Warning)) Debug.LogWarning($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
-			else if (verbosable.Verbosity.HasFlag(Verbosity.Error)) Debug.LogError($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
-			else if (verbosable.Verbosity != Verbosity.None) throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+			switch (logLevel) {
+				case LogLevel.Debug when verbosable.Verbosity.HasFlag(Verbosity.Debug):
+					Debug.Log($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
+					break;
+				case LogLevel.Warning when verbosable.Verbosity.HasFlag(Verbosity.Warning):
+					Debug.LogWarning($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
+					break;
+				case LogLevel.Error when verbosable.Verbosity.HasFlag(Verbosity.Error):
+					Debug.LogError($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
+					break;
+			}
 		}
 
 		#region Deprecated extensions

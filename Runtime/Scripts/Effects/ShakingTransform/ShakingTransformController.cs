@@ -105,7 +105,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 		public void ReloadPresets() => presetsByName = presets.ToDictionary(p => p.name, p => p);
 
 		private IEnumerator shake() {
-			this.DebugLog("Started shaking");
+			this.Log("Started shaking");
 			IsShaking = true;
 
 			do {
