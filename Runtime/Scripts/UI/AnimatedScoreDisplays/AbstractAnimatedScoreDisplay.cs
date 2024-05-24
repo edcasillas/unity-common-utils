@@ -9,14 +9,13 @@ namespace CommonUtils.UI {
     /// <summary>
     /// Controls a <see cref="Text"/> component to show a numeric score that can be changed with an animation.
     /// </summary>
-    public abstract class AbstractAnimatedScoreDisplay : MonoBehaviour, IVerbosable {
+    public abstract class AbstractAnimatedScoreDisplay : EnhancedMonoBehaviour {
         #region Inspector fields
 #pragma warning disable 649
         [SerializeField] private float AnimDuration = 1f;
         [SerializeField] private iTween.EaseType EaseType;
         [SerializeField] private AudioClip LoopSoundEffect;
         [SerializeField] private UnityEvent OnAnimationFinished;
-        [SerializeField] private bool verbose;
 #pragma warning restore 649
         #endregion
 
@@ -33,8 +32,6 @@ namespace CommonUtils.UI {
                 return _audioSource;
             }
         }
-
-        public bool IsVerbose => verbose;
         #endregion
 
         private int currentScore;

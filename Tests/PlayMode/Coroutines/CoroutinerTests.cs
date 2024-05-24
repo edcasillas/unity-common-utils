@@ -1,4 +1,5 @@
 using CommonUtils.Coroutines;
+using CommonUtils.Verbosables;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +19,8 @@ namespace CommonUtils.Tests.PlayMode.Coroutines {
 
 			var allFinished = false;
 
-			var coroutiner = Coroutiner.StartCoroutines(coroutines, () => { allFinished = true; }, verbose: true);
+			var coroutiner =
+				Coroutiner.StartCoroutines(coroutines, () => { allFinished = true; }, verbosity: (Verbosity)~0);
 
 			Debug.Log("Waiting for all coroutines to be finished.");
 

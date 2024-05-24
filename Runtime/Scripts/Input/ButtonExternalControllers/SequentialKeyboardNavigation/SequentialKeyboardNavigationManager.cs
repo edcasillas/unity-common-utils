@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
-    public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager, IVerbosable {
+    public class SequentialKeyboardNavigationManager : EnhancedMonoBehaviour, ISequentialKeyboardNavigationManager {
         #region Singleton
         private static ISequentialKeyboardNavigationManager _instance;
         public static ISequentialKeyboardNavigationManager Instance {
@@ -27,7 +27,6 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         #region Inspector fields
         [SerializeField] private KeyCode navigationKey = KeyCode.Tab;
-        [SerializeField] private bool verbose;
         #endregion
 
         #region Properties and backing fields
@@ -41,9 +40,6 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         [ShowInInspector] public int CurrentIndex => currentIndex ?? -1;
 
         [ShowInInspector] public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
-
-        public bool IsVerbose => verbose;
-
         #endregion
 
         #region Fields

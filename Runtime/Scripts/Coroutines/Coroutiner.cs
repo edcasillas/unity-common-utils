@@ -32,7 +32,7 @@ namespace CommonUtils.Coroutines {
 		/// <param name="coroutine">Coroutine to run.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutine.</param>
 		/// <param name="preventDestroyOnSceneChange">Should this coroutine continue running during a scene change?</param>
-		/// <param name="verbose">Should this coroutiner instance log messages to the console?</param>
+		/// <param name="verbosity">Should this coroutiner instance log messages to the console?</param>
 		/// <remarks>
 		/// Classes that do not inherit from MonoBehaviour, or static methods within MonoBehaviours are inertly unable to
 		/// call StartCoroutine, as this method is not static and does not exist on Object.This Class creates a proxy
@@ -40,10 +40,10 @@ namespace CommonUtils.Coroutines {
 		///
 		/// Original credit to Sebastiaan Fehr (Seb@TheBinaryMill.com)
 		/// </remarks>
-		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, bool verbose = false) {
+		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, Verbosity verbosity = Verbosity.None) {
 			if (coroutine == null) throw new ArgumentNullException(nameof(coroutine));
 
-			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbose);
+			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbosity);
 
 			// Actually start the coroutine
 			routineHandler.ProcessWork(coroutine);
@@ -60,16 +60,16 @@ namespace CommonUtils.Coroutines {
 		/// <param name="onProgress">Callback to be executed when some progress has been done executing the coroutines.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutines.</param>
 		/// <param name="preventDestroyOnSceneChange">Should these coroutines continue running during a scene change?</param>
-		/// <param name="verbose">Should this coroutiner instance log messages to the console?</param>
+		/// <param name="verbosity">Should this coroutiner instance log messages to the console?</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static CoroutinerInstance StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, bool verbose = false) {
+		public static CoroutinerInstance StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, Verbosity verbosity = Verbosity.None) {
 			if (coroutines.IsNullOrEmpty()) {
 				throw new ArgumentException($"{nameof(coroutines)} parameter cannot be null or empty.",
 					nameof(coroutines));
 			}
 
-			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbose);
+			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbosity);
 
 			// Actually start the coroutines
 			routineHandler.ProcessWork(coroutines, onFinishedAll, onProgress);
@@ -77,7 +77,7 @@ namespace CommonUtils.Coroutines {
 			return routineHandler;
 		}
 
-		private static CoroutinerInstance getInstance(string gameObjectName, bool dontDestroyOnLoad, bool verbose) {
+		private static CoroutinerInstance getInstance(string gameObjectName, bool dontDestroyOnLoad, Verbosity verbosity) {
 			CoroutinerInstance result = null;
 
 			/*
@@ -89,11 +89,11 @@ namespace CommonUtils.Coroutines {
 				switch (dontDestroyOnLoad) {
 					case true when persistentInstancePool.Any():
 						result = persistentInstancePool.Dequeue();
-						if(verbose) Debug.Log("A coroutine instance has been fetched from the pool.");
+						if(verbosity.HasFlag(Verbosity.Debug)) Debug.Log("A coroutine instance has been fetched from the pool.");
 						break;
 					case false when instancePool.Any():
 						result = instancePool.Dequeue();
-						if(verbose) Debug.Log("A coroutine instance has been fetched from the pool.");
+						if(verbosity.HasFlag(Verbosity.Debug)) Debug.Log("A coroutine instance has been fetched from the pool.");
 						break;
 					default: {
 						// Create empty GameObject to handle task.
@@ -108,7 +108,7 @@ namespace CommonUtils.Coroutines {
 							result.InstancePool = instancePool;
 						}
 
-						if(verbose) Debug.Log("A new coroutiner instance has been created.");
+						if(verbosity.HasFlag(Verbosity.Debug)) Debug.Log("A new coroutiner instance has been created.");
 
 						break;
 					}
@@ -116,7 +116,7 @@ namespace CommonUtils.Coroutines {
 			}
 
 			result.gameObject.name = gameObjectName;
-			result.SetIsVerbose(verbose);
+			result.SetVerbosity(verbosity);
 
 			return result;
 		}
@@ -220,7 +220,7 @@ namespace CommonUtils.Coroutines {
 			OnFinished();
 		}
 
-		internal void SetIsVerbose(bool isVerbose) => IsVerbose = isVerbose;
+		internal void SetVerbosity(Verbosity verbosity) => Verbosity = verbosity;
 
 		private void OnFinished() {
 			this.DebugLog("All coroutines have finished executing.");

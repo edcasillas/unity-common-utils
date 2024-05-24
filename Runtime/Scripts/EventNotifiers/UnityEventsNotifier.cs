@@ -7,7 +7,7 @@ namespace CommonUtils.EventNotifiers {
 	/// <summary>
 	/// A component that allows other GameObjects be notified when a Unity Event happens to this one.
 	/// </summary>
-	public class UnityEventsNotifier : MonoBehaviour, IVerbosable {
+	public class UnityEventsNotifier : EnhancedMonoBehaviour {
 #pragma warning disable 649
 		[SerializeField] private UnityEvent awake;
 		[SerializeField] private UnityEvent onEnable;
@@ -16,10 +16,7 @@ namespace CommonUtils.EventNotifiers {
 		[SerializeField] private UnityEvent onBecameInvisible;
 		[SerializeField] private UnityEvent onDisable;
 		[SerializeField] private UnityEvent onDestroy;
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
-
-		public bool IsVerbose => verbose;
 
 		#region Unity Lifecycle
 		private void Awake() {

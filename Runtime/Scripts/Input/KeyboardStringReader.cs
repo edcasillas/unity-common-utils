@@ -9,7 +9,7 @@ namespace CommonUtils.Input {
 	/// Reads a string being collected every frame through keyboard input and triggers the <see cref="onValueRead"/> event when the <see cref="submitKey"/> is detected.
 	/// </summary>
 	[AddComponentMenu("Input/Keyboard String Reader")]
-	public class KeyboardStringReader : MonoBehaviour, IVerbosable {
+	public class KeyboardStringReader : EnhancedMonoBehaviour {
 		#region Inspector fields
 		#pragma warning disable 649
 		/// <summary>
@@ -29,8 +29,6 @@ namespace CommonUtils.Input {
 		/// </summary>
 		[Tooltip("Event to be executed when the Submit Key is detected and the input string is not empty.")]
 		[SerializeField] private StringEvent onValueRead;
-
-		[SerializeField] private bool verbose;
 		#pragma warning restore 649
 		#endregion
 
@@ -45,8 +43,6 @@ namespace CommonUtils.Input {
 		/// </summary>
 		private HashSet<char> readableCharsSet;
 		#endregion
-
-		public bool IsVerbose => verbose;
 
 		private void Awake() {
 			// Initializes the set of valid characters for this reader.
