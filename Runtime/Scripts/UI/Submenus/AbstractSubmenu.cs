@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using CommonUtils.Extensions;
 using CommonUtils.Verbosables;
 using System;
 using UnityEngine;
@@ -112,14 +111,14 @@ namespace CommonUtils.UI.Submenus {
 
 		[ShowInInspector]
 		public virtual void Show() {
-			this.DebugLog(() => $"Will show {name}");
+			this.Log(() => $"Will show {name}");
 			if (EaseIn == iTween.EaseType.punch) {
-				this.LogError("Ease type 'Punch' is not supported.");
+				this.Log("Ease type 'Punch' is not supported.", LogLevel.Error);
 				return;
 			}
 			Init();
 			if(HideCoroutine != null) {
-				this.DebugLog("Stopping hide coroutine.");
+				this.Log("Stopping hide coroutine.");
 				StopCoroutine(HideCoroutine);
 				if(IsShown && AutoHide > 0) {
 					HideCoroutine = StartCoroutine(WaitAndHide());
@@ -135,17 +134,17 @@ namespace CommonUtils.UI.Submenus {
 		[ShowInInspector]
 		public virtual void Hide() {
 			if (!IsInitialized) {
-				this.LogError($"Cannot hide submenu '{name}' before is initialized. Please call Init(); first.");
+				this.Log($"Cannot hide submenu '{name}' before is initialized. Please call Init(); first.", LogLevel.Error);
 				return;
 			}
 
 			if (EaseOut == iTween.EaseType.punch) {
-				this.LogError("Ease type 'Punch' is not supported.");
+				this.Log("Ease type 'Punch' is not supported.", LogLevel.Error);
 				return;
 			}
 
 			if(!IsShown) return;
-			this.DebugLog($"Will hide {name}");
+			this.Log($"Will hide {name}");
 			IsShown = false;
 			animate(CurrentValue, HiddenValue, nameof(OnHidden), EaseOut, PlayFeedbackOnHide);
 		}
@@ -160,7 +159,7 @@ namespace CommonUtils.UI.Submenus {
 		[ShowInInspector]
 		public void HideImmediately() {
 			if(!IsShown) return;
-			this.DebugLog("Hiding without animation.");
+			this.Log("Hiding without animation.");
 			iTween.Stop(gameObject);
 			IsShown = false;
 			internalOnAnimationUpdated(HiddenValue);
@@ -182,7 +181,7 @@ namespace CommonUtils.UI.Submenus {
 		#region Virtual Methods
 		protected virtual void OnShown() {
 			if(AutoHide > 0) {
-				this.DebugLog($"Starting hide coroutine for submenu {name}.");
+				this.Log($"Starting hide coroutine for submenu {name}.");
 				HideCoroutine = StartCoroutine(WaitAndHide());
 			}
 			events.OnShown?.Invoke();
@@ -235,7 +234,7 @@ namespace CommonUtils.UI.Submenus {
 
 		protected virtual IEnumerator WaitAndHide() { // When overriden, please make sure to set HideCoroutine to null!
 			yield return new WaitForSeconds(AutoHide);
-			this.DebugLog("Hiding");
+			this.Log("Hiding");
 			Hide();
 			HideCoroutine = null;
 		}

@@ -1,5 +1,4 @@
-﻿using CommonUtils.Extensions;
-using CommonUtils.Verbosables;
+﻿using CommonUtils.Verbosables;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -47,7 +46,7 @@ namespace CommonUtils.UI {
         public void SetLabelDelegate(Func<int, string> newLabelDelegate) => LabelDelegate = newLabelDelegate;
 
         public void SetScore(int newScore, bool animate = true) {
-            this.DebugLog(() => $"{name}:AnimatedScoreDisplay.SetScore [current: {currentScore}] [new: {newScore}] [animate: {animate}]");
+            this.Log(() => $"{name}:AnimatedScoreDisplay.SetScore [current: {currentScore}] [new: {newScore}] [animate: {animate}]");
             var lastScore = currentScore;
             currentScore = newScore;
 

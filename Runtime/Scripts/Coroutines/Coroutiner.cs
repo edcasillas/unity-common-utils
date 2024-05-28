@@ -154,7 +154,7 @@ namespace CommonUtils.Coroutines {
 					$"{runningCoroutines.Count} coroutines are still running in this instance.");
 			}
 
-			this.DebugLog("Starting coroutine");
+			this.Log("Starting coroutine");
 			var result = this.StartCoroutineWithFinishCallback(coroutine, OnFinished);
 			runningCoroutines.Add(result);
 			return result;
@@ -173,20 +173,20 @@ namespace CommonUtils.Coroutines {
 			if (onFinishedAll == null) throw new ArgumentNullException(nameof(onFinishedAll));
 			#endregion
 
-			this.DebugLog(() => $"Starting {coroutines.Count} coroutines.");
+			this.Log(() => $"Starting {coroutines.Count} coroutines.");
 			for (var i = 0; i < coroutines.Count(); i++) {
 				progress.Add(0);
-				this.DebugLog($"Starting coroutine {i}");
+				this.Log($"Starting coroutine {i}");
 				StartCoroutine(executeCoroutine(coroutines.ElementAt(i), i));
 			}
 
-			this.DebugLog($"Starting coroutine to wait for all finished.");
+			this.Log($"Starting coroutine to wait for all finished.");
 			StartCoroutine(waitForAllFinished(onFinishedAll, onProgress));
 		}
 
 		private IEnumerator executeCoroutine(IEnumerator coroutine, int progressIndex) {
 			yield return coroutine;
-			this.DebugLog(() => $"Coroutine at index {progressIndex} has finished executing.");
+			this.Log(() => $"Coroutine at index {progressIndex} has finished executing.");
 			progress[progressIndex] = 1;
 		}
 
@@ -195,7 +195,7 @@ namespace CommonUtils.Coroutines {
 			do {
 				yield return null;
 				if (prevProgress >= OverallProgress) continue;
-				this.DebugLog(() => $"Progress: {OverallProgress * 100}%");
+				this.Log(() => $"Progress: {OverallProgress * 100}%");
 				onProgress?.Invoke(OverallProgress);
 				prevProgress = OverallProgress;
 			} while (OverallProgress < 1);
@@ -215,7 +215,7 @@ namespace CommonUtils.Coroutines {
 				}
 			}
 
-			this.DebugLog(() => $"Requested to stop {runningCoroutines.Count} running coroutines.");
+			this.Log(() => $"Requested to stop {runningCoroutines.Count} running coroutines.");
 
 			OnFinished();
 		}
@@ -223,7 +223,7 @@ namespace CommonUtils.Coroutines {
 		internal void SetVerbosity(Verbosity verbosity) => Verbosity = verbosity;
 
 		private void OnFinished() {
-			this.DebugLog("All coroutines have finished executing.");
+			this.Log("All coroutines have finished executing.");
 			runningCoroutines.Clear();
 			progress.Clear();
 			if(InstancePool == null) Destroy(gameObject);

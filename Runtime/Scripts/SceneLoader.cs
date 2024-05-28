@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using CommonUtils.Extensions;
 using CommonUtils.Verbosables;
 using TMPro;
 using UnityEngine;
@@ -274,7 +273,7 @@ namespace CommonUtils {
 				}
 			}
 
-			this.DebugLog("There are no suggestions to show.");
+			this.Log("There are no suggestions to show.");
 			if (suggestionsLabel) suggestionsLabel.text = string.Empty;
 		}
 
