@@ -128,7 +128,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 			} while (Trauma > 0 || (transform.localPosition != Vector3.zero || transform.localRotation != Quaternion.identity));
 
 			IsShaking = false;
-			this.DebugLog("Finished shaking");
+			this.Log("Finished shaking");
 			onShakeFinished.Invoke();
 		}
 	}

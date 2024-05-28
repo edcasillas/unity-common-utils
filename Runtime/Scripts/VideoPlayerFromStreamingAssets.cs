@@ -36,7 +36,7 @@ namespace CommonUtils {
 		[ShowInInspector]
 		public void Play() {
 			if(videoPlayer.isPlaying) return;
-			this.DebugLog(() => $"Trying to run video from {videoPlayer.url}");
+			this.Log(() => $"Trying to run video from {videoPlayer.url}");
 			// Restart from beginning when done.
 			videoPlayer.isLooping = true;
 			videoPlayer.Play();
@@ -45,7 +45,7 @@ namespace CommonUtils {
 		[ShowInInspector]
 		public void Pause() {
 			if(videoPlayer.isPaused) return;
-			this.DebugLog("Pausing video.");
+			this.Log("Pausing video.");
 			videoPlayer.Pause();
 		}
 

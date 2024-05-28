@@ -26,12 +26,12 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		private void Update() {
 			if (IsInteractable()) {
 				if (IsKeyPressed()) {
-					this.DebugLog($"{name} was pressed using key {keyCode}");
+					this.Log($"{name} was pressed using key {keyCode}");
 					Press();
 				}
 
 				if (IsKeyReleased()) {
-					this.DebugLog($"{name} was unpressed using key {keyCode}");
+					this.Log($"{name} was unpressed using key {keyCode}");
 					Release();
 				}
 			}

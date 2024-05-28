@@ -91,13 +91,13 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         public void Subscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Add(item);
             needsRefreshOfCurrentlyActiveItems = true;
-            this.DebugLog($"{item.name} has been SUBSCRIBED to {name}");
+            this.Log($"{item.name} has been SUBSCRIBED to {name}");
         }
 
         public void Unsubscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Remove(item);
             needsRefreshOfCurrentlyActiveItems = true;
-            this.DebugLog($"{item.name} has been UNSUBSCRIBED from {name}");
+            this.Log($"{item.name} has been UNSUBSCRIBED from {name}");
         }
 
         [ShowInInspector] public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
@@ -106,7 +106,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         #region Private methods
         private void onSceneLoaded(Scene arg0, LoadSceneMode arg1) {
             var removedItems = _allItems.RemoveWhere(item => !item.IsValid());
-            this.DebugLog($"A new scene was loaded and {removedItems} items were removed from {name}");
+            this.Log($"A new scene was loaded and {removedItems} items were removed from {name}");
             refreshCurrentlyActiveItems();
         }
 

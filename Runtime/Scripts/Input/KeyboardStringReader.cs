@@ -72,7 +72,7 @@ namespace CommonUtils.Input {
 			#region Submit when the submit key is detected and the input string is not empty.
 			if (UnityEngine.Input.GetKeyUp(submitKey) && strBuilder.Length > 0) {
 				var readValue = strBuilder.ToString().TrimEnd();
-				this.DebugLog($"{name} read the string \"{readValue}\"");
+				this.Log($"{name} read the string \"{readValue}\"");
 				onValueRead.Invoke(readValue);
 				strBuilder.Clear();
 			}

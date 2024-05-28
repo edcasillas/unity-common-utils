@@ -52,12 +52,12 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         }
 
         private void OnEnable() {
-            this.DebugLog($"{name} has been enabled.");
+            this.Log($"{name} has been enabled.");
             manager.OnItemEnabledOrDisabled();
         }
 
         private void OnDisable() {
-            this.DebugLog($"{name} has been disabled.");
+            this.Log($"{name} has been disabled.");
             manager.OnItemEnabledOrDisabled();
         }
 
