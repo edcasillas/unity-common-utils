@@ -40,9 +40,10 @@ namespace CommonUtils.Editor.DebuggableEditors {
 			try {
 				oldValue = reflectedProperty.GetValue(instance);
 			} catch (Exception ex) {
+				var exceptionType = ex.InnerException != null ? ex.InnerException.GetType() : ex.GetType();
 				var exceptionMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
 				EditorGUILayout.HelpBox(
-					$"An exception occurred while calling the getter of property \"{reflectedProperty.RealName}\": {exceptionMessage}",
+					$"{exceptionType.Name} occurred while calling the getter of property \"{reflectedProperty.RealName}\": {exceptionMessage}",
 					MessageType.Error);
 				return;
 			}

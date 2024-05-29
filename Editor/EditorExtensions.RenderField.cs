@@ -27,6 +27,12 @@ namespace CommonUtils.Editor {
 
 			// Check if the type is marked as [Serializable]
 			if (type.IsSerializable && !type.IsPrimitive && !type.IsEnum && type != typeof(string)) {
+				if (value == null) {
+					var contents = new GUIContent("<null>");
+					EditorGUILayout.LabelField(guiContent, contents);
+					return value;
+				}
+
 				// Render the display name
 				if (guiContent != null) {
 					EditorGUILayout.LabelField(guiContent);
@@ -39,7 +45,14 @@ namespace CommonUtils.Editor {
 					if (!field.IsPublic && !field.GetCustomAttributes(typeof(SerializeField), false).Any()) continue;
 
 					// Render each field recursively
-					var fieldValue = field.GetValue(value);
+					object fieldValue;
+					try {
+						fieldValue = field.GetValue(value);
+					} catch (Exception ex) {
+						Debug.LogException(ex);
+						fieldValue = null;
+					}
+
 					var fieldType = field.FieldType;
 					var fieldDisplayName = ObjectNames.NicifyVariableName(field.Name);
 					var newValue = RenderField(fieldType, fieldDisplayName, fieldValue);
