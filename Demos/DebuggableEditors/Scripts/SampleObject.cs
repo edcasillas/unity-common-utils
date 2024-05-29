@@ -1,5 +1,6 @@
 using CommonUtils;
 using CommonUtils.Verbosables;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -18,11 +19,25 @@ namespace Demos.DebuggableEditors {
 
 		[ShowInInspector] public int AddOne(int input) => input + 1;
 
+		[ShowInInspector] public void MethodWithException(string text = "echo") => throw new Exception(text);
+
 		[ShowInInspector]
 		public async Task AsyncTask(int millisecondsDelay = 2000) {
 			this.Log("Starting async task");
 			await Task.Delay(millisecondsDelay);
 			this.Log("Finished async task");
+		}
+
+		[ShowInInspector]
+		public async Task<string> AsyncTaskWithResult(string text = "echo", int millisecondsDelay = 2000) {
+			await Task.Delay(millisecondsDelay);
+			return text;
+		}
+
+		[ShowInInspector]
+		public async Task AsyncTaskWithException(string text = "echo", int millisecondsDelay = 2000) {
+			await Task.Delay(millisecondsDelay);
+			throw new Exception(text);
 		}
 	}
 }

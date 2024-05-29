@@ -85,7 +85,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 				}
 			}
 
-			if (reflectedMethod.HasBeenCalled && reflectedMethod.HasReturnValue) {
+			if (reflectedMethod.HasBeenCalled) {
 				if (reflectedMethod.FinishedExecuting) {
 					if (reflectedMethod.IsAwaitable) {
 						EditorGUILayout.HelpBox(
@@ -93,11 +93,17 @@ namespace CommonUtils.Editor.DebuggableEditors {
 							MessageType.Info);
 					}
 
-					var fold = reflectedMethod.Fold;
-					if (TryRenderEnumerableField(reflectedMethod.ReturnValue, "Result", ref fold)) {
-						reflectedMethod.Fold = fold;
-					} else {
-						EditorExtensions.RenderField(reflectedMethod.Type, "Result", reflectedMethod.ReturnValue);
+					if (reflectedMethod.Exception != null) {
+						EditorGUILayout.HelpBox(
+							$"{reflectedMethod.Exception.GetType().Name}: {reflectedMethod.Exception.Message}",
+							MessageType.Error);
+					} else if (reflectedMethod.HasReturnValue) {
+						var fold = reflectedMethod.Fold;
+						if (TryRenderEnumerableField(reflectedMethod.ReturnValue, "Result", ref fold)) {
+							reflectedMethod.Fold = fold;
+						} else {
+							EditorExtensions.RenderField(reflectedMethod.Type, "Result", reflectedMethod.ReturnValue);
+						}
 					}
 				} else {
 					EditorGUILayout.HelpBox($"Executing for {reflectedMethod.StopWatch.Elapsed.TotalSeconds} seconds.",

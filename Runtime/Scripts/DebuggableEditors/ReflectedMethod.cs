@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -15,13 +16,17 @@ namespace CommonUtils.DebuggableEditors {
 
 		public bool HasBeenCalled { get; private set; }
 		public bool FinishedExecuting { get; private set; }
-		public bool HasReturnValue => MemberInfo.ReturnType != typeof(void);
+
+		private readonly HashSet<Type> voidTypes = new() { typeof(void), typeof(Task) };
+		public bool HasReturnValue => !voidTypes.Contains(MemberInfo.ReturnType);
 
 		public Stopwatch StopWatch { get; } = new Stopwatch();
 
 		public override Type Type => MemberInfo.ReturnType;
 
 		public object ReturnValue { get; private set; }
+
+		public Exception Exception { get; private set; }
 
 		public ReflectedMethod(MethodInfo methodInfo, string displayName) : base(methodInfo, displayName) {
 			ParamInfo = methodInfo.GetParameters();
@@ -61,29 +66,35 @@ namespace CommonUtils.DebuggableEditors {
 
 			HasBeenCalled = true;
 			FinishedExecuting = false;
+			Exception = null;
 
 			var returnType = MemberInfo.ReturnType;
 
-			StopWatch.Restart();
-			if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>)) {
-				// If return type is Task<T>
-				var task = (Task)MemberInfo.Invoke(instance, Arguments);
-				await task.ConfigureAwait(false);
-				var resultProperty = returnType.GetProperty("Result");
-				invokeResult = resultProperty?.GetValue(task);
-			} else if (returnType == typeof(Task)) {
-				// If return type is Task
-				var task = (Task)MemberInfo.Invoke(instance, Arguments);
-				await task.ConfigureAwait(false);
-			} else {
-				// If return type is not Task or Task<T>
+			try {
+				StopWatch.Restart();
+				if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>)) {
+					// If return type is Task<T>
+					var task = (Task)MemberInfo.Invoke(instance, Arguments);
+					await task.ConfigureAwait(false);
+					var resultProperty = returnType.GetProperty("Result");
+					invokeResult = resultProperty?.GetValue(task);
+				} else if (returnType == typeof(Task)) {
+					// If return type is Task
+					var task = (Task)MemberInfo.Invoke(instance, Arguments);
+					await task.ConfigureAwait(false);
+				} else {
+					// If return type is not Task or Task<T>
+					StopWatch.Stop();
+					throw new InvalidOperationException("Method is not awaitable");
+				}
+			} catch (Exception ex) {
+				Exception = ex;
+			} finally {
 				StopWatch.Stop();
-				throw new InvalidOperationException("Method is not awaitable");
-			}
-			StopWatch.Stop();
 
-			FinishedExecuting = true;
-			ReturnValue = invokeResult;
+				FinishedExecuting = true;
+				ReturnValue = invokeResult;
+			}
 		}
 	}
 }
