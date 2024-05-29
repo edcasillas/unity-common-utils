@@ -12,12 +12,6 @@ namespace CommonUtils {
 	public abstract class EnhancedMonoBehaviour : MonoBehaviour, IUnityComponent, IVerbosable {
 		[SerializeField] private Verbosity verbosity = Verbosity.Error | Verbosity.Warning;
 
-		/// <summary>
-		/// Gets a value indicating whether this object should send messages to the log console.
-		/// </summary>
-		[Obsolete]
-		public bool IsVerbose => Verbosity.HasFlag(Verbosity.Debug);
-
 		public Verbosity Verbosity {
 			get => verbosity;
 			protected set => verbosity = value;
