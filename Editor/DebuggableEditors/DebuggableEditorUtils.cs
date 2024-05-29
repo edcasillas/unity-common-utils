@@ -68,7 +68,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 				GUILayout.BeginVertical(reflectedMethod.DisplayName, "box");
 				EditorGUILayout.Space(20);
 				reflectedMethod.RenderDebugInfoIfAny();
-				for (int i = 0; i < reflectedMethod.ParamInfo.Length; i++) {
+				for (var i = 0; i < reflectedMethod.ParamInfo.Length; i++) {
 					reflectedMethod.Arguments[i] = EditorExtensions.RenderField(
 						reflectedMethod.ParamInfo[i].ParameterType,
 						reflectedMethod.ParamInfo[i].Name.PascalToTitleCase(),
