@@ -77,6 +77,16 @@ namespace CommonUtils.Coroutines {
 			return routineHandler;
 		}
 
+		public static CoroutinerInstance WaitUntil(Func<bool> condition, Action then, Action onTimeout = null, float? timeout = null, string gameObjectName = "WaitUntil Coroutine", bool preventDestroyOnSceneChange = false, Verbosity verbosity = Verbosity.None) {
+			if (condition == null) throw new ArgumentNullException(nameof(condition));
+			if (then == null) throw new ArgumentNullException(nameof(then));
+			if ((onTimeout != null && !timeout.HasValue) || (onTimeout == null && timeout.HasValue))
+				throw new ArgumentException(
+					"In order to specify a timeout, please include both timeout and OnTimeout parameters.");
+
+			return StartCoroutine(CoroutineExtensions.DoWaitUntil(condition, then, onTimeout, timeout), gameObjectName, preventDestroyOnSceneChange, verbosity);
+		}
+
 		private static CoroutinerInstance getInstance(string gameObjectName, bool dontDestroyOnLoad, Verbosity verbosity) {
 			CoroutinerInstance result = null;
 
