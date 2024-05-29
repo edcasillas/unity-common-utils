@@ -17,8 +17,7 @@ namespace CommonUtils.DebuggableEditors {
 		public bool FinishedExecuting { get; private set; }
 		public bool HasReturnValue => MemberInfo.ReturnType != typeof(void);
 
-		private readonly Stopwatch stopwatch = new Stopwatch();
-		public Stopwatch StopWatch => stopwatch;
+		public Stopwatch StopWatch { get; } = new Stopwatch();
 
 		public override Type Type => MemberInfo.ReturnType;
 
@@ -65,6 +64,7 @@ namespace CommonUtils.DebuggableEditors {
 
 			var returnType = MemberInfo.ReturnType;
 
+			StopWatch.Restart();
 			if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>)) {
 				// If return type is Task<T>
 				var task = (Task)MemberInfo.Invoke(instance, Arguments);
@@ -77,27 +77,13 @@ namespace CommonUtils.DebuggableEditors {
 				await task.ConfigureAwait(false);
 			} else {
 				// If return type is not Task or Task<T>
+				StopWatch.Stop();
 				throw new InvalidOperationException("Method is not awaitable");
 			}
+			StopWatch.Stop();
 
 			FinishedExecuting = true;
 			ReturnValue = invokeResult;
 		}
-
-		/*public async Task InvokeAsync(object instance) {
-			// Assuming the method is awaitable
-			object invokeResult = null;
-
-			HasBeenCalled = true;
-			FinishedExecuting = false;
-			if (MemberInfo.ReturnType.IsGenericType) { // return type is of type Task<T> (i.e. generic)
-				invokeResult = (object)await (dynamic)MemberInfo.Invoke(instance, Arguments);
-			} else { // return type is Task (non generic, no return value)
-				await (Task)MemberInfo.Invoke(instance, Arguments);
-			}
-
-			FinishedExecuting = true;
-			ReturnValue = invokeResult;
-		}*/
 	}
 }
