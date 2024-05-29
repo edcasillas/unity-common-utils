@@ -40,9 +40,7 @@ namespace CommonUtils.DebuggableEditors {
 		public void Invoke(object instance) {
 			object invokeResult = null;
 			if (IsAwaitable) {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				invokeAsync(instance);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				_ = invokeAsync(instance);
 				return;
 			}
 			else {
