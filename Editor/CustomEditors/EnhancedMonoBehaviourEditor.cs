@@ -3,5 +3,5 @@ using UnityEditor;
 
 namespace CommonUtils.Editor.CustomEditors {
 	[CustomEditor(typeof(EnhancedMonoBehaviour), true)]
-	public class EnhancedMonoBehaviourEditor : AbstractDebuggableEditor<EnhancedMonoBehaviour> { }
+	public class EnhancedMonoBehaviourEditor : AbstractMonoBehaviourDebuggableEditor<EnhancedMonoBehaviour> { }
 }

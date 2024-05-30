@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.CustomEditors {
     [CustomEditor(typeof(TiledSpriteFromTexture))]
-    public class TiledSpriteFromTextureEditor : AbstractDebuggableEditor<TiledSpriteFromTexture> {
+    public class TiledSpriteFromTextureEditor : AbstractMonoBehaviourDebuggableEditor<TiledSpriteFromTexture> {
         private Texture2D textureOverride;
         private float borderOverride;
         private float pixelsPerUnitOverride;

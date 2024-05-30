@@ -4,5 +4,5 @@ using UnityEditor;
 
 namespace CommonUtils.Editor.CustomEditors {
     [CustomEditor(typeof(SwipeManager))]
-    public class SwipeManagerEditor : AbstractDebuggableEditor<SwipeManager> { }
+    public class SwipeManagerEditor : AbstractMonoBehaviourDebuggableEditor<SwipeManager> { }
 }

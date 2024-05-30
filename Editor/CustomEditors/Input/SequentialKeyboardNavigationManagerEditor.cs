@@ -7,5 +7,5 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.CustomEditors {
     [CustomEditor(typeof(SequentialKeyboardNavigationManager))]
-    public class SequentialKeyboardNavigationManagerEditor : AbstractDebuggableEditor<SequentialKeyboardNavigationManager> { }
+    public class SequentialKeyboardNavigationManagerEditor : AbstractMonoBehaviourDebuggableEditor<SequentialKeyboardNavigationManager> { }
 }

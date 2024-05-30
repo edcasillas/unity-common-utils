@@ -4,5 +4,5 @@ using UnityEditor;
 
 namespace CommonUtils.Editor.CustomEditors {
 	[CustomEditor(typeof(AbstractWebResourceComponent), true)]
-	public class WebResourceComponentEditor : AbstractDebuggableEditor<AbstractWebResourceComponent> { }
+	public class WebResourceComponentEditor : AbstractMonoBehaviourDebuggableEditor<AbstractWebResourceComponent> { }
 }

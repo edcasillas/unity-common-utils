@@ -13,7 +13,7 @@ namespace CommonUtils.RestSdk {
 			callback(null);
 			#else
 			if(string.IsNullOrEmpty(url)) {
-				url = "http://www.google.com";
+				url = "https://www.google.com";
 			}
 			new RestClient(url).Ping(null,
 				response => { callback(response.IsSuccess ? null : response.ErrorMessage); });

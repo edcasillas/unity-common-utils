@@ -4,10 +4,11 @@ using System;
 using System.Collections;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CommonUtils.Editor.DebuggableEditors {
 	internal static class DebuggableEditorUtils {
-		internal static void RenderDebuggableMembers<T>(this DebuggableComponentData debuggableComponentData, T instance) where T : MonoBehaviour {
+		internal static void RenderDebuggableMembers<T>(this DebuggableComponentData debuggableComponentData, T instance) where T : Object {
 			if(!instance) return;
 
 			foreach (var prop in debuggableComponentData.DebuggableProperties) {

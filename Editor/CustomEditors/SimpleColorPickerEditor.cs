@@ -4,5 +4,5 @@ using UnityEditor;
 
 namespace CommonUtils.Editor.CustomEditors {
 	[CustomEditor(typeof(SimpleColorPicker))]
-	public class SimpleColorPickerEditor : AbstractDebuggableEditor<SimpleColorPicker> { }
+	public class SimpleColorPickerEditor : AbstractMonoBehaviourDebuggableEditor<SimpleColorPicker> { }
 }
