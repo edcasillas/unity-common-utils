@@ -2,10 +2,7 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.DebuggableEditors {
 	/// <summary>
-    /// Base class for custom editors that show two sections while playing in the editor:
-    /// - "Configuration" shows the default inspector to set up the target <see cref="Subject"/>,
-    /// or whatever modifications are done to this default inspector by overriding <see cref="RenderConfig"/>.
-    /// - "Debug" shows values that only make sense during play mode. Inheritors must override <see cref="RenderDebug"/>.
+    /// Implements <see cref="AbstractDebuggableEditor{T}"/> for <see cref="MonoBehaviour"/>s.
     /// </summary>
     /// <typeparam name="T">Type of <see cref="MonoBehaviour"/> for which this class will be a custom editor.</typeparam>
     public abstract class AbstractMonoBehaviourDebuggableEditor<T> : AbstractDebuggableEditor<T> where T : MonoBehaviour {
