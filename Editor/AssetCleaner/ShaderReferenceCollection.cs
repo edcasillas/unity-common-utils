@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEngine;
 
 namespace CommonUtils.Editor.AssetCleaner
 {
@@ -14,7 +15,7 @@ namespace CommonUtils.Editor.AssetCleaner
 		public void Collection ()
 		{
 			CollectionShaderFiles ();
-			CheckReference ();
+			checkReference ();
 		}
 
 		void CollectionShaderFiles ()
@@ -44,21 +45,25 @@ namespace CommonUtils.Editor.AssetCleaner
 			}
 		}
 
-		void CheckReference ()
-		{
+		private void checkReference() {
 			foreach (var shader in shaderFileList) {
 				var shaderFilePath = AssetDatabase.GUIDToAssetPath(shader.Value);
+				if (string.IsNullOrWhiteSpace(shaderFilePath)) {
+					Debug.LogWarning($"Null or empty file path for shader {shader.Key}");
+					continue;
+				}
+
 				var shaderName = shader.Key;
 
-				List<string> referenceList = new List<string> ();
-				shaderReferenceList.Add (shaderName, referenceList);
+				var referenceList = new List<string>();
+				shaderReferenceList.Add(shaderName, referenceList);
 
-				var code = File.ReadAllText (shaderFilePath);
+				var code = File.ReadAllText(shaderFilePath);
 
 				foreach (var checkingShaderName in shaderFileList.Keys) {
-					if (Regex.IsMatch (code, string.Format ("{0}", checkingShaderName))) {
-						var filePath = shaderFileList [checkingShaderName];
-						referenceList.Add (filePath);
+					if (Regex.IsMatch(code, string.Format("{0}", checkingShaderName))) {
+						var filePath = shaderFileList[checkingShaderName];
+						referenceList.Add(filePath);
 					}
 				}
 			}

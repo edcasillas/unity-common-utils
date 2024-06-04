@@ -8,8 +8,8 @@ namespace CommonUtils.Editor.AssetCleaner
 {
 	public class FindUnusedAssets : EditorWindow
 	{
-		AssetCollector collection = new AssetCollector ();
-		List<DeleteAsset> deleteAssets = new List<DeleteAsset> ();
+		AssetCollector collection = new();
+		private List<DeleteAsset> deleteAssets = new();
 		Vector2 scroll;
 
 		[MenuItem("Assets/Delete Unused Assets/only resource", false, 50)]
@@ -18,7 +18,7 @@ namespace CommonUtils.Editor.AssetCleaner
 			var window = FindUnusedAssets.CreateInstance<FindUnusedAssets> ();
 			window.collection.useCodeStrip = false;
 			window.collection.Collection ();
-			window.CopyDeleteFileList (window.collection.deleteFileList);
+			window.copyDeleteFileList (window.collection.deleteFileList);
 
 			window.Show ();
 		}
@@ -28,29 +28,38 @@ namespace CommonUtils.Editor.AssetCleaner
 		{
 			var window = FindUnusedAssets.CreateInstance<FindUnusedAssets> ();
 			window.collection.Collection ();
-			window.CopyDeleteFileList (window.collection.deleteFileList);
+			window.copyDeleteFileList (window.collection.deleteFileList);
 
 			window.Show ();
 		}
 
 		[MenuItem("Assets/Delete Unused Assets/unused by game", false, 52)]
-		static void Init ()
-		{
-			var window = CreateInstance<FindUnusedAssets> ();
+		private static void Init () {
+			var window = CreateInstance<FindUnusedAssets>();
+			window.titleContent = new GUIContent("Asset Cleaner");
 			window.collection.saveEditorExtensions = false;
 			window.collection.Collection ();
-			window.CopyDeleteFileList (window.collection.deleteFileList);
+			window.copyDeleteFileList (window.collection.deleteFileList);
 
 			window.Show ();
 		}
 
 		private void OnGUI() {
-			using (var horizonal = new EditorGUILayout.HorizontalScope("box")) {
-				EditorGUILayout.LabelField("delete unreference assets from buildsettings and resources");
+			if (GUILayout.Button("Refresh")) {
+				Debug.LogWarning("TODO Refresh");
+			}
 
-				if (GUILayout.Button("Delete", GUILayout.Width(120), GUILayout.Height(40)) && deleteAssets.Count != 0) {
-					RemoveFiles();
-					Close();
+			using (new EditorGUILayout.HorizontalScope("box")) {
+				var fileCount = deleteAssets.Count(item => item.isDelete && !string.IsNullOrWhiteSpace(item.path));
+				if (fileCount > 0) {
+					EditorGUILayout.LabelField($"{fileCount} unused assets.");
+
+					if (GUILayout.Button("Remove", GUILayout.Width(120), GUILayout.Height(40)) && deleteAssets.Count != 0) {
+						// RemoveFiles();
+						Close();
+					}
+				} else {
+					EditorGUILayout.LabelField("No unused assets were found.");
 				}
 			}
 
@@ -61,7 +70,7 @@ namespace CommonUtils.Editor.AssetCleaner
 						continue;
 					}
 
-					using (var horizonal = new EditorGUILayout.HorizontalScope()) {
+					using (new EditorGUILayout.HorizontalScope()) {
 						asset.isDelete = EditorGUILayout.Toggle(asset.isDelete, GUILayout.Width(20));
 						var icon = AssetDatabase.GetCachedIcon(asset.path);
 						GUILayout.Label(icon, GUILayout.Width(20), GUILayout.Height(20));
@@ -78,23 +87,21 @@ namespace CommonUtils.Editor.AssetCleaner
 			AssetDatabase.Refresh();
 		}
 
-		void CopyDeleteFileList(IEnumerable<string> deleteFileList)
-		{
+		private void copyDeleteFileList(IEnumerable<string> deleteFileList) {
 			foreach (var asset in deleteFileList) {
-				var filePath = AssetDatabase.GUIDToAssetPath (asset);
-				if (string.IsNullOrEmpty (filePath) == false) {
-					deleteAssets.Add (new DeleteAsset (){ path = filePath});
+				var filePath = AssetDatabase.GUIDToAssetPath(asset);
+				if (string.IsNullOrEmpty(filePath) == false) {
+					deleteAssets.Add(new DeleteAsset() { path = filePath });
 				}
 			}
 		}
 
-		void RemoveFiles ()
-		{
+		void RemoveFiles () {
 			try {
-				string exportDirectry = "BackupUnusedAssets";
+				var exportDirectry = "BackupUnusedAssets";
 				Directory.CreateDirectory (exportDirectry);
-				var files = deleteAssets.Where (item => item.isDelete == true).Select (item => item.path).ToArray ();
-				string backupPackageName = exportDirectry + "/package" + System.DateTime.Now.ToString ("yyyyMMddHHmmss") + ".unitypackage";
+				var files = deleteAssets.Where (item => item.isDelete).Select (item => item.path).ToArray ();
+				var backupPackageName = exportDirectry + "/package" + System.DateTime.Now.ToString ("yyyyMMddHHmmss") + ".unitypackage";
 				EditorUtility.DisplayProgressBar ("export package", backupPackageName, 0);
 				AssetDatabase.ExportPackage (files, backupPackageName);
 

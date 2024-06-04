@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEngine;
 
 namespace CommonUtils.Editor.AssetCleaner
 {
@@ -32,7 +33,7 @@ namespace CommonUtils.Editor.AssetCleaner
 			collectionCodeFileDictionary (allFirstpassTypes, firstPassList.ToArray());
 
 
-			var alltypes = CollectionAllClasses ();
+			var alltypes = collectionAllClasses ();
 			collectionCodeFileDictionary (alltypes, codes.ToArray());
 			alltypes.AddRange (allFirstpassTypes);
 
@@ -95,25 +96,28 @@ namespace CommonUtils.Editor.AssetCleaner
 			}
 		}
 
-		List<System.Type> CollectionAllClasses ()
+		private static List<System.Type> collectionAllClasses ()
 		{
 			var alltypes = new List<System.Type> ();
+			/*
 
 			if (File.Exists ("Library/ScriptAssemblies/Assembly-CSharp.dll"))
 				alltypes.AddRange (Assembly.LoadFile ("Library/ScriptAssemblies/Assembly-CSharp.dll").GetTypes ());
 			if (File.Exists ("Library/ScriptAssemblies/Assembly-CSharp-Editor.dll"))
 				alltypes.AddRange (Assembly.LoadFile ("Library/ScriptAssemblies/Assembly-CSharp-Editor.dll").GetTypes ());
-
+*/
+			Debug.LogWarning($"TODO {nameof(collectionAllClasses)}");
 			return alltypes	.ToList ();
 		}
 
-		List<System.Type> collectionAllFastspassClasses()
+		private static List<System.Type> collectionAllFastspassClasses()
 		{
 			var alltypes = new List<System.Type> ();
-			if (File.Exists ("Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll"))
+			/*if (File.Exists ("Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll"))
 				alltypes.AddRange (Assembly.LoadFile ("Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll").GetTypes ());
 			if (File.Exists ("Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll"))
-				alltypes.AddRange (Assembly.LoadFile ("Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll").GetTypes ());
+				alltypes.AddRange (Assembly.LoadFile ("Library/ScriptAssemblies/Assembly-CSharp-Editor-firstpass.dll").GetTypes ());*/
+			Debug.LogWarning($"TODO {nameof(collectionAllFastspassClasses)}");
 			return alltypes;
 		}
 
