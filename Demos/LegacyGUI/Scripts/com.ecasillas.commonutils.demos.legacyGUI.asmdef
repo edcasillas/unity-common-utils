@@ -1,0 +1,16 @@
+{
+    "name": "com.ecasillas.commonutils.demos.legacyGUI",
+    "rootNamespace": "",
+    "references": [
+        "GUID:453644240d94c4e929b3a593a6ae93d7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
