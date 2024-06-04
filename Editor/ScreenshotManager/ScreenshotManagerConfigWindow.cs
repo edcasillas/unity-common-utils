@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,20 +19,17 @@ namespace CommonUtils.Editor.ScreenshotManager {
 				instance.titleContent = new GUIContent("Screenshot Manager");
 				instance.maxSize      = new Vector2(400f, 300f);
 			}
-			instance.Show();
-		}
-
-		private void OnEnable() {
-			if(!instance) return;
 			instance.saveTo = ScreenshotManager.SaveToFolder;
 			instance.prefix = ScreenshotManager.FilePrefix;
 			instance.currentCount = ScreenshotManager.CurrentCount;
+			instance.Show();
 		}
 
 		private void OnGUI() {
 			EditorExtensions.ReadOnlyLabelField("Save to", saveTo);
 			if (GUILayout.Button("Change folder...")) {
-				var selectedFolder =EditorUtility.SaveFolderPanel("Choose folder to save screenshots to", saveTo, "Screenshots");
+				var selectedFolder =
+					EditorUtility.SaveFolderPanel("Choose folder to save screenshots to", saveTo, "Screenshots");
 				if (!string.IsNullOrWhiteSpace(selectedFolder)) saveTo = selectedFolder;
 			}
 
@@ -45,9 +41,9 @@ namespace CommonUtils.Editor.ScreenshotManager {
 			}
 
 			if (!Directory.Exists(saveTo)) {
-				EditorGUILayout.HelpBox($"The selected folder does not exist. Screenshots cannot be taken!", MessageType.Error);
+				EditorGUILayout.HelpBox("The selected folder does not exist. Screenshots cannot be taken!", MessageType.Error);
 			} else {
-				EditorGUILayout.HelpBox($"Next screenshot will be saved as:\n{saveTo}/{prefix}{currentCount}.png", MessageType.None);
+				EditorGUILayout.HelpBox($"Next screenshot will be saved as:\n{saveTo}/{prefix}{currentCount+1}.png", MessageType.None);
 				if ((saveTo       != ScreenshotManager.SaveToFolder || prefix != ScreenshotManager.FilePrefix ||
 					 currentCount != ScreenshotManager.CurrentCount) && GUILayout.Button("Save")) {
 					ScreenshotManager.SaveToFolder = saveTo;
