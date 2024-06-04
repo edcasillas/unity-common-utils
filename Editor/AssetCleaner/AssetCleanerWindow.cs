@@ -6,8 +6,24 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.AssetCleaner
 {
-	public class FindUnusedAssets : EditorWindow
-	{
+	public class AssetCleanerWindow : EditorWindow {
+		#region Constants
+		public const string EDITOR_PREF_KEY_USE_CODE_STRIP = "AssetCleaner.UseCodeStrip";
+		public const string EDITOR_PREF_KEY_USE_SAVE_EDITOR_EXTENSIOnS = "AssetCleaner.SaveEditorExtension";
+		#endregion
+
+		#region Properties
+		internal static bool UseCodeStrip {
+			get => EditorPrefs.GetBool(EDITOR_PREF_KEY_USE_CODE_STRIP, true);
+			set => EditorPrefs.SetBool(EDITOR_PREF_KEY_USE_CODE_STRIP, value);
+		}
+
+		internal static bool SaveEditorExtensions {
+			get => EditorPrefs.GetBool(EDITOR_PREF_KEY_USE_CODE_STRIP, true);
+			set => EditorPrefs.SetBool(EDITOR_PREF_KEY_USE_CODE_STRIP, value);
+		}
+		#endregion
+
 		AssetCollector collection = new();
 		private List<DeleteAsset> deleteAssets = new();
 		Vector2 scroll;
@@ -15,7 +31,7 @@ namespace CommonUtils.Editor.AssetCleaner
 		[MenuItem("Assets/Delete Unused Assets/only resource", false, 50)]
 		static void InitWithoutCode ()
 		{
-			var window = FindUnusedAssets.CreateInstance<FindUnusedAssets> ();
+			var window = CreateInstance<AssetCleanerWindow> ();
 			window.collection.useCodeStrip = false;
 			window.collection.Collection ();
 			window.copyDeleteFileList (window.collection.deleteFileList);
@@ -26,27 +42,35 @@ namespace CommonUtils.Editor.AssetCleaner
 		[MenuItem("Assets/Delete Unused Assets/unused by editor", false, 51)]
 		static void InitWithout ()
 		{
-			var window = FindUnusedAssets.CreateInstance<FindUnusedAssets> ();
+			var window = CreateInstance<AssetCleanerWindow> ();
 			window.collection.Collection ();
 			window.copyDeleteFileList (window.collection.deleteFileList);
 
 			window.Show ();
 		}
 
-		[MenuItem("Assets/Delete Unused Assets/unused by game", false, 52)]
-		private static void Init () {
-			var window = CreateInstance<FindUnusedAssets>();
+		[MenuItem("Tools/Asset Cleaner...", false, 52)]
+		private static void openAssetCleaner () {
+			var window = CreateInstance<AssetCleanerWindow>();
 			window.titleContent = new GUIContent("Asset Cleaner");
-			window.collection.saveEditorExtensions = false;
-			window.collection.Collection ();
-			window.copyDeleteFileList (window.collection.deleteFileList);
-
+			window.refresh(saveEditorExtensions: false);
 			window.Show ();
+		}
+
+		private void refresh(bool useCodeStrip = true, bool saveEditorExtensions = true) {
+			deleteAssets = new List<DeleteAsset>();
+			collection.useCodeStrip = useCodeStrip;
+			collection.saveEditorExtensions = saveEditorExtensions;
+			collection.Collection();
+			copyDeleteFileList(collection.deleteFileList);
 		}
 
 		private void OnGUI() {
+			UseCodeStrip = EditorGUILayout.Toggle(UseCodeStrip, "Use Code Strip");
+			SaveEditorExtensions = EditorGUILayout.Toggle(SaveEditorExtensions, "Save Editor Extensions");
+
 			if (GUILayout.Button("Refresh")) {
-				Debug.LogWarning("TODO Refresh");
+				refresh(saveEditorExtensions: false);
 			}
 
 			using (new EditorGUILayout.HorizontalScope("box")) {
@@ -90,7 +114,7 @@ namespace CommonUtils.Editor.AssetCleaner
 		private void copyDeleteFileList(IEnumerable<string> deleteFileList) {
 			foreach (var asset in deleteFileList) {
 				var filePath = AssetDatabase.GUIDToAssetPath(asset);
-				if (string.IsNullOrEmpty(filePath) == false) {
+				if (!string.IsNullOrEmpty(filePath)) {
 					deleteAssets.Add(new DeleteAsset() { path = filePath });
 				}
 			}

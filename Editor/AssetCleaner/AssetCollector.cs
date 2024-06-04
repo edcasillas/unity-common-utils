@@ -46,7 +46,7 @@ namespace CommonUtils.Editor.AssetCleaner
 				UnregistReferenceFromResources();
 
 				EditorUtility.DisplayProgressBar ("checking", "check reference from resources", 0.4f);
-				UnregistReferenceFromScenes();
+				unregistReferenceFromScenes();
 
 				EditorUtility.DisplayProgressBar ("checking", "check reference from scenes", 0.6f);
 				if( saveEditorExtensions ){
@@ -68,17 +68,16 @@ namespace CommonUtils.Editor.AssetCleaner
 			}
 		}
 
-		void UnregistReferenceFromScenes()
-		{
+		private void unregistReferenceFromScenes() {
 			// Exclude objects that reference from scenes.
 			var scenes = EditorBuildSettings.scenes
 				.Where (item => item.enabled == true)
 					.Select (item => item.path)
 					.ToArray ();
 			foreach (var path in AssetDatabase.GetDependencies (scenes)) {
-				if( saveEditorExtensions == false ){
+				/*if(!saveEditorExtensions){
 					Debug.Log(path);
-				}
+				}*/
 				unregistFromDelteList (AssetDatabase.AssetPathToGUID(path));
 			}
 		}

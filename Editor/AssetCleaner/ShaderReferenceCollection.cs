@@ -9,16 +9,17 @@ namespace CommonUtils.Editor.AssetCleaner
 	public class ShaderReferenceCollection
 	{
 		// shader name / shader file guid
-		public Dictionary<string, string> shaderFileList = new Dictionary<string, string> ();
-		public Dictionary<string, List<string> > shaderReferenceList = new Dictionary<string, List<string>> ();
+		public Dictionary<string, string> shaderFileList = new();
+		public Dictionary<string, List<string> > shaderReferenceList = new();
 
-		public void Collection ()
-		{
-			CollectionShaderFiles ();
-			checkReference ();
+		public void Collection() {
+			shaderFileList = new Dictionary<string, string>();
+			shaderReferenceList = new Dictionary<string, List<string>>();
+			collectionShaderFiles();
+			checkReference();
 		}
 
-		void CollectionShaderFiles ()
+		private void collectionShaderFiles ()
 		{
 			var shaderFiles = Directory.GetFiles ("Assets", "*.shader", SearchOption.AllDirectories);
 			foreach (var shaderFilePath in shaderFiles) {
