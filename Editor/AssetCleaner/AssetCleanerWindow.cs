@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CommonUtils.Editor.AssetCleaner
 {
@@ -23,6 +25,8 @@ namespace CommonUtils.Editor.AssetCleaner
 			set => EditorPrefs.SetBool(EDITOR_PREF_KEY_USE_CODE_STRIP, value);
 		}
 		#endregion
+
+		private string searchText = string.Empty;
 
 		AssetCollector collection = new();
 		private List<DeleteAsset> deleteAssets = new();
@@ -66,11 +70,13 @@ namespace CommonUtils.Editor.AssetCleaner
 		}
 
 		private void OnGUI() {
-			UseCodeStrip = EditorGUILayout.Toggle(UseCodeStrip, "Use Code Strip");
-			SaveEditorExtensions = EditorGUILayout.Toggle(SaveEditorExtensions, "Save Editor Extensions");
+			using (new EditorGUILayout.HorizontalScope("box")) {
+				UseCodeStrip = GUILayout.Toggle(UseCodeStrip, "Use Code Strip");
+				SaveEditorExtensions = GUILayout.Toggle(SaveEditorExtensions, "Save Editor Extensions");
 
-			if (GUILayout.Button("Refresh")) {
-				refresh(saveEditorExtensions: false);
+				if (GUILayout.Button("Refresh")) {
+					refresh(saveEditorExtensions: false);
+				}
 			}
 
 			using (new EditorGUILayout.HorizontalScope("box")) {
@@ -87,18 +93,26 @@ namespace CommonUtils.Editor.AssetCleaner
 				}
 			}
 
+			using (new EditorGUILayout.HorizontalScope("box")) {
+				EditorGUILayout.LabelField("Search");
+				searchText = EditorGUILayout.TextField(searchText);
+			}
+
 			using (var scrollScope = new EditorGUILayout.ScrollViewScope(scroll)) {
 				scroll = scrollScope.scrollPosition;
 				foreach (var asset in deleteAssets) {
 					if (string.IsNullOrEmpty(asset.path)) {
 						continue;
 					}
+					var assetPath = asset.path[(asset.path.StartsWith("Assets/") ? 7 : 0)..];
+					if(!assetPath.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)) continue;
 
 					using (new EditorGUILayout.HorizontalScope()) {
 						asset.isDelete = EditorGUILayout.Toggle(asset.isDelete, GUILayout.Width(20));
 						var icon = AssetDatabase.GetCachedIcon(asset.path);
 						GUILayout.Label(icon, GUILayout.Width(20), GUILayout.Height(20));
-						if (GUILayout.Button(asset.path, EditorStyles.largeLabel)) {
+
+						if (GUILayout.Button(assetPath, EditorStyles.largeLabel)) {
 							Selection.activeObject = AssetDatabase.LoadAssetAtPath<Object>(asset.path);
 						}
 					}
