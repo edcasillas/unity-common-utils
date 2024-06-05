@@ -151,6 +151,8 @@ namespace CommonUtils.Editor.AssetCleaner
 
 		private void removeFiles (IEnumerable<AssetData> assets) {
 			var filesToDelete = assets.Where(item => item.IsSelected).ToList();
+			var isSuccess = false;
+			var backupCreated = false;
 			try {
 				var createBackupResponse = EditorUtility.DisplayDialogComplex("Asset Cleaner",
 					"Do you want to create a backup of the deleted files?",
@@ -163,6 +165,7 @@ namespace CommonUtils.Editor.AssetCleaner
 					case 0:
 						EditorUtility.DisplayProgressBar("Asset Cleaner", "Creating backup", 0);
 						createBackup(filesToDelete);
+						backupCreated = true;
 						break;
 					case 2:
 						return;
@@ -182,10 +185,7 @@ namespace CommonUtils.Editor.AssetCleaner
 					RemoveEmptyDirectry (dir);
 				}
 
-				//System.Diagnostics.Process.Start (exportDirectry);
-
-				AssetDatabase.Refresh ();
-				refresh();
+				isSuccess = true;
 			}
 			catch( Exception e ) {
 				EditorUtility.ClearProgressBar ();
@@ -193,6 +193,11 @@ namespace CommonUtils.Editor.AssetCleaner
 			}finally {
 				EditorUtility.ClearProgressBar ();
 			}
+
+			if (!isSuccess) return;
+			EditorUtility.DisplayDialog("Asset Cleaner", $"{filesToDelete.Count} files {(backupCreated ? "backed up and" : "")} deleted", "OK");
+			AssetDatabase.Refresh ();
+			refresh();
 		}
 
 		private static void createBackup(IEnumerable<AssetData> assets) {
