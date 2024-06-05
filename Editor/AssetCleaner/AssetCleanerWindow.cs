@@ -55,7 +55,7 @@ namespace CommonUtils.Editor.AssetCleaner
 			collection.useCodeStrip = useCodeStrip;
 			collection.saveEditorExtensions = saveEditorExtensions;
 			collection.Collection();
-			copyDeleteFileList(collection.deleteFileList);
+			deleteAssets = copyDeleteFileList(collection.deleteFileList);
 		}
 
 		#region Unity Lifecycle
@@ -135,18 +135,16 @@ namespace CommonUtils.Editor.AssetCleaner
 			}
 		}
 
-		static void CleanDir() {
-			RemoveEmptyDirectry("Assets");
-			AssetDatabase.Refresh();
-		}
-
-		private void copyDeleteFileList(IEnumerable<string> deleteFileList) {
+		private static List<AssetData> copyDeleteFileList(IEnumerable<string> deleteFileList) {
+			var result = new List<AssetData>();
 			foreach (var asset in deleteFileList) {
 				var filePath = AssetDatabase.GUIDToAssetPath(asset);
 				if (!string.IsNullOrEmpty(filePath)) {
-					deleteAssets.Add(new AssetData() { Path = filePath });
+					result.Add(new AssetData() { Path = filePath });
 				}
 			}
+
+			return result;
 		}
 
 		private void removeFiles (IEnumerable<AssetData> assets) {
@@ -171,8 +169,8 @@ namespace CommonUtils.Editor.AssetCleaner
 						return;
 				}
 
-				int i = 0;
-				int length = deleteAssets.Count;
+				var i = 0;
+				var length = deleteAssets.Count;
 
 				foreach (var assetPath in filesToDelete.Select(f => f.Path)) {
 					i++;
@@ -182,7 +180,7 @@ namespace CommonUtils.Editor.AssetCleaner
 
 				EditorUtility.DisplayProgressBar ("clean directory", "", 1);
 				foreach (var dir in Directory.GetDirectories("Assets")) {
-					RemoveEmptyDirectry (dir);
+					removeEmptyDirectory (dir);
 				}
 
 				isSuccess = true;
@@ -202,7 +200,7 @@ namespace CommonUtils.Editor.AssetCleaner
 
 		private static void createBackup(IEnumerable<AssetData> assets) {
 			try {
-				var backupPath = Path.Combine(GetProjectPath(), BACKUP_DIRECTORY);
+				var backupPath = Path.Combine(getProjectPath(), BACKUP_DIRECTORY);
 				if (!Directory.Exists(backupPath)) {
 					var newDirectoryInfo = Directory.CreateDirectory(backupPath);
 					backupPath = newDirectoryInfo.FullName;
@@ -221,26 +219,23 @@ namespace CommonUtils.Editor.AssetCleaner
 			}
 		}
 
-		private static string GetProjectPath()
-		{
+		private static string getProjectPath() {
 			var dataPath = Application.dataPath;
 			var projectPath = Directory.GetParent(dataPath)?.FullName;
 			return projectPath;
 		}
 
-		static void RemoveEmptyDirectry (string path)
-		{
-			var dirs = Directory.GetDirectories (path);
+		private static void removeEmptyDirectory(string path) {
+			var dirs = Directory.GetDirectories(path);
 			foreach (var dir in dirs) {
-				RemoveEmptyDirectry (dir);
+				removeEmptyDirectory(dir);
 			}
 
-			var files = Directory.GetFiles (path, "*", SearchOption.TopDirectoryOnly).Where (item => Path.GetExtension (item) != ".meta");
-			if (files.Count () == 0 && Directory.GetDirectories (path).Count () == 0) {
-				var metaFile = AssetDatabase.GetTextMetaFilePathFromAssetPath(path);
-				UnityEditor.FileUtil.DeleteFileOrDirectory (path);
-				UnityEditor.FileUtil.DeleteFileOrDirectory (metaFile);
-			}
+			var files = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly).Where(item => Path.GetExtension(item) != ".meta");
+			if (files.Any() || Directory.GetDirectories(path).Any()) return;
+			var metaFile = AssetDatabase.GetTextMetaFilePathFromAssetPath(path);
+			FileUtil.DeleteFileOrDirectory(path);
+			FileUtil.DeleteFileOrDirectory(metaFile);
 		}
 	}
 }

@@ -16,8 +16,18 @@ namespace CommonUtils.Editor.AssetCleaner
 		public bool useCodeStrip = true;
 		public bool saveEditorExtensions = true;
 
-		public void Collection ()
-		{
+		private static readonly HashSet<string> excludedExtensions = new() {
+			".meta", ".js", ".dll"
+		};
+
+		private static readonly List<string> excludedPatterns = new() {
+			"[\\/\\\\]Gizmos[\\/\\\\]",
+			"[\\/\\\\]Plugins[\\/\\\\]Android[\\/\\\\]",
+			"[\\/\\\\]Plugins[\\/\\\\]iOS[\\/\\\\]",
+			"[\\/\\\\]Resources[\\/\\\\]"
+		};
+
+		public void Collection () {
 			try {
 				deleteFileList.Clear ();
 
@@ -25,14 +35,9 @@ namespace CommonUtils.Editor.AssetCleaner
 				shaderCollection.Collection ();
 
 				// Find assets
-				var files = Directory.GetFiles ("Assets", "*.*", SearchOption.AllDirectories)
-					.Where (item => Path.GetExtension (item) != ".meta")
-					.Where (item => Path.GetExtension (item) != ".js")
-					.Where (item => Path.GetExtension (item) != ".dll")
-					.Where (item => Regex.IsMatch (item, "[\\/\\\\]Gizmos[\\/\\\\]") == false)
-					.Where (item => Regex.IsMatch (item, "[\\/\\\\]Plugins[\\/\\\\]Android[\\/\\\\]") == false)
-					.Where (item => Regex.IsMatch (item, "[\\/\\\\]Plugins[\\/\\\\]iOS[\\/\\\\]") == false)
-					.Where (item => Regex.IsMatch (item, "[\\/\\\\]Resources[\\/\\\\]") == false);
+				var files = Directory.GetFiles("Assets", "*.*", SearchOption.AllDirectories)
+					.Where(item => !excludedExtensions.Contains(Path.GetExtension(item)) &&
+								   !excludedPatterns.Any(pattern => Regex.IsMatch(item, pattern)));
 
 				if( useCodeStrip == false ){
 					files = files.Where( item => Path.GetExtension(item) != ".cs");
