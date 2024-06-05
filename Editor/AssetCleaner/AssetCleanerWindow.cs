@@ -10,9 +10,15 @@ using Object = UnityEngine.Object;
 namespace CommonUtils.Editor.AssetCleaner
 {
 	public class AssetCleanerWindow : EditorWindow {
+		private class AssetData {
+			public bool IsSelected = true;
+			public string Path;
+		}
+
 		#region Constants
 		private const string EDITOR_PREF_KEY_USE_CODE_STRIP = "AssetCleaner.UseCodeStrip";
 		private const string EDITOR_PREF_KEY_USE_SAVE_EDITOR_EXTENSIONS = "AssetCleaner.SaveEditorExtension";
+		private const string BACKUP_DIRECTORY = "BackupUnusedAssets";
 		#endregion
 
 		#region Properties
@@ -31,7 +37,7 @@ namespace CommonUtils.Editor.AssetCleaner
 		private string searchText = string.Empty;
 		private bool selectAll = true;
 		private AssetCollector collection = new();
-		private List<DeleteAsset> deleteAssets = new();
+		private List<AssetData> deleteAssets = new();
 		private Vector2 scroll;
 		#endregion
 
@@ -44,7 +50,7 @@ namespace CommonUtils.Editor.AssetCleaner
 		}
 
 		private void refresh() {
-			deleteAssets = new List<DeleteAsset>();
+			deleteAssets = new List<AssetData>();
 			selectAll = true;
 			collection.useCodeStrip = useCodeStrip;
 			collection.saveEditorExtensions = saveEditorExtensions;
@@ -82,20 +88,20 @@ namespace CommonUtils.Editor.AssetCleaner
 			using (var scrollScope = new EditorGUILayout.ScrollViewScope(scroll)) {
 				scroll = scrollScope.scrollPosition;
 				foreach (var asset in deleteAssets) {
-					if (string.IsNullOrEmpty(asset.path)) {
+					if (string.IsNullOrEmpty(asset.Path)) {
 						continue;
 					}
-					var assetPath = asset.path[(asset.path.StartsWith("Assets/") ? 7 : 0)..];
+					var assetPath = asset.Path[(asset.Path.StartsWith("Assets/") ? 7 : 0)..];
 					if(!assetPath.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)) continue;
 
 					using (new EditorGUILayout.HorizontalScope()) {
 						asset.IsSelected = EditorGUILayout.Toggle(asset.IsSelected, GUILayout.Width(20));
 						selectAll = selectAll && asset.IsSelected;
-						var icon = AssetDatabase.GetCachedIcon(asset.path);
+						var icon = AssetDatabase.GetCachedIcon(asset.Path);
 						GUILayout.Label(icon, GUILayout.Width(20), GUILayout.Height(20));
 
 						if (GUILayout.Button(assetPath, EditorStyles.largeLabel)) {
-							Selection.activeObject = AssetDatabase.LoadAssetAtPath<Object>(asset.path);
+							Selection.activeObject = AssetDatabase.LoadAssetAtPath<Object>(asset.Path);
 						}
 					}
 				}
@@ -103,9 +109,9 @@ namespace CommonUtils.Editor.AssetCleaner
 		}
 		#endregion
 
-		private void drawFileCountLabelAndRemoveButton(IEnumerable<DeleteAsset> allAssetsFound) {
+		private void drawFileCountLabelAndRemoveButton(IEnumerable<AssetData> allAssetsFound) {
 			using (new EditorGUILayout.HorizontalScope("box")) {
-				var allFiles = allAssetsFound.Where(item => !string.IsNullOrWhiteSpace(item.path));
+				var allFiles = allAssetsFound.Where(item => !string.IsNullOrWhiteSpace(item.Path));
 				var fileCount = allFiles.Count();
 				var selectedFiles = allAssetsFound.Count(item => item.IsSelected);
 
@@ -116,14 +122,14 @@ namespace CommonUtils.Editor.AssetCleaner
 
 				EditorGUI.BeginDisabledGroup(selectedFiles == 0);
 				if (GUILayout.Button("Remove", GUILayout.Width(120), GUILayout.Height(40))) {
-					// RemoveFiles();
+					removeFiles(deleteAssets);
 					refresh();
 				}
 				EditorGUI.EndDisabledGroup();
 			}
 		}
 
-		private static void changeSelectionAll(IEnumerable<DeleteAsset> assets, bool select) {
+		private static void changeSelectionAll(IEnumerable<AssetData> assets, bool select) {
 			foreach (var asset in assets) {
 				asset.IsSelected = select;
 			}
@@ -138,27 +144,37 @@ namespace CommonUtils.Editor.AssetCleaner
 			foreach (var asset in deleteFileList) {
 				var filePath = AssetDatabase.GUIDToAssetPath(asset);
 				if (!string.IsNullOrEmpty(filePath)) {
-					deleteAssets.Add(new DeleteAsset() { path = filePath });
+					deleteAssets.Add(new AssetData() { Path = filePath });
 				}
 			}
 		}
 
-		private void removeFiles () {
+		private void removeFiles (IEnumerable<AssetData> assets) {
+			var filesToDelete = assets.Where(item => item.IsSelected).ToList();
 			try {
-				var exportDirectry = "BackupUnusedAssets";
-				Directory.CreateDirectory (exportDirectry);
-				var files = deleteAssets.Where (item => item.IsSelected).Select (item => item.path).ToArray ();
-				var backupPackageName = exportDirectry + "/package" + System.DateTime.Now.ToString ("yyyyMMddHHmmss") + ".unitypackage";
-				EditorUtility.DisplayProgressBar ("export package", backupPackageName, 0);
-				AssetDatabase.ExportPackage (files, backupPackageName);
+				var createBackupResponse = EditorUtility.DisplayDialogComplex("Asset Cleaner",
+					"Do you want to create a backup of the deleted files?",
+					"Yes", // 0
+					"No", // 1
+					"Cancel"); // 2
+				Debug.LogWarning(createBackupResponse);
+
+				switch (createBackupResponse) {
+					case 0:
+						EditorUtility.DisplayProgressBar("Asset Cleaner", "Creating backup", 0);
+						createBackup(filesToDelete);
+						break;
+					case 2:
+						return;
+				}
 
 				int i = 0;
 				int length = deleteAssets.Count;
 
-				foreach (var assetPath in files) {
+				foreach (var assetPath in filesToDelete.Select(f => f.Path)) {
 					i++;
-					EditorUtility.DisplayProgressBar ("delete unused assets", assetPath, (float)i / length);
-					AssetDatabase.DeleteAsset (assetPath);
+					EditorUtility.DisplayProgressBar("Asset Cleaner", assetPath, (float)i / length);
+					AssetDatabase.DeleteAsset(assetPath);
 				}
 
 				EditorUtility.DisplayProgressBar ("clean directory", "", 1);
@@ -166,15 +182,45 @@ namespace CommonUtils.Editor.AssetCleaner
 					RemoveEmptyDirectry (dir);
 				}
 
-				System.Diagnostics.Process.Start (exportDirectry);
+				//System.Diagnostics.Process.Start (exportDirectry);
 
 				AssetDatabase.Refresh ();
+				refresh();
 			}
-			catch( Exception e ){
-				Debug.Log(e.Message);
+			catch( Exception e ) {
+				EditorUtility.ClearProgressBar ();
+				EditorUtility.DisplayDialog("Asset Cleaner", $"Error: {e.Message}", "OK");
 			}finally {
 				EditorUtility.ClearProgressBar ();
 			}
+		}
+
+		private static void createBackup(IEnumerable<AssetData> assets) {
+			try {
+				var backupPath = Path.Combine(GetProjectPath(), BACKUP_DIRECTORY);
+				if (!Directory.Exists(backupPath)) {
+					var newDirectoryInfo = Directory.CreateDirectory(backupPath);
+					backupPath = newDirectoryInfo.FullName;
+					Debug.Log($"Created backup folder: {backupPath}");
+				}
+				Debug.Log($"Will create backup at: {backupPath}");
+
+				var files = assets.Select(item => item.Path).ToArray();
+
+				var backupPackageName = Path.Combine(backupPath, $"package{DateTime.Now:yyyyMMddHHmmss}.unitypackage");
+				AssetDatabase.ExportPackage(files, backupPackageName);
+				Debug.Log($"Backup created successfully at {backupPackageName}");
+			} catch (Exception ex) {
+				Debug.LogException(ex);
+				throw new Exception("An error occurred while creating the backup. Aborting removal.");
+			}
+		}
+
+		private static string GetProjectPath()
+		{
+			var dataPath = Application.dataPath;
+			var projectPath = Directory.GetParent(dataPath)?.FullName;
+			return projectPath;
 		}
 
 		static void RemoveEmptyDirectry (string path)
@@ -190,12 +236,6 @@ namespace CommonUtils.Editor.AssetCleaner
 				UnityEditor.FileUtil.DeleteFileOrDirectory (path);
 				UnityEditor.FileUtil.DeleteFileOrDirectory (metaFile);
 			}
-		}
-
-		class DeleteAsset
-		{
-			public bool IsSelected = true;
-			public string path;
 		}
 	}
 }
