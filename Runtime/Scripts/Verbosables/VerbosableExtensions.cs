@@ -1,12 +1,19 @@
-﻿using CommonUtils.UnityComponents;
+﻿using CommonUtils.Logging;
+using CommonUtils.UnityComponents;
 using System;
-using UnityEngine;
+using ILogger = CommonUtils.Logging.ILogger;
 using Object = UnityEngine.Object;
 
 // TODO Add XML documentation and relevant help in obsolete attributes.
 
 namespace CommonUtils.Verbosables {
 	public static class VerbosableExtensions {
+		private static ILogger _logger;
+		public static ILogger Logger {
+			get => _logger ??= new UnityLogger();
+			set => _logger = value;
+		}
+
 		private static bool verbosableShouldLog(IVerbosable verbosable, LogLevel logLevel) {
 			var globalVerbosityLevel = GlobalVerbosityLevel.Current;
 			return (!globalVerbosityLevel.HasValue && verbosable.Verbosity.HasFlag(logLevel.ToVerbosity())) ||
@@ -15,110 +22,37 @@ namespace CommonUtils.Verbosables {
 
 		public static void Log<TVerbosable>(this TVerbosable verbosable, string message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : Object, IVerbosable {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-					break;
-				case LogLevel.Error:
-					Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-					break;
-			}
+			Logger.Log(logLevel, $"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
 		}
 
 		public static void Log<TVerbosable>(this TVerbosable verbosable, object message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : Object, IVerbosable {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-					break;
-				case LogLevel.Error:
-					Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
-					break;
-			}
+			Logger.Log(logLevel, $"{getVerbosableTagFromMonoBehaviour(verbosable)} {message}", verbosable);
 		}
 
 		public static void Log<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate, LogLevel logLevel = LogLevel.Debug) where TVerbosable : Object, IVerbosable {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
-					break;
-				case LogLevel.Error:
-					Debug.LogError($"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
-					break;
-			}
+			Logger.Log(logLevel, $"{getVerbosableTagFromMonoBehaviour(verbosable)} {messageDelegate.Invoke()}", verbosable);
 		}
 
 		public static void Log2<TVerbosable>(this TVerbosable verbosable, string message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable, IUnityComponent {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
-					break;
-				case LogLevel.Error:
-					Debug.LogError($"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
-					break;
-			}
+			Logger.Log(logLevel, $"{getVerbosableTagFromUnityComponent(verbosable)} {message}", verbosable.gameObject);
 		}
 
 		public static void Log2<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable, IUnityComponent {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log(messageDelegate.Invoke(), verbosable.gameObject);
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning(messageDelegate.Invoke(), verbosable.gameObject);
-					break;
-				case LogLevel.Error:
-					Debug.LogError(messageDelegate.Invoke(), verbosable.gameObject);
-					break;
-			}
+			Logger.Log(logLevel, $"{getVerbosableTagFromUnityComponent(verbosable)} {messageDelegate.Invoke()}", verbosable.gameObject);
 		}
 
 		public static void LogNoContext<TVerbosable>(this TVerbosable verbosable, string message, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log($"[{typeof(TVerbosable).Name}] {message}");
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning($"[{typeof(TVerbosable).Name}] {message}");
-					break;
-				case LogLevel.Error:
-					Debug.LogError($"[{typeof(TVerbosable).Name}] {message}");
-					break;
-			}
+			Logger.Log(logLevel, $"[{typeof(TVerbosable).Name}] {message}");
 		}
 
 		public static void LogNoContext<TVerbosable>(this TVerbosable verbosable, Func<string> messageDelegate, LogLevel logLevel = LogLevel.Debug) where TVerbosable : IVerbosable {
 			if(!verbosableShouldLog(verbosable, logLevel)) return;
-			switch (logLevel) {
-				case LogLevel.Debug:
-					Debug.Log($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
-					break;
-				case LogLevel.Warning:
-					Debug.LogWarning($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
-					break;
-				case LogLevel.Error:
-					Debug.LogError($"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
-					break;
-			}
+			Logger.Log(logLevel, $"[{typeof(TVerbosable).Name}] {messageDelegate.Invoke()}");
 		}
 
 		#region Deprecated extensions
