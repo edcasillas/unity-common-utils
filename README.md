@@ -8,8 +8,8 @@ A collection of essential tools for any Unity project.
 **Installation must be performed by project.**
 
 1. Open the Package Manager in Unity (menu Window / Package Manager).
-2. Press the "+" button at the top left corner of the Package Manager panel and select "Add package from git URL..."
-3. When promted, enter the URL https://github.com/edcasillas/unity-common-utils.git
+2. Press the "+" button in the top left corner of the Package Manager panel and select "Add package from git URL..."
+3. When prompted, enter the URL https://github.com/edcasillas/unity-common-utils.git
 
 Alternatively, you can manually add the following line to your Packages/manifest.json file under dependencies:
 
@@ -20,7 +20,7 @@ Open Unity again; the Package Manager will run and the package will be installed
 ## Update ##
 
 1. Open the Package Manager in Unity (menu Window / Package Manager).
-2. Look for the "Common Utils for Unity" package in the list pf installed packages and select it.
+2. Look for the "Common Utils for Unity" package in the list of installed packages and select it.
 3. Press the "Update" button.
 
 Alternatively, you can manually remove the version lock the Package Manager creates in Packages/manifest.json so when it runs again it gets the newest version. The lock looks like this:
