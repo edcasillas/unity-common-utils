@@ -1,6 +1,7 @@
+using CommonUtils.Verbosables;
 using System;
 
-namespace CommonUtils.Verbosables
+namespace CommonUtils.Logging
 {
     public enum LogLevel
     {
