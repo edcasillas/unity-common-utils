@@ -281,7 +281,7 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.BeginHorizontal();
 			var apiKey = EditorGUILayout.TextField("Butler API Key", ButlerApiKey);
 			if(apiKey != null) ButlerApiKey.Value = apiKey;
-			if (GUILayout.Button(EditorIcon.Search.ToGUIContent("Go to API Keys on itch.io"), GUILayout.Width(EditorGUIUtility.singleLineHeight), GUILayout.Height(EditorGUIUtility.singleLineHeight))) {
+			if (GUILayout.Button(EditorIcon.SearchIcon.ToGUIContent("Go to API Keys on itch"), EditorStyles.iconButton, GUILayout.Height(16))) {
 				Application.OpenURL("https://itch.io/user/settings/api-keys");
 			}
 			EditorGUILayout.EndHorizontal();
@@ -300,7 +300,7 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.EnumPopup("Current Build Target", BuildTarget);
-			if (GUILayout.Button("Change...", EditorStyles.miniButtonRight)) {
+			if (GUILayout.Button(EditorIcon.CameraIcon.ToGUIContent(), EditorStyles.iconButton, GUILayout.Height(16))) {
 				EditorApplication.ExecuteMenuItem("File/Build Settings...");
 			}
 
