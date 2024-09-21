@@ -115,6 +115,8 @@ namespace CommonUtils.Editor.Publitch {
 		private string publishResult;
 
 		private void OnEnable() {
+			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
+			debugLog("PUBLITCH IS EXECUTING");
 			checkButlerVersion();
 			EditorApplication.update += Update;
 			if(!string.IsNullOrEmpty(buildId)) fetchStatusProcess = executeButler($"status {buildId}");
@@ -123,6 +125,7 @@ namespace CommonUtils.Editor.Publitch {
 		private void OnDisable() => EditorApplication.update -= Update;
 
 		private void Update() {
+			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
 			if (fetchVersionProcess != null) {
 				if (fetchVersionProcess.HasExited) {
 					debugLog($"Check butler version finished with code {fetchVersionProcess.ExitCode}");
@@ -265,6 +268,11 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void OnGUI() {
+			if(EditorApplication.isPlayingOrWillChangePlaymode) {
+				EditorGUILayout.HelpBox("Publitch is not available on Play mode.", MessageType.Info);
+				return;
+			}
+
 			if (!string.IsNullOrEmpty(errorMessage)) {
 				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
 			}
