@@ -301,23 +301,25 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.EnumPopup("Current Build Target", BuildTarget);
-			if (GUILayout.Button(EditorIcon.CameraIcon.ToGUIContent(), EditorStyles.iconButton, GUILayout.Height(16))) {
+			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
 				EditorApplication.ExecuteMenuItem("File/Build Settings...");
 			}
 
 			EditorGUILayout.EndHorizontal();
 
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.TextField("Build Path", BuildPath);
-			if (GUILayout.Button("Reveal", EditorStyles.miniButtonRight)) {
-				EditorUtility.RevealInFinder(BuildPath);
+			if (!string.IsNullOrEmpty(BuildPath)) {
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.TextField("Build Path", BuildPath);
+				if (GUILayout.Button(EditorIcon.AnimationVisibilityToggleOn.ToGUIContent("Reveal"), EditorStyles.iconButton, GUILayout.Height(16))) {
+					EditorUtility.RevealInFinder(BuildPath);
+				}
+				EditorGUILayout.EndHorizontal();
 			}
-
-			EditorGUILayout.EndHorizontal();
 
 			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) return;
 
 			EditorGUILayout.Space();
+
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.TextField("Build ID:", buildId);
 			if (GUILayout.Button("View on itch.io", EditorStyles.miniButtonRight)) {

@@ -20,7 +20,7 @@ namespace CommonUtils.Editor.BuiltInIcons
 		}
 		#endregion
 
-		private EditorIcon selectedIcon = EditorIcon.animationvisibilitytoggleoff;
+		private EditorIcon selectedIcon = EditorIcon.AnimationVisibilityToggleOff;
 
 		private void OnGUI() {
 			selectedIcon = (EditorIcon)EditorGUILayout.EnumPopup("Icon", selectedIcon);
