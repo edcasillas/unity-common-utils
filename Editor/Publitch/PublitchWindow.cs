@@ -2,15 +2,43 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using File = UnityEngine.Windows.File;
 
 namespace CommonUtils.Editor.Publitch {
+	public class EditorPrefsString {
+		private readonly string editorPrefsKey;
+		private readonly string defaultValue;
+		private readonly bool isProjectSpecific;
+
+		private string actualKey;
+		private string ActualKey => actualKey ??= $"{(isProjectSpecific ? $"{PlayerSettings.productGUID}." : string.Empty)}{editorPrefsKey}";
+
+		public EditorPrefsString(string editorPrefsKey, string defaultValue = null, bool isProjectSpecific = false) {
+			this.editorPrefsKey = editorPrefsKey;
+			this.defaultValue = defaultValue;
+			this.isProjectSpecific = isProjectSpecific;
+		}
+
+		public string Value {
+			get => EditorPrefs.GetString(ActualKey, defaultValue);
+			set => EditorPrefs.SetString(ActualKey, value);
+		}
+
+		public void Clear() => EditorPrefs.DeleteKey(editorPrefsKey);
+
+		public static implicit operator string(EditorPrefsString editorPrefsString) => editorPrefsString.Value;
+	}
+
 	public class PublitchWindow : EditorWindow {
 		#region Constants
 		private const bool DEBUG_MODE = true;
+		private const string EDITOR_PREF_BUTLER_FOLDER_PATH = "ButlerFolderPath";
+		private const string EDITOR_PREF_BUTLER_API_KEY = "ButlerApiKey";
 		private const string EDITOR_PREF_KEY_PREFIX = "Publitch";
 		private const string EDITOR_PREF_KEY_BUILD_TARGET = "LastKnownBuildTarget";
 		private const string EDITOR_PREF_KEY_BUILD_PATH = "LastKnownBuildPath";
@@ -18,6 +46,7 @@ namespace CommonUtils.Editor.Publitch {
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
 		private const string EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME = "LastPublishDateTime";
 		private const string EDITOR_PREF_KEY_LAST_BUILD_DATETIME = "LastBuiltDateTime";
+		private const string NO_FOLDER_SELECTED = "<no folder selected>";
 		#endregion
 
 		#region Statics (To create the editor menu and save preferences)
@@ -37,6 +66,9 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		#region Properties (connected to EditorPrefs)
+		internal static readonly EditorPrefsString ButlerPath = new EditorPrefsString(EDITOR_PREF_BUTLER_FOLDER_PATH, string.Empty);
+		internal static readonly EditorPrefsString ButlerApiKey = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_BUTLER_API_KEY), string.Empty, true);
+
 		internal static BuildTarget BuildTarget {
 			get => (BuildTarget)EditorPrefs.GetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)EditorUserBuildSettings.activeBuildTarget);
 			set => EditorPrefs.SetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)value);
@@ -103,20 +135,25 @@ namespace CommonUtils.Editor.Publitch {
 							}
 						}
 					} else {
+
 						errorMessage = "An error occurred while trying to fetch the version of butler.";
 					}
 
-					//fetchVersionProcess = null;
+					fetchVersionProcess = null;
 				}
 			}
 
 			if (fetchStatusProcess != null) {
 				if (fetchStatusProcess.HasExited) {
+					var statusString = fetchStatusProcess.StandardOutput.ReadToEnd();
 					if (fetchStatusProcess.ExitCode == 0) {
-						var statusString = fetchStatusProcess.StandardOutput.ReadToEnd();
 						ButlerStatus.TryParse(statusString, ref status);
 					} else {
-						errorMessage = "An error occurred while trying to fetch the status of the project.";
+						if (statusString.ToLower().Contains("no credentials")) {
+							Debug.LogError("NOT LOGGED IN");
+						} else {
+							errorMessage = "An error occurred while trying to fetch the status of the project.";
+						}
 					}
 
 					fetchStatusProcess = null;
@@ -151,9 +188,11 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private Process executeButler(string args, DataReceivedEventHandler onOutputDataReceived = null) {
+			var processFileName = string.IsNullOrEmpty(ButlerPath) || ButlerPath == NO_FOLDER_SELECTED ? "butler" : Path.Combine(ButlerPath, "butler");
+			debugLog($"Executing butler from \"{processFileName}\" with args \"{args}\"");
 			var proc = new Process {
 				StartInfo = new ProcessStartInfo {
-					FileName = @"butler",
+					FileName = processFileName,
 					Arguments = args,
 					UseShellExecute = false,
 					RedirectStandardOutput = true,
@@ -193,25 +232,64 @@ namespace CommonUtils.Editor.Publitch {
 			publishData = e?.Data;
 		}
 
+		private void handleNullVersion() { // TODO Choose a better name for this method!
+			var errorMsg = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder below. \nTo install butler, please visit https://itchio.itch.io/butler";
+			EditorGUILayout.HelpBox(errorMsg, MessageType.Error);
+
+			if (GUILayout.Button("Go to itch.io/butler")) {
+				Application.OpenURL("https://itchio.itch.io/butler");
+			}
+
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(string.IsNullOrEmpty(ButlerPath) ? NO_FOLDER_SELECTED : ButlerPath);
+			if (GUILayout.Button("Select")) {
+				var folder = EditorUtility.OpenFolderPanel("Select folder", ButlerPath, "");
+				if (!string.IsNullOrEmpty(folder)) {
+					if (!File.Exists(Path.Combine(folder, "butler"))) {
+						EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
+					} else {
+						ButlerPath.Value = folder;
+						checkButlerVersion();
+					}
+				}
+			}
+			EditorGUILayout.EndHorizontal();
+
+			if (GUILayout.Button("Refresh")) {
+				checkButlerVersion();
+			}
+		}
+
 		private void OnGUI() {
 			if (!string.IsNullOrEmpty(errorMessage)) {
 				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
 			}
 
 			if (fetchVersionProcess != null) {
+				// TODO Replace HelpBox with EditorExtensions.ShowLoadingSpinner once main gets merged in.
 				EditorGUILayout.HelpBox("Checking butler installation", MessageType.Info);
 				return;
 			}
 
 			if (string.IsNullOrEmpty(version)) {
-				EditorGUILayout.HelpBox("Butler is not installed", MessageType.Error); // TODO Give instructions on how to install
-				if (GUILayout.Button("Refresh")) {
-					checkButlerVersion();
-				}
+				handleNullVersion();
 				return;
 			}
 
 			EditorGUILayout.HelpBox($"butler {version}", MessageType.None);
+
+			EditorGUILayout.BeginHorizontal();
+			var apiKey = EditorGUILayout.TextField("Butler API Key", ButlerApiKey);
+			if(apiKey != null) ButlerApiKey.Value = apiKey;
+			if (GUILayout.Button(EditorIcon.Search.ToGUIContent("Go to API Keys on itch.io"), GUILayout.Width(EditorGUIUtility.singleLineHeight), GUILayout.Height(EditorGUIUtility.singleLineHeight))) {
+				Application.OpenURL("https://itch.io/user/settings/api-keys");
+			}
+			EditorGUILayout.EndHorizontal();
+
+			if (string.IsNullOrEmpty(ButlerApiKey)) {
+				EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
+				return;
+			}
 
 			var user = EditorGUILayout.TextField("User", User);
 			if (user != User) User = user;
@@ -304,7 +382,7 @@ namespace CommonUtils.Editor.Publitch {
 			BuildPath = pathToBuiltProject;
 		}
 
-		private static string getEditorPrefKey(string setting) => $"{PlayerSettings.productGUID}.{EDITOR_PREF_KEY_PREFIX}.{setting}";
+		private static string getEditorPrefKey(string setting) => $"{EDITOR_PREF_KEY_PREFIX}.{setting}";
 
 		private static string getChannelName(BuildTarget t) {
 			switch (t) {
