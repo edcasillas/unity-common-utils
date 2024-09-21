@@ -86,7 +86,7 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		internal static string ProjectName {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME));
+			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), PlayerSettings.productName);
 			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), value);
 		}
 
@@ -191,16 +191,19 @@ namespace CommonUtils.Editor.Publitch {
 		private Process executeButler(string args, DataReceivedEventHandler onOutputDataReceived = null) {
 			var processFileName = string.IsNullOrEmpty(ButlerPath) || ButlerPath == NO_FOLDER_SELECTED ? "butler" : Path.Combine(ButlerPath, "butler");
 			debugLog($"Executing butler from \"{processFileName}\" with args \"{args}\"");
-			var proc = new Process {
-				StartInfo = new ProcessStartInfo {
-					FileName = processFileName,
-					Arguments = args,
-					UseShellExecute = false,
-					RedirectStandardOutput = true,
-					CreateNoWindow = true,
-					//WorkingDirectory = @"C:\MyAndroidApp\"
-				}
+
+			var startInfo = new ProcessStartInfo {
+				FileName = processFileName,
+				Arguments = args,
+				UseShellExecute = false,
+				RedirectStandardOutput = true,
+				CreateNoWindow = true,
 			};
+			if (!string.IsNullOrEmpty(ButlerApiKey)) {
+				startInfo.Environment.Add("BUTLER_API_KEY", ButlerApiKey);
+			}
+
+			var proc = new Process { StartInfo = startInfo };
 
 			if (onOutputDataReceived != null) proc.OutputDataReceived += onOutputDataReceived;
 
@@ -295,7 +298,7 @@ namespace CommonUtils.Editor.Publitch {
 			var user = EditorGUILayout.TextField("User", User);
 			if (user != User) User = user;
 
-			var projectName = EditorGUILayout.TextField("Project Name", ProjectName);
+			var projectName = EditorGUILayout.TextField(new GUIContent("Project Name", "As registered on itch."), ProjectName);
 			if (projectName != ProjectName) ProjectName = projectName;
 
 			EditorGUILayout.Space();
@@ -316,7 +319,10 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.EndHorizontal();
 			}
 
-			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) return;
+			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) {
+				EditorGUILayout.HelpBox("To continue please enter your User and Project Name.", MessageType.Warning);
+				return;
+			}
 
 			EditorGUILayout.Space();
 
@@ -329,8 +335,10 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
-			if (GUILayout.Button("Status")) {
-				fetchStatusProcess = executeButler($"status {buildId}");
+			if (fetchStatusProcess == null) {
+				if (GUILayout.Button("Status")) {
+					fetchStatusProcess = executeButler($"status {buildId}");
+				}
 			}
 
 			if (fetchStatusProcess != null) {
