@@ -50,9 +50,9 @@ namespace CommonUtils.Editor.ScreenshotManager {
 				EditorGUILayout.HelpBox($"Next screenshot will be saved as:\n{saveTo}/{prefix}{currentCount}.png", MessageType.None);
 				if ((saveTo       != ScreenshotManager.SaveToFolder || prefix != ScreenshotManager.FilePrefix ||
 					 currentCount != ScreenshotManager.CurrentCount) && GUILayout.Button("Save")) {
-					ScreenshotManager.SaveToFolder = saveTo;
-					ScreenshotManager.FilePrefix = prefix;
-					ScreenshotManager.CurrentCount = currentCount;
+					ScreenshotManager.SaveToFolder.Value = saveTo;
+					ScreenshotManager.FilePrefix.Value = prefix;
+					ScreenshotManager.CurrentCount.Value = currentCount;
 					if(instance) instance.Close();
 				}
 			}

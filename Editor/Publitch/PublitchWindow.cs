@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -11,30 +12,6 @@ using Debug = UnityEngine.Debug;
 using File = UnityEngine.Windows.File;
 
 namespace CommonUtils.Editor.Publitch {
-	public class EditorPrefsString {
-		private readonly string editorPrefsKey;
-		private readonly string defaultValue;
-		private readonly bool isProjectSpecific;
-
-		private string actualKey;
-		private string ActualKey => actualKey ??= $"{(isProjectSpecific ? $"{PlayerSettings.productGUID}." : string.Empty)}{editorPrefsKey}";
-
-		public EditorPrefsString(string editorPrefsKey, string defaultValue = null, bool isProjectSpecific = false) {
-			this.editorPrefsKey = editorPrefsKey;
-			this.defaultValue = defaultValue;
-			this.isProjectSpecific = isProjectSpecific;
-		}
-
-		public string Value {
-			get => EditorPrefs.GetString(ActualKey, defaultValue);
-			set => EditorPrefs.SetString(ActualKey, value);
-		}
-
-		public void Clear() => EditorPrefs.DeleteKey(editorPrefsKey);
-
-		public static implicit operator string(EditorPrefsString editorPrefsString) => editorPrefsString.Value;
-	}
-
 	public class PublitchWindow : EditorWindow {
 		#region Constants
 		private const bool DEBUG_MODE = true;
@@ -113,6 +90,8 @@ namespace CommonUtils.Editor.Publitch {
 
 		private Process publishProcess;
 		private string publishResult;
+
+		private static string totalBuildSize;
 
 		private void OnEnable() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
@@ -230,6 +209,7 @@ namespace CommonUtils.Editor.Publitch {
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
 		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
+			if(string.IsNullOrWhiteSpace(e?.Data)) return; // Ignore empty lines.
 			if (ButlerParser.TryParseProgress(e?.Data, out var pct)) {
 				publishProgressPct = pct;
 			} else {
@@ -315,7 +295,6 @@ namespace CommonUtils.Editor.Publitch {
 			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
 				EditorApplication.ExecuteMenuItem("File/Build Settings...");
 			}
-
 			EditorGUILayout.EndHorizontal();
 
 			if (!string.IsNullOrEmpty(BuildPath)) {
@@ -323,6 +302,15 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.TextField("Build Path", BuildPath);
 				if (GUILayout.Button(EditorIcon.AnimationVisibilityToggleOn.ToGUIContent("Reveal"), EditorStyles.iconButton, GUILayout.Height(16))) {
 					EditorUtility.RevealInFinder(BuildPath);
+				}
+				EditorGUILayout.EndHorizontal();
+
+				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
+
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.LabelField("Build Size", totalBuildSize ?? "<unknown>");
+				if (GUILayout.Button(EditorIcon.TreeEditorRefresh.ToGUIContent("Refresh"), EditorStyles.iconButton, GUILayout.Height(16))) {
+					totalBuildSize = getBuildSizeMBString(BuildPath);
 				}
 				EditorGUILayout.EndHorizontal();
 			}
@@ -364,10 +352,9 @@ namespace CommonUtils.Editor.Publitch {
 			}
 
 			EditorGUILayout.Space();
-			if (!string.IsNullOrEmpty(LastBuiltDateTime))
-				EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
-			if (!string.IsNullOrEmpty(LastPublishDateTime))
-				EditorGUILayout.LabelField("Last published", LastPublishDateTime);
+			if (!string.IsNullOrEmpty(LastBuiltDateTime)) EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
+			EditorGUILayout.LabelField("Last published", !string.IsNullOrEmpty(LastPublishDateTime) ? LastPublishDateTime : "<unknown>");
+
 			if (publishProcess == null) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
 					if (GUILayout.Button("Publitch NOW")) {
@@ -403,6 +390,7 @@ namespace CommonUtils.Editor.Publitch {
 			LastBuiltDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 			BuildTarget = target; // TODO is this really needed
 			BuildPath = pathToBuiltProject;
+			totalBuildSize = getBuildSizeMBString(BuildPath);
 		}
 
 		private static string getEditorPrefKey(string setting) => $"{EDITOR_PREF_KEY_PREFIX}.{setting}";
@@ -422,6 +410,41 @@ namespace CommonUtils.Editor.Publitch {
 				default:
 					return ""; // Everything else is not supported
 			}
+		}
+
+		private static string getBuildSizeMBString(string path) {
+			var sizeBytes = getBuildSizeBytes(path);
+			var totalSizeMB = sizeBytes / (1024f * 1024f);
+			return $"{totalSizeMB:F2} MB";
+		}
+
+		private static long getBuildSizeBytes(string path) {
+			if (File.Exists(path))
+			{
+				// It's a file, return its size
+				return new FileInfo(path).Length;
+			}
+
+			if (Directory.Exists(path))
+			{
+				// It's a directory, return its total size
+				return getDirectorySizeInBytes(new DirectoryInfo(path));
+			}
+
+			// Invalid path, handle accordingly
+			Debug.LogError("Invalid path: " + path);
+			return 0;
+		}
+
+		private static long getDirectorySizeInBytes(DirectoryInfo dir) {
+			// Add file sizes.
+			var files = dir.GetFiles();
+			var size = files.Sum(file => file.Length);
+
+			// Add subdirectory sizes.
+			var dirs = dir.GetDirectories();
+			size += dirs.Sum(getDirectorySizeInBytes);
+			return size;
 		}
 
 		private static void debugLog(string message) {
