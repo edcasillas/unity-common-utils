@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace CommonUtils.Coroutines {
@@ -62,10 +63,10 @@ namespace CommonUtils.Coroutines {
 				throw new ArgumentException(
 					"In order to specify a timeout, please include both timeout and OnTimeout parameters.");
 
-			return monoBehaviour.StartCoroutine(doWaitUntil(condition, then, onTimeout, timeout));
+			return monoBehaviour.StartCoroutine(DoWaitUntil(condition, then, onTimeout, timeout));
 		}
 
-		private static IEnumerator doWaitUntil(Func<bool> condition, Action then, Action onTimeout = null, float? timeout = null) {
+		internal static IEnumerator DoWaitUntil(Func<bool> condition, Action then, Action onTimeout = null, float? timeout = null) {
 			while (!condition.Invoke() && (!timeout.HasValue || timeout.Value > 0)) {
 				yield return null;
 				timeout -= Time.deltaTime;

@@ -1,5 +1,6 @@
 using CommonUtils.Extensions;
 using CommonUtils.Inspector.HelpBox;
+using CommonUtils.Verbosables;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -45,14 +46,14 @@ namespace CommonUtils.ObjectPooling {
 
 		#region Unity Lifecycle
 		protected virtual void Awake() {
-			this.DebugLog("Initializing pool manager.");
+			this.Log("Initializing pool manager.");
 			prefabCache = new Dictionary<string, GameObject>();
 
 			foreach (var preconfiguredPool in preconfiguredPools) {
 				if (preconfiguredPool.Prefab.GetComponent<IObjectFromPool>() != null) {
 					preconfiguredPool.Setup();
 					pools.Add(preconfiguredPool.Prefab.name, preconfiguredPool);
-					this.DebugLog($"Preconfigured pool of {preconfiguredPool.Prefab.name} has been registered.");
+					this.Log($"Preconfigured pool of {preconfiguredPool.Prefab.name} has been registered.");
 				} else {
 					Debug.LogError($"Prefab {preconfiguredPool.Prefab.name} does not implement interface {nameof(IObjectFromPool)}. Can't create a pool for it.", this);
 					Destroy(preconfiguredPool.Container.gameObject);
@@ -77,7 +78,7 @@ namespace CommonUtils.ObjectPooling {
 		#endregion
 
 		private TPoolable instantiate<TPoolable>(TPoolable prefab, Vector3 position, Quaternion rotation, bool? active = true) where TPoolable : IObjectFromPool {
-			this.DebugLog($"Instantiating {prefab.name}");
+			this.Log($"Instantiating {prefab.name}");
 			if (!pools.ContainsKey(prefab.name)) {
 				registerPoolAtRuntime(prefab.gameObject);
 			}
@@ -93,7 +94,7 @@ namespace CommonUtils.ObjectPooling {
 		}
 
 		public GameObject Instantiate(string prefabId, Vector3 position, Quaternion rotation) {
-			this.DebugLog($"Instantiating {prefabId}");
+			this.Log($"Instantiating {prefabId}");
 
 			// If a pool already exists for the specified prefab, retrieve an instance from it.
 			if (pools.ContainsKey(prefabId)) return pools[prefabId].Get(position, rotation);
@@ -124,7 +125,7 @@ namespace CommonUtils.ObjectPooling {
 		}
 
 		public void Destroy(GameObject gameObject) {
-			if(IsVerbose) Debug.Log($"Destroying {gameObject.name}", gameObject);
+			this.Log($"Destroying {gameObject.name}");
 			var poolable = gameObject.GetComponent<IObjectFromPool>();
 			if (poolable == null || string.IsNullOrEmpty(poolable.PoolId)) {
 				GameObject.Destroy(gameObject);

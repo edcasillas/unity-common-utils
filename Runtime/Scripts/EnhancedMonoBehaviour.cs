@@ -1,4 +1,5 @@
 using CommonUtils.UnityComponents;
+using CommonUtils.Verbosables;
 using UnityEngine;
 
 namespace CommonUtils {
@@ -8,18 +9,11 @@ namespace CommonUtils {
 	/// - Implement <see cref="IUnityComponent"/> and <see cref="IVerbosable"/>.
 	/// </summary>
 	public abstract class EnhancedMonoBehaviour : MonoBehaviour, IUnityComponent, IVerbosable {
-		/// <summary>
-		/// When <c>true</c>, writes debug messages of this component to the console.
-		/// </summary>
-		[Tooltip("When checked, writes debug messages of this component to the console.")]
-		[SerializeField] private bool verbose;
+		[SerializeField] private Verbosity verbosity = Verbosity.Error | Verbosity.Warning;
 
-		/// <summary>
-		/// Gets a value indicating whether this object should send messages to the log console.
-		/// </summary>
-		public bool IsVerbose {
-			get => verbose;
-			protected set => verbose = value;
+		public Verbosity Verbosity {
+			get => verbosity;
+			protected set => verbosity = value;
 		}
 	}
 }

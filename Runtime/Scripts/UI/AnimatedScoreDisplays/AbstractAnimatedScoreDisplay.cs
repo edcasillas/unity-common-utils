@@ -1,4 +1,4 @@
-﻿using CommonUtils.Extensions;
+﻿using CommonUtils.Verbosables;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,14 +8,13 @@ namespace CommonUtils.UI {
     /// <summary>
     /// Controls a <see cref="Text"/> component to show a numeric score that can be changed with an animation.
     /// </summary>
-    public abstract class AbstractAnimatedScoreDisplay : MonoBehaviour, IVerbosable {
+    public abstract class AbstractAnimatedScoreDisplay : EnhancedMonoBehaviour {
         #region Inspector fields
 #pragma warning disable 649
         [SerializeField] private float AnimDuration = 1f;
         [SerializeField] private iTween.EaseType EaseType;
         [SerializeField] private AudioClip LoopSoundEffect;
         [SerializeField] private UnityEvent OnAnimationFinished;
-        [SerializeField] private bool verbose;
 #pragma warning restore 649
         #endregion
 
@@ -32,8 +31,6 @@ namespace CommonUtils.UI {
                 return _audioSource;
             }
         }
-
-        public bool IsVerbose => verbose;
         #endregion
 
         private int currentScore;
@@ -49,7 +46,7 @@ namespace CommonUtils.UI {
         public void SetLabelDelegate(Func<int, string> newLabelDelegate) => LabelDelegate = newLabelDelegate;
 
         public void SetScore(int newScore, bool animate = true) {
-            this.DebugLog(() => $"{name}:AnimatedScoreDisplay.SetScore [current: {currentScore}] [new: {newScore}] [animate: {animate}]");
+            this.Log(() => $"{name}:AnimatedScoreDisplay.SetScore [current: {currentScore}] [new: {newScore}] [animate: {animate}]");
             var lastScore = currentScore;
             currentScore = newScore;
 

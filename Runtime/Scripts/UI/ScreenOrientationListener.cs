@@ -1,5 +1,5 @@
-using CommonUtils.Extensions;
 using CommonUtils.LegacyGUI;
+using CommonUtils.Verbosables;
 using UnityEngine;
 
 namespace CommonUtils.UI {
@@ -14,7 +14,7 @@ namespace CommonUtils.UI {
 			GUICoords.Instance.RefreshCurrentAspectRatio();
 			var orientation = GUICoords.Instance.CurrentAspectRatio.GetOrientation();
 			if (orientation == previousOrientation) return;
-			this.DebugLog($"Orientation has changed to {orientation}");
+			this.Log($"Orientation has changed to {orientation}");
 			onOrientationChanged?.Invoke(orientation);
 			previousOrientation = orientation;
 		}

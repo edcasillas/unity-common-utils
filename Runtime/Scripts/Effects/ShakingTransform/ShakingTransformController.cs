@@ -2,18 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
+using CommonUtils.Verbosables;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
+using Random = UnityEngine.Random;
 
 namespace CommonUtils.Effects.ShakingTransform {
 	[AddComponentMenu("Effects/Shaking Transform Controller")]
 	[HelpURL("https://github.com/edcasillas/unity-common-utils/wiki/Shaking-Transform")]
-	public class ShakingTransformController : MonoBehaviour, IVerbosable { // Based on https://roystan.net/articles/camera-shake.html
+	public class ShakingTransformController : EnhancedMonoBehaviour { // Based on https://roystan.net/articles/camera-shake.html
 		#region Inspector fields
 #pragma warning disable 649
 		[SerializeField] private ScriptableShakingTransformPreset[] presets;
 		[SerializeField] private UnityEvent onShakeFinished;
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
 
@@ -55,8 +57,6 @@ namespace CommonUtils.Effects.ShakingTransform {
 				return presetsByName;
 			}
 		}
-
-		public bool IsVerbose => verbose;
 		#endregion
 
 		private void Awake() => Seed = Random.value;
@@ -105,7 +105,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 		public void ReloadPresets() => presetsByName = presets.ToDictionary(p => p.name, p => p);
 
 		private IEnumerator shake() {
-			this.DebugLog("Started shaking");
+			this.Log("Started shaking");
 			IsShaking = true;
 
 			do {
@@ -128,7 +128,7 @@ namespace CommonUtils.Effects.ShakingTransform {
 			} while (Trauma > 0 || (transform.localPosition != Vector3.zero || transform.localRotation != Quaternion.identity));
 
 			IsShaking = false;
-			this.DebugLog("Finished shaking");
+			this.Log("Finished shaking");
 			onShakeFinished.Invoke();
 		}
 	}

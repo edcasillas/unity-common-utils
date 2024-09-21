@@ -44,6 +44,9 @@ namespace CommonUtils.LocalPersistence {
 		}
 
 		#region Private methods
+		internal static string GetSaveKey<TEntity, TId>(this TEntity entity, string customSuffix = null)
+			where TEntity : IEntity<TId>
+			=> getSaveKey<TEntity, TId>(entity, customSuffix);
 		/// <summary>
 		/// Builds a key to save the specified <paramref name="entity"/> in PlayerPrefs.
 		/// </summary>

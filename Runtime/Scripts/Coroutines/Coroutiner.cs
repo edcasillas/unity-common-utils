@@ -1,4 +1,5 @@
 using CommonUtils.Extensions;
+using CommonUtils.Verbosables;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace CommonUtils.Coroutines {
 		/// <param name="coroutine">Coroutine to run.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutine.</param>
 		/// <param name="preventDestroyOnSceneChange">Should this coroutine continue running during a scene change?</param>
-		/// <param name="verbose">Should this coroutiner instance log messages to the console?</param>
+		/// <param name="verbosity">Should this coroutiner instance log messages to the console?</param>
 		/// <remarks>
 		/// Classes that do not inherit from MonoBehaviour, or static methods within MonoBehaviours are inertly unable to
 		/// call StartCoroutine, as this method is not static and does not exist on Object.This Class creates a proxy
@@ -39,10 +40,10 @@ namespace CommonUtils.Coroutines {
 		///
 		/// Original credit to Sebastiaan Fehr (Seb@TheBinaryMill.com)
 		/// </remarks>
-		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, bool verbose = false) {
+		public static CoroutinerInstance StartCoroutine(IEnumerator coroutine, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, Verbosity verbosity = Verbosity.None) {
 			if (coroutine == null) throw new ArgumentNullException(nameof(coroutine));
 
-			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbose);
+			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbosity);
 
 			// Actually start the coroutine
 			routineHandler.ProcessWork(coroutine);
@@ -59,16 +60,16 @@ namespace CommonUtils.Coroutines {
 		/// <param name="onProgress">Callback to be executed when some progress has been done executing the coroutines.</param>
 		/// <param name="gameObjectName">Name of the GameObject that'll run the coroutines.</param>
 		/// <param name="preventDestroyOnSceneChange">Should these coroutines continue running during a scene change?</param>
-		/// <param name="verbose">Should this coroutiner instance log messages to the console?</param>
+		/// <param name="verbosity">Should this coroutiner instance log messages to the console?</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static CoroutinerInstance StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, bool verbose = false) {
+		public static CoroutinerInstance StartCoroutines(ICollection<IEnumerator> coroutines, Action onFinishedAll, Action<float> onProgress = null, string gameObjectName = "Active Coroutiner", bool preventDestroyOnSceneChange = false, Verbosity verbosity = Verbosity.None) {
 			if (coroutines.IsNullOrEmpty()) {
 				throw new ArgumentException($"{nameof(coroutines)} parameter cannot be null or empty.",
 					nameof(coroutines));
 			}
 
-			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbose);
+			var routineHandler = getInstance(gameObjectName, preventDestroyOnSceneChange, verbosity);
 
 			// Actually start the coroutines
 			routineHandler.ProcessWork(coroutines, onFinishedAll, onProgress);
@@ -76,7 +77,17 @@ namespace CommonUtils.Coroutines {
 			return routineHandler;
 		}
 
-		private static CoroutinerInstance getInstance(string gameObjectName, bool dontDestroyOnLoad, bool verbose) {
+		public static CoroutinerInstance WaitUntil(Func<bool> condition, Action then, Action onTimeout = null, float? timeout = null, string gameObjectName = "WaitUntil Coroutine", bool preventDestroyOnSceneChange = false, Verbosity verbosity = Verbosity.None) {
+			if (condition == null) throw new ArgumentNullException(nameof(condition));
+			if (then == null) throw new ArgumentNullException(nameof(then));
+			if ((onTimeout != null && !timeout.HasValue) || (onTimeout == null && timeout.HasValue))
+				throw new ArgumentException(
+					"In order to specify a timeout, please include both timeout and OnTimeout parameters.");
+
+			return StartCoroutine(CoroutineExtensions.DoWaitUntil(condition, then, onTimeout, timeout), gameObjectName, preventDestroyOnSceneChange, verbosity);
+		}
+
+		private static CoroutinerInstance getInstance(string gameObjectName, bool dontDestroyOnLoad, Verbosity verbosity) {
 			CoroutinerInstance result = null;
 
 			/*
@@ -88,11 +99,11 @@ namespace CommonUtils.Coroutines {
 				switch (dontDestroyOnLoad) {
 					case true when persistentInstancePool.Any():
 						result = persistentInstancePool.Dequeue();
-						if(verbose) Debug.Log("A coroutine instance has been fetched from the pool.");
+						if(verbosity.HasFlag(Verbosity.Debug)) Debug.Log("A coroutine instance has been fetched from the pool.");
 						break;
 					case false when instancePool.Any():
 						result = instancePool.Dequeue();
-						if(verbose) Debug.Log("A coroutine instance has been fetched from the pool.");
+						if(verbosity.HasFlag(Verbosity.Debug)) Debug.Log("A coroutine instance has been fetched from the pool.");
 						break;
 					default: {
 						// Create empty GameObject to handle task.
@@ -107,7 +118,7 @@ namespace CommonUtils.Coroutines {
 							result.InstancePool = instancePool;
 						}
 
-						if(verbose) Debug.Log("A new coroutiner instance has been created.");
+						if(verbosity.HasFlag(Verbosity.Debug)) Debug.Log("A new coroutiner instance has been created.");
 
 						break;
 					}
@@ -115,7 +126,7 @@ namespace CommonUtils.Coroutines {
 			}
 
 			result.gameObject.name = gameObjectName;
-			result.SetIsVerbose(verbose);
+			result.SetVerbosity(verbosity);
 
 			return result;
 		}
@@ -153,7 +164,7 @@ namespace CommonUtils.Coroutines {
 					$"{runningCoroutines.Count} coroutines are still running in this instance.");
 			}
 
-			this.DebugLog("Starting coroutine");
+			this.Log("Starting coroutine");
 			var result = this.StartCoroutineWithFinishCallback(coroutine, OnFinished);
 			runningCoroutines.Add(result);
 			return result;
@@ -172,20 +183,20 @@ namespace CommonUtils.Coroutines {
 			if (onFinishedAll == null) throw new ArgumentNullException(nameof(onFinishedAll));
 			#endregion
 
-			this.DebugLog(() => $"Starting {coroutines.Count} coroutines.");
+			this.Log(() => $"Starting {coroutines.Count} coroutines.");
 			for (var i = 0; i < coroutines.Count(); i++) {
 				progress.Add(0);
-				this.DebugLog($"Starting coroutine {i}");
+				this.Log($"Starting coroutine {i}");
 				StartCoroutine(executeCoroutine(coroutines.ElementAt(i), i));
 			}
 
-			this.DebugLog($"Starting coroutine to wait for all finished.");
+			this.Log($"Starting coroutine to wait for all finished.");
 			StartCoroutine(waitForAllFinished(onFinishedAll, onProgress));
 		}
 
 		private IEnumerator executeCoroutine(IEnumerator coroutine, int progressIndex) {
 			yield return coroutine;
-			this.DebugLog(() => $"Coroutine at index {progressIndex} has finished executing.");
+			this.Log(() => $"Coroutine at index {progressIndex} has finished executing.");
 			progress[progressIndex] = 1;
 		}
 
@@ -194,7 +205,7 @@ namespace CommonUtils.Coroutines {
 			do {
 				yield return null;
 				if (prevProgress >= OverallProgress) continue;
-				this.DebugLog(() => $"Progress: {OverallProgress * 100}%");
+				this.Log(() => $"Progress: {OverallProgress * 100}%");
 				onProgress?.Invoke(OverallProgress);
 				prevProgress = OverallProgress;
 			} while (OverallProgress < 1);
@@ -214,15 +225,15 @@ namespace CommonUtils.Coroutines {
 				}
 			}
 
-			this.DebugLog(() => $"Requested to stop {runningCoroutines.Count} running coroutines.");
+			this.Log(() => $"Requested to stop {runningCoroutines.Count} running coroutines.");
 
 			OnFinished();
 		}
 
-		internal void SetIsVerbose(bool isVerbose) => IsVerbose = isVerbose;
+		internal void SetVerbosity(Verbosity verbosity) => Verbosity = verbosity;
 
 		private void OnFinished() {
-			this.DebugLog("All coroutines have finished executing.");
+			this.Log("All coroutines have finished executing.");
 			runningCoroutines.Clear();
 			progress.Clear();
 			if(InstancePool == null) Destroy(gameObject);

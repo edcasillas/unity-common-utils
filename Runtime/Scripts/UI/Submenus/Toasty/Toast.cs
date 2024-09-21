@@ -1,4 +1,5 @@
 using CommonUtils.Extensions;
+using CommonUtils.Verbosables;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -64,7 +65,7 @@ namespace CommonUtils.UI.Submenus.Toasty {
 				WaitTimeToHide -= Time.unscaledDeltaTime;
 				yield return null;
 			}
-			this.DebugLog("Hiding");
+			this.Log("Hiding");
 			Hide();
 			HideCoroutine = null;
 		}

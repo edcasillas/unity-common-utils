@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,12 +20,14 @@ namespace CommonUtils.Editor.ScreenshotManager {
 				instance.titleContent = new GUIContent("Screenshot Manager");
 				instance.maxSize      = new Vector2(400f, 300f);
 			}
+			instance.Show();
+		}
 
+		private void OnEnable() {
+			if(!instance) return;
 			instance.saveTo = ScreenshotManager.SaveToFolder;
 			instance.prefix = ScreenshotManager.FilePrefix;
 			instance.currentCount = ScreenshotManager.CurrentCount;
-
-			instance.Show();
 		}
 
 		private void OnGUI() {
@@ -34,7 +37,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 				if (!string.IsNullOrWhiteSpace(selectedFolder)) saveTo = selectedFolder;
 			}
 
-			prefix = EditorGUILayout.TextField("Prefix", prefix).Trim();
+			prefix = EditorGUILayout.TextField("Prefix", prefix)?.Trim();
 
 			EditorExtensions.ReadOnlyLabelField("Current count", currentCount);
 			if (GUILayout.Button("Reset count")) {
@@ -50,7 +53,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 					ScreenshotManager.SaveToFolder = saveTo;
 					ScreenshotManager.FilePrefix = prefix;
 					ScreenshotManager.CurrentCount = currentCount;
-					instance.Close();
+					if(instance) instance.Close();
 				}
 			}
 		}

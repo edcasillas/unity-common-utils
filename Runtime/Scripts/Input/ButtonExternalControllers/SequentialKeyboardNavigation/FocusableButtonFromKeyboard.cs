@@ -1,6 +1,7 @@
 using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback;
 using CommonUtils.UnityComponents;
+using CommonUtils.Verbosables;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
@@ -51,12 +52,12 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         }
 
         private void OnEnable() {
-            this.DebugLog($"{name} has been enabled.");
+            this.Log($"{name} has been enabled.");
             manager.OnItemEnabledOrDisabled();
         }
 
         private void OnDisable() {
-            this.DebugLog($"{name} has been disabled.");
+            this.Log($"{name} has been disabled.");
             manager.OnItemEnabledOrDisabled();
         }
 
@@ -84,7 +85,6 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 #else
         public int TabIndex { get; set; }
         public bool HasFocus { get; set; }
-        bool IsInteractable() => false;
 #endif
     }
 }

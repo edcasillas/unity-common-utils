@@ -5,11 +5,9 @@ using UnityEngine;
 
 namespace CommonUtils.Editor.DebuggableEditors {
 	internal class ComponentsCache {
-		private readonly Dictionary<MonoBehaviour, DebuggableComponentData> cache =
-			new Dictionary<MonoBehaviour, DebuggableComponentData>();
+		private readonly Dictionary<Object, DebuggableComponentData> cache = new();
 
-		private readonly DynamicPriorityQueue<DebuggableComponentData> priorityQueue =
-			new DynamicPriorityQueue<DebuggableComponentData>();
+		private readonly DynamicPriorityQueue<DebuggableComponentData> priorityQueue = new();
 
 		private readonly int capacity;
 
@@ -17,7 +15,7 @@ namespace CommonUtils.Editor.DebuggableEditors {
 
 		public ComponentsCache(int capacity) => this.capacity = capacity;
 
-		public DebuggableComponentData Get<T>(T subject, bool debugAllPropertiesAndMethods = false, bool debugAllMonoBehaviorPropertiesAndMethods = false) where T : MonoBehaviour {
+		public DebuggableComponentData Get<T>(T subject, bool debugAllPropertiesAndMethods = false, bool debugAllMonoBehaviorPropertiesAndMethods = false) where T : Object {
 			if (!cache.TryGetValue(subject, out var result)) {
 				if (priorityQueue.Count >= capacity) {
 					removeLeastUsed();
