@@ -22,7 +22,7 @@ namespace CommonUtils.RestSdk {
 
 		public static async Task<string> TestAsync(string url = null, bool verbose = false) {
 			#if UNITY_WEBGL && !UNITY_EDITOR
-			return null;
+			return await Task.FromResult<string>(null);
 			#else
 			if(string.IsNullOrWhiteSpace(url)) url = "https://www.google.com";
 			var restClient = new RestClient(url);
