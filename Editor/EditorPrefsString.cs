@@ -24,6 +24,8 @@ namespace CommonUtils.Editor {
 		public void Clear() => EditorPrefs.DeleteKey(editorPrefsKey);
 
 		public static implicit operator string(EditorPrefsString editorPrefsString) => editorPrefsString.Value;
+
+		public override string ToString() => Value;
 	}
 
 	public class EditorPrefsInt {
@@ -49,5 +51,7 @@ namespace CommonUtils.Editor {
 		public void Clear() => EditorPrefs.DeleteKey(editorPrefsKey);
 
 		public static implicit operator int(EditorPrefsInt editorPrefsString) => editorPrefsString.Value;
+
+		public override string ToString() => Value.ToString();
 	}
 }
