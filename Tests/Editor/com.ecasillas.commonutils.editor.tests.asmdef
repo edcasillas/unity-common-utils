@@ -1,6 +1,6 @@
 {
     "name": "com.ecasillas.commonutils.editor.tests",
-    "rootNamespace": "",
+    "rootNamespace": "CommonUtils",
     "references": [
         "com.ecasillas.commonutils",
         "UnityEngine.TestRunner",
