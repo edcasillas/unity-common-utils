@@ -1,3 +1,4 @@
+using CommonUtils.Editor.BuiltInIcons;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -150,7 +151,7 @@ namespace CommonUtils.Editor.Publitch {
 						ButlerStatus.TryParse(statusString, ref status);
 					} else {
 						if (statusString.ToLower().Contains("no credentials")) {
-							Debug.LogError("NOT LOGGED IN");
+							//Debug.LogError("NOT LOGGED IN");
 						} else {
 							errorMessage = "An error occurred while trying to fetch the status of the project.";
 						}
