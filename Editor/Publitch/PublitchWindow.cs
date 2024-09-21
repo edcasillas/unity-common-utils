@@ -361,9 +361,13 @@ namespace CommonUtils.Editor.Publitch {
 			if (!string.IsNullOrEmpty(LastPublishDateTime))
 				EditorGUILayout.LabelField("Last published", LastPublishDateTime);
 			if (publishProcess == null) {
-				if (GUILayout.Button("Publitch NOW")) {
-					publishData = string.Empty;
-					publishProcess = executeButler($"push {BuildPath} {buildId}", OnPublishDataReceived);
+				if (!string.IsNullOrEmpty(BuildPath)) {
+					if (GUILayout.Button("Publitch NOW")) {
+						publishData = string.Empty;
+						publishProcess = executeButler($"push {BuildPath} {buildId}", OnPublishDataReceived);
+					}
+				} else {
+					EditorGUILayout.HelpBox("To continue please build your project.", MessageType.Warning);
 				}
 			} else {
 				var timeRunning = DateTime.Now - publishProcess.StartTime;
