@@ -12,21 +12,10 @@ namespace CommonUtils.Editor.ScreenshotManager {
         internal const string DEFAULT_SAVE_DIRECTORY        = "Assets/Screenshots";
         #endregion
 
-        #region Properties (connected to EditorPrefs)
-        internal static string SaveToFolder {
-            get => EditorPrefs.GetString(EDITOR_PREF_KEY_SAVE_TO, DEFAULT_SAVE_DIRECTORY);
-            set => EditorPrefs.SetString(EDITOR_PREF_KEY_SAVE_TO, value);
-        }
-
-        internal static string FilePrefix {
-            get => EditorPrefs.GetString(EDITOR_PREF_KEY_PREFIX, "screenshot");
-            set => EditorPrefs.SetString(EDITOR_PREF_KEY_PREFIX, value);
-        }
-
-        internal static int CurrentCount {
-            get => EditorPrefs.GetInt(EDITOR_PREF_KEY_CURRENT_COUNT, 0);
-            set => EditorPrefs.SetInt(EDITOR_PREF_KEY_CURRENT_COUNT, value);
-        }
+        #region EditorPrefs
+		internal static readonly EditorPrefsString SaveToFolder = new(EDITOR_PREF_KEY_SAVE_TO, DEFAULT_SAVE_DIRECTORY, true);
+        internal static readonly EditorPrefsString FilePrefix = new(EDITOR_PREF_KEY_PREFIX, "screenshot", true);
+		internal static readonly EditorPrefsInt CurrentCount = new(EDITOR_PREF_KEY_CURRENT_COUNT, 0, true);
         #endregion
 
         [MenuItem("Tools/Take Screenshot _F10")]
@@ -37,13 +26,13 @@ namespace CommonUtils.Editor.ScreenshotManager {
                 return;
             }
 
-            var count = CurrentCount;
+            int count = CurrentCount;
             var filename = $"{SaveToFolder}/{FilePrefix}{++count}.png";
             try {
                 ScreenCapture.CaptureScreenshot(filename);
                 Debug.Log($"Screenshot saved at \"{filename}\"");
                 AssetDatabase.SaveAssets();
-                CurrentCount = count;
+                CurrentCount.Value = count;
             } catch(Exception e) {
                 Debug.LogError($"Could not save screenshot at {filename}: {e.Message}");
             }

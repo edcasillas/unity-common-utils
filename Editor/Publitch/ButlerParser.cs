@@ -28,6 +28,14 @@ namespace CommonUtils.Editor.Publitch {
 							pctBuilder.Append(".");
 							foundPeriod = true;
 						} else {
+							/*
+							 * Some other expected strings we need to handle:
+							 * '> For channel `xxxx`: last build is xxxxx, downloading its signature'
+							 * '> Pushing xxx.xx MiB (xx files, xx dirs, xx symlinks)'
+							 * '< xx.xx MiB patch (xx.xx% savings)'
+							 * '> Build is now processing, should be up in a bit.'
+							 * 'Use the `butler status user/project:channel` for more information.'
+							 */
 							Debug.LogError($"Unexpected character in string received from butler: '{butlerOutput}'");
 							return false;
 						}
