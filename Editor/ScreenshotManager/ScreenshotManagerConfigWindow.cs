@@ -1,4 +1,4 @@
-﻿using CommonUtils.Editor.BuiltInIcons;
+using CommonUtils.Editor.BuiltInIcons;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -31,6 +31,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 			instance.saveTo = ScreenshotManager.SaveToFolder;
 			instance.prefix = ScreenshotManager.FilePrefix;
 			instance.currentCount = ScreenshotManager.CurrentCount;
+			instance.Show();
 		}
 
 		private void OnGUI() {
@@ -52,9 +53,9 @@ namespace CommonUtils.Editor.ScreenshotManager {
 			EditorGUILayout.EndHorizontal();
 
 			if (!Directory.Exists(saveTo)) {
-				EditorGUILayout.HelpBox($"The selected folder does not exist. Screenshots cannot be taken!", MessageType.Error);
+				EditorGUILayout.HelpBox("The selected folder does not exist. Screenshots cannot be taken!", MessageType.Error);
 			} else {
-				EditorGUILayout.HelpBox($"Next screenshot will be saved as:\n{saveTo}/{prefix}{currentCount}.png", MessageType.None);
+				EditorGUILayout.HelpBox($"Next screenshot will be saved as:\n{saveTo}/{prefix}{currentCount+1}.png", MessageType.None);
 				if ((saveTo       != ScreenshotManager.SaveToFolder || prefix != ScreenshotManager.FilePrefix ||
 					 currentCount != ScreenshotManager.CurrentCount) && GUILayout.Button("Save")) {
 					ScreenshotManager.SaveToFolder.Value = saveTo;

@@ -9,11 +9,11 @@ namespace CommonUtils.Editor.ScreenshotManager {
         public const string EDITOR_PREF_KEY_SAVE_TO       = "ScreenshotManager.SaveTo";
         public const string EDITOR_PREF_KEY_PREFIX        = "ScreenshotManager.Prefix";
         public const string EDITOR_PREF_KEY_CURRENT_COUNT = "ScreenshotManager.CurrentCount";
-        private const string defaultSaveDirectory        = "Assets/Screenshots";
+        internal const string DEFAULT_SAVE_DIRECTORY        = "Assets/Screenshots";
         #endregion
 
         #region EditorPrefs
-		internal static readonly EditorPrefsString SaveToFolder = new(EDITOR_PREF_KEY_SAVE_TO, defaultSaveDirectory, true);
+		internal static readonly EditorPrefsString SaveToFolder = new(EDITOR_PREF_KEY_SAVE_TO, DEFAULT_SAVE_DIRECTORY, true);
         internal static readonly EditorPrefsString FilePrefix = new(EDITOR_PREF_KEY_PREFIX, "screenshot", true);
 		internal static readonly EditorPrefsInt CurrentCount = new(EDITOR_PREF_KEY_CURRENT_COUNT, 0, true);
         #endregion
