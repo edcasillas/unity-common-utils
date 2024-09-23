@@ -1,3 +1,5 @@
+// #define PUBLITCH_DEBUG_MODE
+
 using CommonUtils.Editor.BuiltInIcons;
 using System;
 using System.ComponentModel;
@@ -14,7 +16,6 @@ using File = UnityEngine.Windows.File;
 namespace CommonUtils.Editor.Publitch {
 	public class PublitchWindow : EditorWindow {
 		#region Constants
-		private const bool DEBUG_MODE = false;
 		private const string EDITOR_PREF_BUTLER_FOLDER_PATH = "ButlerFolderPath";
 		private const string EDITOR_PREF_BUTLER_API_KEY = "ButlerApiKey";
 		private const string EDITOR_PREF_KEY_PREFIX = "Publitch";
@@ -448,7 +449,9 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private static void debugLog(string message) {
-			if(DEBUG_MODE) Debug.Log(message);
+			#if PUBLITCH_DEBUG_MODE
+			Debug.Log(message);
+			#endif
 		}
 	}
 }
