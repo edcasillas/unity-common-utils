@@ -157,7 +157,7 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void parseButlerStatusFromProcessOutput(string processOutput) {
-			this.Log("Status command success.");
+			this.Log($"Status command success: {processOutput}");
 			ButlerStatus.TryParse(processOutput, ref projectStatus);
 		}
 
@@ -182,10 +182,21 @@ namespace CommonUtils.Editor.Publitch {
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
 		private void OnPublishDataReceived(string data) {
-			if (ButlerParser.TryParseProgress(data, out var pct)) {
-				publishProgressPct = pct;
-			} else {
-				Debug.LogWarning($"Didn't find percentage in string: '{data}'");
+			var parseResult = ButlerParser.TryParseProgress(data, out var pct);
+			switch (parseResult) {
+				case ButlerParser.ParseResult.Ok:
+					publishProgressPct = pct;
+					break;
+				case ButlerParser.ParseResult.NotFound:
+				case ButlerParser.ParseResult.MultiplePeriodsInNumber:
+				case ButlerParser.ParseResult.UnexpectedCharacter:
+				case ButlerParser.ParseResult.UnexpectedError:
+					Debug.LogWarning($"Didn't find percentage in string: '{data}'");
+					break;
+				//case ButlerParser.ParseResult.EmptyString:
+				//case ButlerParser.ParseResult.ExpectedNonProgress:
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 
 			publishData = data;
