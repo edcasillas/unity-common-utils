@@ -54,20 +54,9 @@ namespace CommonUtils.Editor.Publitch {
 			set => EditorPrefs.SetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)value);
 		}
 
-		internal static string BuildPath {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH), value);
-		}
-
-		internal static string User {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_USER));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_USER), value);
-		}
-
-		internal static string ProjectName {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), PlayerSettings.productName);
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), value);
-		}
+		internal static readonly EditorPrefsString BuildPath = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH), string.Empty, true);
+		internal static readonly EditorPrefsString User = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_USER), string.Empty, true);
+		internal static readonly EditorPrefsString ProjectName = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), ()=> PlayerSettings.productName, true);
 
 		internal static string LastPublishDateTime {
 			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME));
@@ -303,10 +292,10 @@ namespace CommonUtils.Editor.Publitch {
 			}
 
 			var user = EditorGUILayout.TextField("User", User);
-			if (user != User) User = user;
+			if (user != User) User.Value = user;
 
 			var projectName = EditorGUILayout.TextField(new GUIContent("Project Name", "As registered on itch."), ProjectName);
-			if (projectName != ProjectName) ProjectName = projectName;
+			if (projectName != ProjectName) ProjectName.Value = projectName;
 
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
@@ -405,7 +394,7 @@ namespace CommonUtils.Editor.Publitch {
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
 			LastBuiltDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 			BuildTarget = target; // TODO is this really needed
-			BuildPath = pathToBuiltProject;
+			BuildPath.Value = pathToBuiltProject;
 			totalBuildSize = getBuildSizeMBString(BuildPath);
 		}
 
