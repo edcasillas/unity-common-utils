@@ -1,4 +1,4 @@
-#define PUBLITCH_DEBUG_MODE
+// #define PUBLITCH_DEBUG_MODE
 
 using CommonUtils.Editor.BuiltInIcons;
 using CommonUtils.Editor.SystemProcesses;
@@ -56,7 +56,7 @@ namespace CommonUtils.Editor.Publitch {
 		internal static readonly EditorPrefsString User = new(getEditorPrefKey(EDITOR_PREF_KEY_USER), string.Empty, true);
 		internal static readonly EditorPrefsString ProjectName = new(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), () => PlayerSettings.productName, true);
 		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
-		internal static readonly EditorPrefsString LastBuiltDateTime = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
+		internal static readonly EditorPrefsString LastBuiltDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
 
 		internal static BuildTarget BuildTarget {
 			get => (BuildTarget)EditorPrefs.GetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)EditorUserBuildSettings.activeBuildTarget);
@@ -70,13 +70,15 @@ namespace CommonUtils.Editor.Publitch {
 		private Status currentStatus = Status.Idle;
 		private string errorMessage;
 
-		private readonly CommandLineRunner commandLineRunner = new() { Verbosity = Verbosity.Debug | Verbosity.Warning | Verbosity.Error };
+		private readonly CommandLineRunner commandLineRunner = new(); //{ Verbosity = Verbosity.Debug | Verbosity.Warning | Verbosity.Error };
 
 		private string version;
 		private ButlerStatus projectStatus;
 		private static string totalBuildSize;
 
 		private bool isInitialized;
+
+		private bool showSettings = false;
 
 		public Verbosity Verbosity {
 			get {
@@ -101,6 +103,10 @@ namespace CommonUtils.Editor.Publitch {
 			initialize();
 			this.Log("PUBLITCH IS EXECUTING");
 			checkButlerVersion();
+		}
+
+		private void OnDisable() {
+			if(commandLineRunner.IsRunning) commandLineRunner.Kill();
 		}
 
 		private void checkButlerVersion() {
@@ -249,7 +255,28 @@ namespace CommonUtils.Editor.Publitch {
 				return;
 			}
 
-			EditorGUILayout.HelpBox($"butler {version}\n{ButlerPath}", MessageType.None);
+			showSettings = EditorExtensions.Collapse(showSettings,
+				$"butler {version}",
+				() => {
+					EditorExtensions.FolderField("Butler Path", ButlerPath, true,
+						newButlerPath => {
+							if (!File.Exists(Path.Combine(newButlerPath, "butler"))) {
+								EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
+							} else {
+								ButlerPath.Value = newButlerPath;
+								checkButlerVersion();
+							}
+						});
+					EditorGUILayout.LabelField("Butler Version", version);
+					if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
+						if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
+
+						}
+					}
+				},
+				false,
+				true);
+
 
 			drawAPIKeyInput();
 
@@ -265,12 +292,7 @@ namespace CommonUtils.Editor.Publitch {
 			drawBuildTarget();
 
 			if (!string.IsNullOrEmpty(BuildPath)) {
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.TextField("Build Path", BuildPath);
-				if (GUILayout.Button(EditorIcon.AnimationVisibilityToggleOn.ToGUIContent("Reveal"), EditorStyles.iconButton, GUILayout.Height(16))) {
-					EditorUtility.RevealInFinder(BuildPath);
-				}
-				EditorGUILayout.EndHorizontal();
+				EditorExtensions.FolderField("Build Path", BuildPath);
 
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
 
@@ -321,7 +343,7 @@ namespace CommonUtils.Editor.Publitch {
 
 			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
-					if (GUILayout.Button("Publitch NOW")) {
+					if (EditorExtensions.Button("Publitch NOW", fontColor: Color.white, backgroundColor: Color.green, fontStyle: FontStyle.Bold)) {
 						publish();
 					}
 				} else {
@@ -354,7 +376,7 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.BeginHorizontal();
 			var apiKey = EditorGUILayout.PasswordField("Butler API Key", ButlerApiKey);
 			if (apiKey != null) ButlerApiKey.Value = apiKey;
-			if (GUILayout.Button(EditorIcon.SearchIcon.ToGUIContent("Go to API Keys on itch"), EditorStyles.iconButton, GUILayout.Height(16))) {
+			if (EditorIcon.SearchIcon.Button("Go to API Keys on itch")) {
 				Application.OpenURL("https://itch.io/user/settings/api-keys");
 			}
 
