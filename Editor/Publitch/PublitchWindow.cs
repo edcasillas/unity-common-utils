@@ -120,6 +120,22 @@ namespace CommonUtils.Editor.Publitch {
 					currentStatus = Status.Idle;
 					if(!string.IsNullOrEmpty(version)) fetchStatus();
 				}) ? Status.FetchingStatus : Status.Idle;
+
+		}
+
+		private void checkPythonVersion() {
+			this.Log("Checking python version");
+			errorMessage = null;
+			//currentStatus = Status.FetchingPythonVersion;
+			commandLineRunner.Run("python3",
+				"--version",
+				//ButlerPath,
+				onSuccess: s => Debug.Log("Success"),
+				onFailed: (code, s) => Debug.Log("Failed"),
+				onFinished: () => {
+					this.Log("Version command finished.");
+					currentStatus = Status.Idle;
+				});
 		}
 
 		private void fetchStatus() {
@@ -209,7 +225,7 @@ namespace CommonUtils.Editor.Publitch {
 			}
 
 			showSettings |= string.IsNullOrEmpty(version);
-			showSettings = renderBulterSettings();
+			renderBulterSettings();
 
 			if (string.IsNullOrEmpty(version)) {
 				return;
@@ -251,7 +267,6 @@ namespace CommonUtils.Editor.Publitch {
 			if (GUILayout.Button("View on itch.io", EditorStyles.miniButtonRight)) {
 				Application.OpenURL($"https://{User}.itch.io/{ProjectName}");
 			}
-
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
@@ -297,7 +312,7 @@ namespace CommonUtils.Editor.Publitch {
 			}
 		}
 
-		private bool renderBulterSettings() => EditorExtensions.Collapse(showSettings,
+		private void renderBulterSettings() => showSettings = EditorExtensions.Collapse(showSettings,
 			$"butler {(!string.IsNullOrEmpty(version)? version: "(Setup Required)")}",
 			() => {
 				EditorExtensions.FolderField("Butler Path", ButlerPath, true,
@@ -326,6 +341,9 @@ namespace CommonUtils.Editor.Publitch {
 						}
 						Verbosity = (Verbosity)EditorGUILayout.EnumFlagsField("Publitch Verbosity", Verbosity);
 						commandLineRunner.Verbosity = Verbosity;
+						if (GUILayout.Button("Python")) {
+							checkPythonVersion();
+						}
 						if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
 							if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
 								clearButlerSettings();
