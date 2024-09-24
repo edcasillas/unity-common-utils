@@ -112,20 +112,21 @@ namespace CommonUtils.Editor.SystemProcesses {
 
 			if (process.ExitCode == 0) {
 				// Process finished successfully
+				this.LogNoContext($"Finished executing {lastCommandExecuted} successfully.");
 				var output = onOutputDataReceived == null ? process.StandardOutput.ReadToEnd() : null;
 				onSuccess?.Invoke(output);
 			} else {
 				// Process finished with an error
 				var error = process.StandardError.ReadToEnd();
-				if (string.IsNullOrEmpty(error)) error = process.StandardOutput.ReadToEnd();
-
+				if (string.IsNullOrEmpty(error) && onOutputDataReceived == null) error = process.StandardOutput.ReadToEnd();
+				this.LogNoContext($"{lastCommandExecuted} finished with error code {process.ExitCode}: {(!string.IsNullOrEmpty(error)? error:"empty error message")}.", LogLevel.Error);
 				onFailed?.Invoke((Win32ErrorCode)process.ExitCode, error);
 			}
 
-			onFinished?.Invoke();
-
 			if (onOutputDataReceived != null) process.OutputDataReceived -= outputDataReceivedHandler;
 			cleanup(); // Clean up the process but don't clear the startTime or endTime
+
+			onFinished?.Invoke();
 		}
 
 		private void outputDataReceivedHandler(object sender, DataReceivedEventArgs args) {

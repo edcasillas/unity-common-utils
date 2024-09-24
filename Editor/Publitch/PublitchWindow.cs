@@ -70,7 +70,7 @@ namespace CommonUtils.Editor.Publitch {
 		private Status currentStatus = Status.Idle;
 		private string errorMessage;
 
-		private readonly CommandLineRunner commandLineRunner = new();
+		private readonly CommandLineRunner commandLineRunner = new() { Verbosity = Verbosity.Debug | Verbosity.Warning | Verbosity.Error };
 
 		private string version;
 		private ButlerStatus projectStatus;
@@ -110,10 +110,13 @@ namespace CommonUtils.Editor.Publitch {
 			commandLineRunner.Run("butler",
 				"version",
 				ButlerPath,
-				onSuccess: onButlerVersionSuccess,
+				onSuccess: processOutput => version = processOutput.Split(',').FirstOrDefault(),
 				onFailed: onButlerVersionError,
-				onFinished: () => currentStatus = Status.Idle
-			);
+				onFinished: () => {
+					this.Log("Version command finished.");
+					currentStatus = Status.Idle;
+					if(!string.IsNullOrEmpty(version)) fetchStatus();
+				});
 		}
 
 		private void fetchStatus() {
@@ -126,7 +129,10 @@ namespace CommonUtils.Editor.Publitch {
 				ButlerPath,
 				onSuccess: parseButlerStatusFromProcessOutput,
 				onFailed: onButlerStatusError,
-				onFinished: () => currentStatus = Status.Idle,
+				onFinished: () => {
+					this.Log("Status command finished.");
+					currentStatus = Status.Idle;
+				},
 				environmentVariables: new Dictionary<string, string> { { "BUTLER_API_KEY", ButlerApiKey } });
 		}
 
@@ -139,22 +145,20 @@ namespace CommonUtils.Editor.Publitch {
 				$"push {BuildPath} {buildId}",
 				ButlerPath,
 				onOutputDataReceived: OnPublishDataReceived,
-				onSuccess: onButlerPublishSuccess,
+				onSuccess: _ => LastPublishDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture),
 				onFailed: onButlerPublishError,
-				onFinished: () => currentStatus = Status.Idle,
+				onFinished: () => {
+					currentStatus = Status.Idle;
+					publishData = string.Empty;
+					publishProgressPct = 0f;
+					fetchStatus();
+				},
 				environmentVariables: new Dictionary<string, string> { { "BUTLER_API_KEY", ButlerApiKey } });
 		}
 
-		private void onButlerVersionSuccess(string processOutput) {
-			version = processOutput.Split(',').FirstOrDefault();
-			fetchStatus();
-		}
-
-		private void parseButlerStatusFromProcessOutput(string processOutput) => ButlerStatus.TryParse(processOutput, ref projectStatus);
-
-		private void onButlerPublishSuccess(string processOutput) {
-			fetchStatus();
-			LastPublishDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+		private void parseButlerStatusFromProcessOutput(string processOutput) {
+			this.Log("Status command success.");
+			ButlerStatus.TryParse(processOutput, ref projectStatus);
 		}
 
 		private void onButlerVersionError(Win32ErrorCode errorCode, string errorMessage) {
@@ -314,16 +318,14 @@ namespace CommonUtils.Editor.Publitch {
 				}
 			}
 			if (currentStatus == Status.Publishing) {
+				this.ShowLoadingSpinner("Publishing...", publishProgressPct / 100f); // TODO Label must be "Publishing for XX seconds"
+				EditorGUILayout.TextArea(publishData ?? string.Empty);
+
 				if (GUILayout.Button("Cancel")) {
 					if (EditorUtility.DisplayDialog("Cancel publish", "Are you sure?", "Yup", "Nope")) {
 						commandLineRunner.Kill();
 					}
 				}
-			}
-
-			if (!string.IsNullOrEmpty(publishData)) {
-				this.ShowLoadingSpinner("Publishing...", publishProgressPct / 100f); // TODO Label must be "Publishing for XX seconds"
-				EditorGUILayout.TextArea(publishData);
 			}
 		}
 

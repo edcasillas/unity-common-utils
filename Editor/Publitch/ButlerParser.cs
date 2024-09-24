@@ -35,6 +35,7 @@ namespace CommonUtils.Editor.Publitch {
 							 * '< xx.xx MiB patch (xx.xx% savings)'
 							 * '> Build is now processing, should be up in a bit.'
 							 * 'Use the `butler status user/project:channel` for more information.'
+							 * 'creating build on remote server: itch.io API error (400): /wharf/builds: channel xxxx's latest build is still processing, try again later'
 							 */
 							Debug.LogError($"Unexpected character in string received from butler: '{butlerOutput}'");
 							return false;
