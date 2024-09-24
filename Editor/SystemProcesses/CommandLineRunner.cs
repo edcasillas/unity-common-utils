@@ -112,7 +112,8 @@ namespace CommonUtils.Editor.SystemProcesses {
 
 			if (process.ExitCode == 0) {
 				// Process finished successfully
-				onSuccess?.Invoke(process.StandardOutput.ReadToEnd());
+				var output = onOutputDataReceived == null ? process.StandardOutput.ReadToEnd() : null;
+				onSuccess?.Invoke(output);
 			} else {
 				// Process finished with an error
 				var error = process.StandardError.ReadToEnd();
