@@ -1,15 +1,14 @@
 using CommonUtils.Extensions;
+using CommonUtils.Verbosables;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using UnityEditor;
-using Debug = UnityEngine.Debug;
 
-namespace CommonUtils.Editor.SystemProcesses
-{
-	public class SystemProcessRunner {
+namespace CommonUtils.Editor.SystemProcesses {
+	public class SystemProcessRunner : IVerbosable {
 		private readonly ProcessStartInfo startInfo;
 		private Process process;
 
@@ -18,6 +17,7 @@ namespace CommonUtils.Editor.SystemProcesses
 		private Action<string> onSuccess;
 
 		public bool IsRunning => process is { HasExited: false };
+		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
 
 		public SystemProcessRunner(string command, string args, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null, IDictionary<string, string> environmentVariables = null) {
 			var processFileName = string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command);
@@ -41,10 +41,10 @@ namespace CommonUtils.Editor.SystemProcesses
 			this.onFailed = onFailed;
 		}
 
-		public void Start() {
+		public bool Start() {
 			if (process != null) {
-				Debug.LogError("Already running.");
-				return;
+				this.LogNoContext($"Process {process.ProcessName} is already running.", LogLevel.Error);
+				return false;
 			}
 
 			process = new Process() { StartInfo = startInfo };
@@ -54,27 +54,30 @@ namespace CommonUtils.Editor.SystemProcesses
 				process.Start();
 				if (onOutputDataReceived != null) process.BeginOutputReadLine();
 				EditorApplication.update += update;
+				this.LogNoContext($"Started process {process.ProcessName} with args {process.StartInfo.Arguments}.");
+				return true;
 			} catch (Win32Exception ex) {
-				Debug.LogException(ex);
+				this.LogNoContext($"Failed to start process {process.ProcessName} with error {ex.Message}.", LogLevel.Error);
 				onFailed?.Invoke((Win32ErrorCode)ex.NativeErrorCode, ex.Message);
 				cleanup();
+				return false;
 			}
 		}
 
 		public void Kill() {
 			if (process == null || process.HasExited) {
-				Debug.LogWarning("Process is not running or has already exited.");
+				this.LogNoContext($"Process {startInfo.FileName} could not be killed because it has already exited or has not been started.");
 				return;
 			}
 
 			try {
 				process.Kill();
-				process.WaitForExit(); // Optional: Wait for process to exit after kill command.
-				Debug.Log("Process killed successfully.");
+				//process.WaitForExit(); // Optional: Wait for process to exit after kill command.
+				this.LogNoContext($"Process {process.ProcessName} has been killed.");
 			} catch (InvalidOperationException ex) {
-				Debug.LogError($"Failed to kill process: {ex.Message}");
+				this.LogNoContext($"Failed to kill process {process.ProcessName}: {ex.Message}.", LogLevel.Error);
 			} catch (Win32Exception ex) {
-				Debug.LogError($"Win32Exception occurred while killing the process: {ex.Message}");
+				this.LogNoContext($"Win32Exception occurred while killing process {process.ProcessName}: {ex.Message}.", LogLevel.Error);
 				onFailed?.Invoke((Win32ErrorCode)ex.NativeErrorCode, ex.Message);
 			} finally {
 				cleanup();
