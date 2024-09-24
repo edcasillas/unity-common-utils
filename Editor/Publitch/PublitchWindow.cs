@@ -268,17 +268,15 @@ namespace CommonUtils.Editor.Publitch {
 							}
 						});
 					EditorGUILayout.LabelField("Butler Version", version);
+					drawAPIKeyInput();
 					if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
 						if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
-
+							clearButlerSettings();
 						}
 					}
 				},
 				false,
 				true);
-
-
-			drawAPIKeyInput();
 
 			if (string.IsNullOrEmpty(ButlerApiKey)) {
 				EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
@@ -452,6 +450,12 @@ namespace CommonUtils.Editor.Publitch {
 			var dirs = dir.GetDirectories();
 			size += dirs.Sum(getDirectorySizeInBytes);
 			return size;
+		}
+
+		private void clearButlerSettings() {
+			ButlerPath.Clear();
+			ButlerApiKey.Clear();
+			version = null;
 		}
 	}
 }
