@@ -122,7 +122,7 @@ namespace CommonUtils.Editor.Publitch {
 
 						errorMessage = "An error occurred while trying to fetch the version of butler.";
 					}
-
+					
 					fetchVersionProcess = null;
 				}
 			}
