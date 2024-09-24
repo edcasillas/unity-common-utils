@@ -100,8 +100,8 @@ namespace CommonUtils.Editor.Publitch {
 
 		private void OnEnable() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-			initialize();
 			this.Log("PUBLITCH IS EXECUTING");
+			initialize();
 			checkButlerVersion();
 		}
 
@@ -109,20 +109,26 @@ namespace CommonUtils.Editor.Publitch {
 			if(commandLineRunner.IsRunning) commandLineRunner.Kill();
 		}
 
-		private void checkButlerVersion() {
+		private void checkButlerVersion(bool showErrorDialog = false) {
 			this.Log("Checking butler version");
 			errorMessage = null;
-			currentStatus = Status.FetchingVersion;
-			commandLineRunner.Run("butler",
+			currentStatus = commandLineRunner.Run("butler",
 				"version",
 				ButlerPath,
 				onSuccess: processOutput => version = processOutput.Split(',').FirstOrDefault(),
-				onFailed: onButlerVersionError,
+				onFailed: (errorCode, errorMsg) => {
+					if (errorCode == Win32ErrorCode.ERROR_FILE_NOT_FOUND) {
+						errorMessage = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder. \nTo install butler, please visit https://itchio.itch.io/butler";
+						if(showErrorDialog) EditorUtility.DisplayDialog("Error", errorMessage, "OK");
+						return;
+					}
+					errorMessage = errorMsg;
+				},
 				onFinished: () => {
 					this.Log("Version command finished.");
 					currentStatus = Status.Idle;
 					if(!string.IsNullOrEmpty(version)) fetchStatus();
-				});
+				}) ? Status.FetchingStatus : Status.Idle;
 		}
 
 		private void fetchStatus() {
@@ -167,14 +173,6 @@ namespace CommonUtils.Editor.Publitch {
 			ButlerStatus.TryParse(processOutput, ref projectStatus);
 		}
 
-		private void onButlerVersionError(Win32ErrorCode errorCode, string errorMessage) {
-			if (errorCode == Win32ErrorCode.ERROR_FILE_NOT_FOUND) {
-				this.errorMessage = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder below. \nTo install butler, please visit https://itchio.itch.io/butler";
-				return;
-			}
-			this.errorMessage = errorMessage;
-		}
-
 		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) {
 			this.Log(errorMessage, LogLevel.Error);
 			this.errorMessage = errorMessage;
@@ -208,34 +206,6 @@ namespace CommonUtils.Editor.Publitch {
 			publishData = data;
 		}
 
-		private void handleMissingButlerVersion() {
-			var errorMsg = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder below. \nTo install butler, please visit https://itchio.itch.io/butler";
-			EditorGUILayout.HelpBox(errorMsg, MessageType.Error);
-
-			if (GUILayout.Button("Go to itch.io/butler")) {
-				Application.OpenURL("https://itchio.itch.io/butler");
-			}
-
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(string.IsNullOrEmpty(ButlerPath) ? NO_FOLDER_SELECTED : ButlerPath);
-			if (GUILayout.Button("Select")) {
-				var folder = EditorUtility.OpenFolderPanel("Select folder", ButlerPath, "");
-				if (!string.IsNullOrEmpty(folder)) {
-					if (!File.Exists(Path.Combine(folder, "butler"))) {
-						EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
-					} else {
-						ButlerPath.Value = folder;
-						checkButlerVersion();
-					}
-				}
-			}
-			EditorGUILayout.EndHorizontal();
-
-			if (GUILayout.Button("Refresh")) {
-				checkButlerVersion();
-			}
-		}
-
 		private void OnGUI() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
 				EditorGUILayout.HelpBox("Publitch is not available in Play mode.", MessageType.Info);
@@ -250,33 +220,12 @@ namespace CommonUtils.Editor.Publitch {
 				this.ShowLoadingSpinner("Checking butler installation...");
 			}
 
+			showSettings |= string.IsNullOrEmpty(version);
+			showSettings = renderBulterSettings();
+
 			if (string.IsNullOrEmpty(version)) {
-				handleMissingButlerVersion();
 				return;
 			}
-
-			showSettings = EditorExtensions.Collapse(showSettings,
-				$"butler {version}",
-				() => {
-					EditorExtensions.FolderField("Butler Path", ButlerPath, true,
-						newButlerPath => {
-							if (!File.Exists(Path.Combine(newButlerPath, "butler"))) {
-								EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
-							} else {
-								ButlerPath.Value = newButlerPath;
-								checkButlerVersion();
-							}
-						});
-					EditorGUILayout.LabelField("Butler Version", version);
-					drawAPIKeyInput();
-					if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
-						if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
-							clearButlerSettings();
-						}
-					}
-				},
-				false,
-				true);
 
 			if (string.IsNullOrEmpty(ButlerApiKey)) {
 				EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
@@ -359,6 +308,40 @@ namespace CommonUtils.Editor.Publitch {
 				}
 			}
 		}
+
+		private bool renderBulterSettings() => EditorExtensions.Collapse(showSettings,
+			$"butler {(!string.IsNullOrEmpty(version)? version: "(Setup Required)")}",
+			() => {
+				EditorExtensions.FolderField("Butler Path", ButlerPath, true,
+					newButlerPath => {
+						if (!File.Exists(Path.Combine(newButlerPath, "butler"))) {
+							EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
+						} else {
+							ButlerPath.Value = newButlerPath;
+							checkButlerVersion(true);
+						}
+					});
+
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.LabelField("Butler Version", !string.IsNullOrEmpty(version) ? version : "<not found>");
+				if (EditorIcon.TreeEditorRefresh.Button("Refresh")) {
+					checkButlerVersion(true);
+				}
+				EditorGUILayout.EndHorizontal();
+				drawAPIKeyInput();
+
+				if (GUILayout.Button("Go to itch.io/butler")) {
+					Application.OpenURL("https://itchio.itch.io/butler");
+				}
+
+				if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
+					if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
+						clearButlerSettings();
+					}
+				}
+			},
+			false,
+			true);
 
 		[PostProcessBuild]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
