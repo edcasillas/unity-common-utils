@@ -85,10 +85,9 @@ namespace CommonUtils.Editor.Publitch {
 		private string errorMessage;
 
 		private readonly SystemProcessRunner fetchVersionProcessRunner;
-		private Process fetchVersionProcess;
 		private string version;
 
-		private Process fetchStatusProcess;
+		private readonly SystemProcessRunner fetchStatusProcessRunner;
 		private ButlerStatus status = new ButlerStatus();
 
 		private Process publishProcess;
@@ -110,7 +109,8 @@ namespace CommonUtils.Editor.Publitch {
 
 		public PublitchWindow() {
 			Debug.Log("Publitch Window constructed");
-			fetchVersionProcessRunner = new SystemProcessRunner("butler", "version", onSuccess: parseButlerVersionFromProcessOutput, onFailed: onButlerError );
+			fetchVersionProcessRunner = new SystemProcessRunner("butler", "version", onSuccess: onButlerVersionSuccess, onFailed: onButlerVersionError );
+			fetchStatusProcessRunner = new SystemProcessRunner("butler", "status", onSuccess: parseButlerStatusFromProcessOutput, onFailed: onButlerStatusError);
 		}
 
 		private void initialize() {
@@ -126,70 +126,53 @@ namespace CommonUtils.Editor.Publitch {
 			this.Log("PUBLITCH IS EXECUTING");
 			checkButlerVersion();
 			EditorApplication.update += Update;
-			if(!string.IsNullOrEmpty(buildId)) fetchStatusProcess = executeButler($"status {buildId}");
 		}
 
 		private void OnDisable() => EditorApplication.update -= Update;
 
-		private void parseButlerVersionFromProcessOutput(string processOutput) {
+		private void onButlerVersionSuccess(string processOutput) {
 			version = processOutput;
 			if (string.IsNullOrEmpty(version)) return;
 			var indexOfComma = version.IndexOf(',');
 			if (indexOfComma > 0) {
 				version = version.Substring(0, indexOfComma);
 			}
+
+			fetchStatus();
 		}
 
-		private void onButlerError(Win32ErrorCode errorCode, string errorMessage) {
+		private void fetchStatus() {
+			if (string.IsNullOrEmpty(buildId)) return;
+			fetchStatusProcessRunner.SetEnvVar("BUTLER_API_KEY", ButlerApiKey);
+			fetchStatusProcessRunner.SetArgs($"status {buildId}");
+			fetchStatusProcessRunner.SetCommandPath(ButlerPath);
+			fetchStatusProcessRunner.Start();
+		}
+
+		private void parseButlerStatusFromProcessOutput(string processOutput) => ButlerStatus.TryParse(processOutput, ref status);
+
+		private void onButlerVersionError(Win32ErrorCode errorCode, string errorMessage) {
+			if (errorCode == Win32ErrorCode.ERROR_FILE_NOT_FOUND) {
+				this.errorMessage = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder below. \nTo install butler, please visit https://itchio.itch.io/butler";
+				return;
+			}
+			this.errorMessage = errorMessage;
+		}
+
+		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) {
+			this.Log(errorMessage, LogLevel.Error);
 			this.errorMessage = errorMessage;
 		}
 
 		private void Update() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-			/*if (fetchVersionProcess != null) {
-				if (fetchVersionProcess.HasExited) {
-					this.Log($"Check butler version finished with code {fetchVersionProcess.ExitCode}");
-					if (fetchVersionProcess.ExitCode == 0) {
-						version = fetchVersionProcess.StandardOutput.ReadToEnd();
-						if (!string.IsNullOrEmpty(version)) {
-							var indexOfComma = version.IndexOf(',');
-							if (indexOfComma > 0) {
-								version = version.Substring(0, indexOfComma);
-								//version = version[..indexOfComma];
-							}
-						}
-					} else {
-
-						errorMessage = "An error occurred while trying to fetch the version of butler.";
-					}
-
-					fetchVersionProcess = null;
-				}
-			}*/
-
-			if (fetchStatusProcess != null) {
-				if (fetchStatusProcess.HasExited) {
-					var statusString = fetchStatusProcess.StandardOutput.ReadToEnd();
-					if (fetchStatusProcess.ExitCode == 0) {
-						ButlerStatus.TryParse(statusString, ref status);
-					} else {
-						if (statusString.ToLower().Contains("no credentials")) {
-							//Debug.LogError("NOT LOGGED IN");
-						} else {
-							errorMessage = "An error occurred while trying to fetch the status of the project.";
-						}
-					}
-
-					fetchStatusProcess = null;
-				}
-			}
 
 			if (publishProcess != null) {
 				if (publishProcess.HasExited) {
 					if (publishProcess.ExitCode == 0) {
 						errorMessage = null;
 						//publishResult = publishProcess.StandardOutput.ReadToEnd();
-						fetchStatusProcess = executeButler($"status {buildId}");
+						fetchStatus();
 						LastPublishDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 
 						//EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
@@ -204,12 +187,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private void checkButlerVersion() {
 			this.Log("Checking butler version");
-			/*if (fetchVersionProcess != null) {
-				Debug.LogError("Already checking butler version.");
-				return;
-			}
-			fetchVersionProcess = executeButler("version");*/
-			fetchVersionProcessRunner.CommandPath = ButlerPath;
+			fetchVersionProcessRunner.SetCommandPath(ButlerPath);
 			fetchVersionProcessRunner.Start();
 		}
 
@@ -309,7 +287,7 @@ namespace CommonUtils.Editor.Publitch {
 				return;
 			}
 
-			EditorGUILayout.HelpBox($"butler {version}", MessageType.None);
+			EditorGUILayout.HelpBox($"butler {version}\n{ButlerPath}", MessageType.None);
 
 			EditorGUILayout.BeginHorizontal();
 			var apiKey = EditorGUILayout.TextField("Butler API Key", ButlerApiKey);
@@ -372,17 +350,14 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
-			if (fetchStatusProcess == null) {
+			if (!fetchStatusProcessRunner.IsRunning) {
 				if (GUILayout.Button("Status")) {
-					fetchStatusProcess = executeButler($"status {buildId}");
+					fetchStatus();
 				}
 			}
 
-			if (fetchStatusProcess != null) {
-				var timeRunning = DateTime.Now - fetchStatusProcess.StartTime;
-				EditorGUILayout.HelpBox($"Fetching status for {timeRunning.TotalSeconds} seconds",
-					MessageType.Info);
-				Repaint();
+			if (fetchStatusProcessRunner.IsRunning) {
+				this.ShowLoadingSpinner($"Fetching status for {fetchStatusProcessRunner.ExecutionTime?.TotalSeconds ?? 0} seconds");
 			} else {
 				if (status.HasData) {
 					EditorGUILayout.TextField("Channel", status.ChannelName);

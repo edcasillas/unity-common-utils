@@ -1,4 +1,3 @@
-using CommonUtils.Extensions;
 using CommonUtils.Verbosables;
 using System;
 using System.ComponentModel;
@@ -15,17 +14,21 @@ namespace CommonUtils.Editor.SystemProcesses {
 		private Action<Win32ErrorCode, string> onFailed;
 		private Action<string> onSuccess;
 
-		public bool IsRunning => process is { HasExited: false };
-		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
+		private DateTime? startTime;
+		private DateTime? endTime;
 
-		// Public properties for command path
-		public string CommandPath {
-			get => Path.GetDirectoryName(startInfo.FileName);
-			set {
-				if (IsRunning) throw new InvalidOperationException("Cannot change CommandPath while the process is running.");
-				startInfo.FileName = Path.Combine(value, Path.GetFileName(startInfo.FileName));
+		public bool IsRunning => process is { HasExited: false };
+
+		// TimeSpan property to calculate the execution time
+		public TimeSpan? ExecutionTime {
+			get {
+				if (startTime == null) return null; // Process has never been started
+				if (IsRunning) return DateTime.Now - startTime; // Process is still running
+				return endTime - startTime; // Process finished, return total time
 			}
 		}
+
+		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
 
 		public SystemProcessRunner(string command, string args, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null) {
 			var processFileName = string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command);
@@ -35,6 +38,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 				Arguments = args,
 				UseShellExecute = false,
 				RedirectStandardOutput = true,
+				RedirectStandardError = true,
 				CreateNoWindow = true
 			};
 
@@ -55,16 +59,31 @@ namespace CommonUtils.Editor.SystemProcesses {
 			startInfo.EnvironmentVariables.Remove(key);
 		}
 
+		public void SetCommandPath(string value) {
+			if (IsRunning) throw new InvalidOperationException("Cannot change CommandPath while the process is running.");
+			startInfo.FileName = Path.Combine(value, Path.GetFileName(startInfo.FileName));
+		}
+
+		public void SetArgs(string args) {
+			if(IsRunning) throw new InvalidOperationException("Cannot change args while the process is running.");
+			startInfo.Arguments = args;
+		}
+
 		public bool Start() {
 			if (process != null) {
-				this.LogNoContext($"Process {process.ProcessName} is already running.", LogLevel.Error);
-				return false;
+				if (process.HasExited) {
+					cleanup();
+				} else {
+					this.LogNoContext($"Process {startInfo.FileName} is already running.", LogLevel.Error);
+					return false;
+				}
 			}
 
 			process = new Process { StartInfo = startInfo };
 			if (onOutputDataReceived != null) process.OutputDataReceived += outputDataReceivedHandler;
 
 			try {
+				startTime = DateTime.Now;
 				process.Start();
 				if (onOutputDataReceived != null) process.BeginOutputReadLine();
 				EditorApplication.update += update;
@@ -72,6 +91,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 				return true;
 			} catch (Win32Exception ex) {
 				this.LogNoContext($"Failed to start process \"{startInfo.FileName}\" with error {ex.Message}.", LogLevel.Error);
+				startTime = endTime = null;
 				onFailed?.Invoke((Win32ErrorCode)ex.NativeErrorCode, ex.Message);
 				cleanup();
 				return false;
@@ -101,6 +121,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 		private void update() {
 			if (process is not { HasExited: true }) return;
 			EditorApplication.update -= update;
+			endTime = DateTime.Now; // Mark end time when process finishes
 
 			if (process.ExitCode == 0) {
 				// Process finished successfully
@@ -108,11 +129,13 @@ namespace CommonUtils.Editor.SystemProcesses {
 			} else {
 				// Process finished with an error
 				var error = process.StandardError.ReadToEnd();
+				if (string.IsNullOrEmpty(error)) error = process.StandardOutput.ReadToEnd();
+
 				onFailed?.Invoke((Win32ErrorCode)process.ExitCode, error);
 			}
 
 			if (onOutputDataReceived != null) process.OutputDataReceived -= outputDataReceivedHandler;
-			cleanup();
+			cleanup(); // Clean up the process but don't clear the startTime or endTime
 		}
 
 		private void outputDataReceivedHandler(object sender, DataReceivedEventArgs args) {
@@ -121,6 +144,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 		}
 
 		private void cleanup() {
+			// Only dispose of the process, but keep the timing data intact
 			process?.Dispose();
 			process = null;
 		}
