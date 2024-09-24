@@ -1,7 +1,6 @@
 using CommonUtils.Extensions;
 using CommonUtils.Verbosables;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +8,7 @@ using UnityEditor;
 
 namespace CommonUtils.Editor.SystemProcesses {
 	public class SystemProcessRunner : IVerbosable {
-		private readonly ProcessStartInfo startInfo;
+		private ProcessStartInfo startInfo;
 		private Process process;
 
 		private Action<string> onOutputDataReceived;
@@ -19,7 +18,16 @@ namespace CommonUtils.Editor.SystemProcesses {
 		public bool IsRunning => process is { HasExited: false };
 		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
 
-		public SystemProcessRunner(string command, string args, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null, IDictionary<string, string> environmentVariables = null) {
+		// Public properties for command path
+		public string CommandPath {
+			get => Path.GetDirectoryName(startInfo.FileName);
+			set {
+				if (IsRunning) throw new InvalidOperationException("Cannot change CommandPath while the process is running.");
+				startInfo.FileName = Path.Combine(value, Path.GetFileName(startInfo.FileName));
+			}
+		}
+
+		public SystemProcessRunner(string command, string args, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null) {
 			var processFileName = string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command);
 
 			startInfo = new ProcessStartInfo {
@@ -30,15 +38,21 @@ namespace CommonUtils.Editor.SystemProcesses {
 				CreateNoWindow = true
 			};
 
-			if (!environmentVariables.IsNullOrEmpty()) {
-				foreach (var environmentVariable in environmentVariables!) {
-					startInfo.EnvironmentVariables[environmentVariable.Key] = environmentVariable.Value;
-				}
-			}
-
 			this.onOutputDataReceived = onOutputDataReceived;
 			this.onSuccess = onSuccess;
 			this.onFailed = onFailed;
+		}
+
+		// Method to set an environment variable
+		public void SetEnvVar(string key, string value) {
+			if (IsRunning) throw new InvalidOperationException("Cannot change environment variables while the process is running.");
+			startInfo.EnvironmentVariables[key] = value;
+		}
+
+		// Method to clear an environment variable
+		public void ClearEnvVar(string key) {
+			if (IsRunning) throw new InvalidOperationException("Cannot change environment variables while the process is running.");
+			startInfo.EnvironmentVariables.Remove(key);
 		}
 
 		public bool Start() {
@@ -47,17 +61,17 @@ namespace CommonUtils.Editor.SystemProcesses {
 				return false;
 			}
 
-			process = new Process() { StartInfo = startInfo };
+			process = new Process { StartInfo = startInfo };
 			if (onOutputDataReceived != null) process.OutputDataReceived += outputDataReceivedHandler;
 
 			try {
 				process.Start();
 				if (onOutputDataReceived != null) process.BeginOutputReadLine();
 				EditorApplication.update += update;
-				this.LogNoContext($"Started process {process.ProcessName} with args {process.StartInfo.Arguments}.");
+				this.LogNoContext($"Started process \"{startInfo.FileName}\" with args {process.StartInfo.Arguments}.");
 				return true;
 			} catch (Win32Exception ex) {
-				this.LogNoContext($"Failed to start process {process.ProcessName} with error {ex.Message}.", LogLevel.Error);
+				this.LogNoContext($"Failed to start process \"{startInfo.FileName}\" with error {ex.Message}.", LogLevel.Error);
 				onFailed?.Invoke((Win32ErrorCode)ex.NativeErrorCode, ex.Message);
 				cleanup();
 				return false;
@@ -72,7 +86,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 
 			try {
 				process.Kill();
-				//process.WaitForExit(); // Optional: Wait for process to exit after kill command.
+				// process.WaitForExit(); // Optional: Wait for process to exit after kill command.
 				this.LogNoContext($"Process {process.ProcessName} has been killed.");
 			} catch (InvalidOperationException ex) {
 				this.LogNoContext($"Failed to kill process {process.ProcessName}: {ex.Message}.", LogLevel.Error);
@@ -102,7 +116,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 		}
 
 		private void outputDataReceivedHandler(object sender, DataReceivedEventArgs args) {
-			if(string.IsNullOrWhiteSpace(args?.Data)) return; // Ignore empty lines.
+			if (string.IsNullOrWhiteSpace(args?.Data)) return; // Ignore empty lines.
 			onOutputDataReceived?.Invoke(args.Data);
 		}
 

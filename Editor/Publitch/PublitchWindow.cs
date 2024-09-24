@@ -1,6 +1,8 @@
-// #define PUBLITCH_DEBUG_MODE
+#define PUBLITCH_DEBUG_MODE
 
 using CommonUtils.Editor.BuiltInIcons;
+using CommonUtils.Editor.SystemProcesses;
+using CommonUtils.Verbosables;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -14,7 +16,7 @@ using Debug = UnityEngine.Debug;
 using File = UnityEngine.Windows.File;
 
 namespace CommonUtils.Editor.Publitch {
-	public class PublitchWindow : EditorWindow {
+	public class PublitchWindow : EditorWindow, IVerbosable {
 		#region Constants
 		private const string EDITOR_PREF_BUTLER_FOLDER_PATH = "ButlerFolderPath";
 		private const string EDITOR_PREF_BUTLER_API_KEY = "ButlerApiKey";
@@ -37,8 +39,7 @@ namespace CommonUtils.Editor.Publitch {
 		private static void openActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<PublitchWindow>();
-				instance.titleContent = new GUIContent("Publitch");
-				instance.maxSize = new Vector2(400f, 300f);
+				instance.initialize();
 			}
 
 			instance.Show();
@@ -83,6 +84,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private string errorMessage;
 
+		private readonly SystemProcessRunner fetchVersionProcessRunner;
 		private Process fetchVersionProcess;
 		private string version;
 
@@ -94,9 +96,34 @@ namespace CommonUtils.Editor.Publitch {
 
 		private static string totalBuildSize;
 
+		private bool isInitialized;
+
+		public Verbosity Verbosity {
+			get {
+				#if PUBLITCH_DEBUG_MODE
+				return Verbosity.Debug | Verbosity.Warning | Verbosity.Error;
+				#else
+				return Verbosity.Warning | Verbosity.Error;
+				#endif
+			}
+		}
+
+		public PublitchWindow() {
+			Debug.Log("Publitch Window constructed");
+			fetchVersionProcessRunner = new SystemProcessRunner("butler", "version", onSuccess: parseButlerVersionFromProcessOutput, onFailed: onButlerError );
+		}
+
+		private void initialize() {
+			if(isInitialized) return;
+			this.Log("Publitch is initializing.");
+			titleContent = new GUIContent("Publitch");
+			maxSize = new Vector2(400f, 300f);
+		}
+
 		private void OnEnable() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-			debugLog("PUBLITCH IS EXECUTING");
+			initialize();
+			this.Log("PUBLITCH IS EXECUTING");
 			checkButlerVersion();
 			EditorApplication.update += Update;
 			if(!string.IsNullOrEmpty(buildId)) fetchStatusProcess = executeButler($"status {buildId}");
@@ -104,11 +131,24 @@ namespace CommonUtils.Editor.Publitch {
 
 		private void OnDisable() => EditorApplication.update -= Update;
 
+		private void parseButlerVersionFromProcessOutput(string processOutput) {
+			version = processOutput;
+			if (string.IsNullOrEmpty(version)) return;
+			var indexOfComma = version.IndexOf(',');
+			if (indexOfComma > 0) {
+				version = version.Substring(0, indexOfComma);
+			}
+		}
+
+		private void onButlerError(Win32ErrorCode errorCode, string errorMessage) {
+			this.errorMessage = errorMessage;
+		}
+
 		private void Update() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-			if (fetchVersionProcess != null) {
+			/*if (fetchVersionProcess != null) {
 				if (fetchVersionProcess.HasExited) {
-					debugLog($"Check butler version finished with code {fetchVersionProcess.ExitCode}");
+					this.Log($"Check butler version finished with code {fetchVersionProcess.ExitCode}");
 					if (fetchVersionProcess.ExitCode == 0) {
 						version = fetchVersionProcess.StandardOutput.ReadToEnd();
 						if (!string.IsNullOrEmpty(version)) {
@@ -122,10 +162,10 @@ namespace CommonUtils.Editor.Publitch {
 
 						errorMessage = "An error occurred while trying to fetch the version of butler.";
 					}
-					
+
 					fetchVersionProcess = null;
 				}
-			}
+			}*/
 
 			if (fetchStatusProcess != null) {
 				if (fetchStatusProcess.HasExited) {
@@ -163,17 +203,19 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void checkButlerVersion() {
-			debugLog("Checking butler version");
-			if (fetchVersionProcess != null) {
+			this.Log("Checking butler version");
+			/*if (fetchVersionProcess != null) {
 				Debug.LogError("Already checking butler version.");
 				return;
 			}
-			fetchVersionProcess = executeButler("version");
+			fetchVersionProcess = executeButler("version");*/
+			fetchVersionProcessRunner.CommandPath = ButlerPath;
+			fetchVersionProcessRunner.Start();
 		}
 
 		private Process executeButler(string args, DataReceivedEventHandler onOutputDataReceived = null) {
 			var processFileName = string.IsNullOrEmpty(ButlerPath) || ButlerPath == NO_FOLDER_SELECTED ? "butler" : Path.Combine(ButlerPath, "butler");
-			debugLog($"Executing butler from \"{processFileName}\" with args \"{args}\"");
+			this.Log($"Executing butler from \"{processFileName}\" with args \"{args}\"");
 
 			var startInfo = new ProcessStartInfo {
 				FileName = processFileName,
@@ -199,7 +241,7 @@ namespace CommonUtils.Editor.Publitch {
 				if (ex.NativeErrorCode != 2) {
 					Debug.LogException(ex);
 				} else {
-					debugLog($"Butler exited with code {ex.NativeErrorCode} - Not found: {ex.Message}");
+					this.Log($"Butler exited with code {ex.NativeErrorCode} - Not found: {ex.Message}", LogLevel.Error);
 				}
 				return null;
 			}
@@ -258,10 +300,8 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
 			}
 
-			if (fetchVersionProcess != null) {
-				// TODO Replace HelpBox with EditorExtensions.ShowLoadingSpinner once main gets merged in.
-				EditorGUILayout.HelpBox("Checking butler installation", MessageType.Info);
-				return;
+			if (fetchVersionProcessRunner.IsRunning) {
+				this.ShowLoadingSpinner("Checking butler installation...");
 			}
 
 			if (string.IsNullOrEmpty(version)) {
@@ -446,12 +486,6 @@ namespace CommonUtils.Editor.Publitch {
 			var dirs = dir.GetDirectories();
 			size += dirs.Sum(getDirectorySizeInBytes);
 			return size;
-		}
-
-		private static void debugLog(string message) {
-			#if PUBLITCH_DEBUG_MODE
-			Debug.Log(message);
-			#endif
 		}
 	}
 }
