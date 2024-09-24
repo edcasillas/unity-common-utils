@@ -46,25 +46,17 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		#region Properties (connected to EditorPrefs)
-		internal static readonly EditorPrefsString ButlerPath = new EditorPrefsString(EDITOR_PREF_BUTLER_FOLDER_PATH, string.Empty);
-		internal static readonly EditorPrefsString ButlerApiKey = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_BUTLER_API_KEY), string.Empty, true);
+		internal static readonly EditorPrefsString ButlerPath = new(EDITOR_PREF_BUTLER_FOLDER_PATH, string.Empty);
+		internal static readonly EditorPrefsString ButlerApiKey = new(getEditorPrefKey(EDITOR_PREF_BUTLER_API_KEY), string.Empty, true);
+		internal static readonly EditorPrefsString BuildPath = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH), string.Empty, true);
+		internal static readonly EditorPrefsString User = new(getEditorPrefKey(EDITOR_PREF_KEY_USER), string.Empty, true);
+		internal static readonly EditorPrefsString ProjectName = new(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), () => PlayerSettings.productName, true);
+		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
+		internal static readonly EditorPrefsString LastBuiltDateTime = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
 
 		internal static BuildTarget BuildTarget {
 			get => (BuildTarget)EditorPrefs.GetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)EditorUserBuildSettings.activeBuildTarget);
 			set => EditorPrefs.SetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)value);
-		}
-
-		internal static readonly EditorPrefsString BuildPath = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH), string.Empty, true);
-		internal static readonly EditorPrefsString User = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_USER), string.Empty, true);
-		internal static readonly EditorPrefsString ProjectName = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), ()=> PlayerSettings.productName, true);
-
-		internal static string LastPublishDateTime {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), value);
-		}
-		internal static string LastBuiltDateTime {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), value);
 		}
 
 		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
@@ -132,6 +124,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private void fetchStatus() {
 			if (string.IsNullOrEmpty(buildId)) return;
+			errorMessage = null;
 			fetchStatusProcessRunner.SetEnvVar("BUTLER_API_KEY", ButlerApiKey);
 			fetchStatusProcessRunner.SetArgs($"status {buildId}");
 			fetchStatusProcessRunner.SetCommandPath(ButlerPath);
@@ -162,7 +155,7 @@ namespace CommonUtils.Editor.Publitch {
 						errorMessage = null;
 						//publishResult = publishProcess.StandardOutput.ReadToEnd();
 						fetchStatus();
-						LastPublishDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+						LastPublishDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 
 						//EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
 					} else {
@@ -392,7 +385,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		[PostProcessBuild]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
-			LastBuiltDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+			LastBuiltDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 			BuildTarget = target; // TODO is this really needed
 			BuildPath.Value = pathToBuiltProject;
 			totalBuildSize = getBuildSizeMBString(BuildPath);
