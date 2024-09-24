@@ -1,28 +1,26 @@
 using CommonUtils.Verbosables;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using UnityEditor;
 
 namespace CommonUtils.Editor.SystemProcesses {
-	public class SystemProcessRunner : IVerbosable {
-		private readonly string command;
-		private string commandPath;
-
-		private ProcessStartInfo startInfo;
+	public class CommandLineRunner : IVerbosable {
 		private Process process;
+		private string lastCommandExecuted;
 
 		private Action<string> onOutputDataReceived;
 		private Action<Win32ErrorCode, string> onFailed;
 		private Action<string> onSuccess;
+		private Action onFinished;
 
 		private DateTime? startTime;
 		private DateTime? endTime;
 
 		public bool IsRunning => process is { HasExited: false };
 
-		// TimeSpan property to calculate the execution time
 		public TimeSpan? ExecutionTime {
 			get {
 				if (startTime == null) return null; // Process has never been started
@@ -31,62 +29,39 @@ namespace CommonUtils.Editor.SystemProcesses {
 			}
 		}
 
-		private string processFileName => string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command);
-
 		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
 
-		public SystemProcessRunner(string command, string args = null, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null) {
-			this.command = command ?? throw new ArgumentNullException(nameof(command));
-			this.commandPath = commandPath;
+		public bool Run(string command, string args = null, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null, Action onFinished = null, IDictionary<string, string> environmentVariables = null) {
+			if (process != null) {
+				if (process.HasExited) {
+					cleanup();
+				} else {
+					this.LogNoContext($"Process {lastCommandExecuted} is already running.", LogLevel.Error);
+					return false;
+				}
+			}
 
-			startInfo = new ProcessStartInfo {
+			// Prepare the process start info
+			var startInfo = new ProcessStartInfo {
+				FileName = string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command),
+				Arguments = args ?? string.Empty,
 				UseShellExecute = false,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				CreateNoWindow = true
 			};
-			if (!string.IsNullOrEmpty(args)) startInfo.Arguments = args;
+
+			// Apply environment variables
+			if (environmentVariables != null) {
+				foreach (var environmentVariable in environmentVariables) {
+					startInfo.EnvironmentVariables[environmentVariable.Key] = environmentVariable.Value;
+				}
+			}
 
 			this.onOutputDataReceived = onOutputDataReceived;
 			this.onSuccess = onSuccess;
 			this.onFailed = onFailed;
-		}
-
-		// Method to set an environment variable
-		public void SetEnvVar(string key, string value) {
-			if (IsRunning) throw new InvalidOperationException("Cannot change environment variables while the process is running.");
-			startInfo.EnvironmentVariables[key] = value;
-		}
-
-		// Method to clear an environment variable
-		public void ClearEnvVar(string key) {
-			if (IsRunning) throw new InvalidOperationException("Cannot change environment variables while the process is running.");
-			if(startInfo.EnvironmentVariables.ContainsKey(key)) startInfo.EnvironmentVariables.Remove(key);
-		}
-
-		public void SetCommandPath(string value) {
-			if (IsRunning) throw new InvalidOperationException("Cannot change CommandPath while the process is running.");
-			commandPath = value;
-		}
-
-		public void SetArgs(string args) {
-			if(IsRunning) throw new InvalidOperationException("Cannot change args while the process is running.");
-			startInfo.Arguments = args;
-		}
-
-		public bool Start(string args = null, string commandPath = null) {
-			if (process != null) {
-				if (process.HasExited) {
-					cleanup();
-				} else {
-					this.LogNoContext($"Process {startInfo.FileName} is already running.", LogLevel.Error);
-					return false;
-				}
-			}
-
-			if (commandPath != null) this.commandPath = commandPath;
-			startInfo.FileName = processFileName;
-			if (args != null) startInfo.Arguments = args;
+			this.onFinished = onFinished;
 
 			process = new Process { StartInfo = startInfo };
 			if (onOutputDataReceived != null) process.OutputDataReceived += outputDataReceivedHandler;
@@ -94,6 +69,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 			try {
 				startTime = DateTime.Now;
 				process.Start();
+				lastCommandExecuted = command;
 				if (onOutputDataReceived != null) process.BeginOutputReadLine();
 				EditorApplication.update += update;
 				this.LogNoContext($"Started process \"{startInfo.FileName}\" with args {process.StartInfo.Arguments}.");
@@ -109,13 +85,14 @@ namespace CommonUtils.Editor.SystemProcesses {
 
 		public void Kill() {
 			if (process == null || process.HasExited) {
-				this.LogNoContext($"Process {startInfo.FileName} could not be killed because it has already exited or has not been started.");
+				this.LogNoContext($"Process {lastCommandExecuted} could not be killed because it has already exited or has not been started.");
 				return;
 			}
 
 			try {
 				process.Kill();
-				// process.WaitForExit(); // Optional: Wait for process to exit after kill command.
+				// Optionally wait for process to exit after kill command.
+				// process.WaitForExit();
 				this.LogNoContext($"Process {process.ProcessName} has been killed.");
 			} catch (InvalidOperationException ex) {
 				this.LogNoContext($"Failed to kill process {process.ProcessName}: {ex.Message}.", LogLevel.Error);
@@ -129,6 +106,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 
 		private void update() {
 			if (process is not { HasExited: true }) return;
+
 			EditorApplication.update -= update;
 			endTime = DateTime.Now; // Mark end time when process finishes
 
@@ -142,6 +120,8 @@ namespace CommonUtils.Editor.SystemProcesses {
 
 				onFailed?.Invoke((Win32ErrorCode)process.ExitCode, error);
 			}
+
+			onFinished?.Invoke();
 
 			if (onOutputDataReceived != null) process.OutputDataReceived -= outputDataReceivedHandler;
 			cleanup(); // Clean up the process but don't clear the startTime or endTime

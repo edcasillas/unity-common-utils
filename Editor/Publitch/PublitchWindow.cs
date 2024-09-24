@@ -4,6 +4,7 @@ using CommonUtils.Editor.BuiltInIcons;
 using CommonUtils.Editor.SystemProcesses;
 using CommonUtils.Verbosables;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -17,6 +18,13 @@ using File = UnityEngine.Windows.File;
 
 namespace CommonUtils.Editor.Publitch {
 	public class PublitchWindow : EditorWindow, IVerbosable {
+		private enum Status {
+			Idle,
+			FetchingVersion,
+			FetchingStatus,
+			Publishing
+		}
+
 		#region Constants
 		private const string EDITOR_PREF_BUTLER_FOLDER_PATH = "ButlerFolderPath";
 		private const string EDITOR_PREF_BUTLER_API_KEY = "ButlerApiKey";
@@ -63,17 +71,13 @@ namespace CommonUtils.Editor.Publitch {
 		#endregion
 		#endregion
 
+		private Status currentStatus = Status.Idle;
 		private string errorMessage;
 
-		private readonly SystemProcessRunner fetchVersionProcessRunner;
+		private readonly CommandLineRunner commandLineRunner = new();
+
 		private string version;
-
-		private readonly SystemProcessRunner fetchStatusProcessRunner;
-		private ButlerStatus status = new ButlerStatus();
-
-		private Process publishProcess;
-		private string publishResult;
-
+		private ButlerStatus projectStatus;
 		private static string totalBuildSize;
 
 		private bool isInitialized;
@@ -88,12 +92,6 @@ namespace CommonUtils.Editor.Publitch {
 			}
 		}
 
-		public PublitchWindow() {
-			Debug.Log("Publitch Window constructed");
-			fetchVersionProcessRunner = new SystemProcessRunner("butler", "version", onSuccess: onButlerVersionSuccess, onFailed: onButlerVersionError );
-			fetchStatusProcessRunner = new SystemProcessRunner("butler", "status", onSuccess: parseButlerStatusFromProcessOutput, onFailed: onButlerStatusError);
-		}
-
 		private void initialize() {
 			if(isInitialized) return;
 			this.Log("Publitch is initializing.");
@@ -106,10 +104,49 @@ namespace CommonUtils.Editor.Publitch {
 			initialize();
 			this.Log("PUBLITCH IS EXECUTING");
 			checkButlerVersion();
-			EditorApplication.update += Update;
 		}
 
-		private void OnDisable() => EditorApplication.update -= Update;
+		private void checkButlerVersion() {
+			this.Log("Checking butler version");
+			errorMessage = null;
+			currentStatus = Status.FetchingVersion;
+			commandLineRunner.Run("butler",
+				"version",
+				ButlerPath,
+				onSuccess: onButlerVersionSuccess,
+				onFailed: onButlerVersionError,
+				onFinished: () => currentStatus = Status.Idle
+			);
+		}
+
+		private void fetchStatus() {
+			if (string.IsNullOrEmpty(buildId)) return;
+			errorMessage = null;
+			projectStatus.Clear();
+			currentStatus = Status.FetchingStatus;
+			commandLineRunner.Run("butler",
+				$"status {buildId}",
+				ButlerPath,
+				onSuccess: parseButlerStatusFromProcessOutput,
+				onFailed: onButlerStatusError,
+				onFinished: () => currentStatus = Status.Idle,
+				environmentVariables: new Dictionary<string, string> { { "BUTLER_API_KEY", ButlerApiKey } });
+		}
+
+		private void publish() {
+			if (string.IsNullOrEmpty(buildId)) return;
+			errorMessage = null;
+			publishData = string.Empty;
+			currentStatus = Status.Publishing;
+			commandLineRunner.Run("butler",
+				$"push {BuildPath} {buildId}",
+				ButlerPath,
+				onOutputDataReceived: OnPublishDataReceived,
+				onSuccess: onButlerPublishSuccess,
+				onFailed: onButlerPublishError,
+				onFinished: () => currentStatus = Status.Idle,
+				environmentVariables: new Dictionary<string, string> { { "BUTLER_API_KEY", ButlerApiKey } });
+		}
 
 		private void onButlerVersionSuccess(string processOutput) {
 			version = processOutput;
@@ -122,15 +159,12 @@ namespace CommonUtils.Editor.Publitch {
 			fetchStatus();
 		}
 
-		private void fetchStatus() {
-			if (string.IsNullOrEmpty(buildId)) return;
-			errorMessage = null;
-			status.Clear();
-			fetchStatusProcessRunner.SetEnvVar("BUTLER_API_KEY", ButlerApiKey);
-			fetchStatusProcessRunner.Start($"status {buildId}", ButlerPath);
-		}
+		private void parseButlerStatusFromProcessOutput(string processOutput) => ButlerStatus.TryParse(processOutput, ref projectStatus);
 
-		private void parseButlerStatusFromProcessOutput(string processOutput) => ButlerStatus.TryParse(processOutput, ref status);
+		private void onButlerPublishSuccess(string processOutput) {
+			fetchStatus();
+			LastPublishDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+		}
 
 		private void onButlerVersionError(Win32ErrorCode errorCode, string errorMessage) {
 			if (errorCode == Win32ErrorCode.ERROR_FILE_NOT_FOUND) {
@@ -145,31 +179,9 @@ namespace CommonUtils.Editor.Publitch {
 			this.errorMessage = errorMessage;
 		}
 
-		private void Update() {
-			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-
-			if (publishProcess != null) {
-				if (publishProcess.HasExited) {
-					if (publishProcess.ExitCode == 0) {
-						errorMessage = null;
-						//publishResult = publishProcess.StandardOutput.ReadToEnd();
-						fetchStatus();
-						LastPublishDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-
-						//EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
-					} else {
-						errorMessage = "An error occurred while publishing.";
-					}
-
-					publishProcess = null;
-				}
-			}
-		}
-
-		private void checkButlerVersion() {
-			this.Log("Checking butler version");
-			fetchVersionProcessRunner.SetCommandPath(ButlerPath);
-			fetchVersionProcessRunner.Start();
+		private void onButlerPublishError(Win32ErrorCode errorCode, string errorMessage) {
+			this.Log(errorMessage, LogLevel.Error);
+			this.errorMessage = errorMessage;
 		}
 
 		private Process executeButler(string args, DataReceivedEventHandler onOutputDataReceived = null) {
@@ -210,15 +222,14 @@ namespace CommonUtils.Editor.Publitch {
 
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
-		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
-			if(string.IsNullOrWhiteSpace(e?.Data)) return; // Ignore empty lines.
-			if (ButlerParser.TryParseProgress(e?.Data, out var pct)) {
+		private void OnPublishDataReceived(string data) {
+			if (ButlerParser.TryParseProgress(data, out var pct)) {
 				publishProgressPct = pct;
 			} else {
-				Debug.LogWarning($"Didn't find percentage in string: '{e?.Data}'");
+				Debug.LogWarning($"Didn't find percentage in string: '{data}'");
 			}
 
-			publishData = e?.Data;
+			publishData = data;
 		}
 
 		private void handleNullVersion() { // TODO Choose a better name for this method!
@@ -259,7 +270,7 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
 			}
 
-			if (fetchVersionProcessRunner.IsRunning) {
+			if (currentStatus == Status.FetchingVersion) {
 				this.ShowLoadingSpinner("Checking butler installation...");
 			}
 
@@ -331,20 +342,20 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
-			if (!fetchStatusProcessRunner.IsRunning) {
+			if (!commandLineRunner.IsRunning) {
 				if (GUILayout.Button("Status")) {
 					fetchStatus();
 				}
 			}
 
-			if (fetchStatusProcessRunner.IsRunning) {
-				this.ShowLoadingSpinner($"Fetching status for {fetchStatusProcessRunner.ExecutionTime?.TotalSeconds ?? 0} seconds");
+			if (currentStatus == Status.FetchingStatus) {
+				this.ShowLoadingSpinner($"Fetching status for {commandLineRunner.ExecutionTime?.TotalSeconds ?? 0} seconds");
 			} else {
-				if (status.HasData) {
-					EditorGUILayout.TextField("Channel", status.ChannelName);
-					EditorGUILayout.TextField("Upload", status.Upload);
-					EditorGUILayout.TextField("Build", status.Build);
-					EditorGUILayout.TextField("Version", status.Version);
+				if (projectStatus.HasData) {
+					EditorGUILayout.TextField("Channel", projectStatus.ChannelName);
+					EditorGUILayout.TextField("Upload", projectStatus.Upload);
+					EditorGUILayout.TextField("Build", projectStatus.Build);
+					EditorGUILayout.TextField("Version", projectStatus.Version);
 				}
 			}
 
@@ -352,32 +363,24 @@ namespace CommonUtils.Editor.Publitch {
 			if (!string.IsNullOrEmpty(LastBuiltDateTime)) EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
 			EditorGUILayout.LabelField("Last published", !string.IsNullOrEmpty(LastPublishDateTime) ? LastPublishDateTime : "<unknown>");
 
-			if (publishProcess == null) {
+			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
 					if (GUILayout.Button("Publitch NOW")) {
-						publishData = string.Empty;
-						publishProcess = executeButler($"push {BuildPath} {buildId}", OnPublishDataReceived);
+						publish();
 					}
 				} else {
 					EditorGUILayout.HelpBox("To continue please build your project.", MessageType.Warning);
 				}
-			} else {
-				var timeRunning = DateTime.Now - publishProcess.StartTime;
-				EditorGUILayout.HelpBox($"Publishing to itch for {timeRunning.TotalSeconds} seconds",
-					MessageType.Info);
+			} else if (currentStatus == Status.Publishing) {
 				if (GUILayout.Button("Cancel")) {
 					if (EditorUtility.DisplayDialog("Cancel publish", "Are you sure?", "Yup", "Nope")) {
-						publishProcess.Kill();
-						publishProcess = null;
+						commandLineRunner.Kill();
 					}
 				}
-
-				Repaint();
 			}
 
 			if (!string.IsNullOrEmpty(publishData)) {
-				var progressBarRect = EditorGUILayout.GetControlRect();
-				EditorGUI.ProgressBar(progressBarRect, publishProgressPct / 100f, $"{publishProgressPct}%");
+				this.ShowLoadingSpinner("Publishing...", publishProgressPct / 100f); // TODO Label must be "Publishing for XX seconds"
 				EditorGUILayout.TextArea(publishData);
 			}
 		}

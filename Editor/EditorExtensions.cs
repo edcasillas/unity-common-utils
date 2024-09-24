@@ -154,10 +154,10 @@ namespace CommonUtils.Editor {
 			GUI.enabled = true;
 		}
 
-		public static void ShowLoadingSpinner(this EditorWindow editorWindow, string label) {
+		public static void ShowLoadingSpinner(this EditorWindow editorWindow, string label, float? value = null) {
 			EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
 			var spinnerRect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth, EditorGUIUtility.singleLineHeight);
-			EditorGUI.ProgressBar(spinnerRect, -1f, string.Empty);
+			EditorGUI.ProgressBar(spinnerRect, value ?? -1f, string.Empty);
 			editorWindow.Repaint();
 		}
 	}
