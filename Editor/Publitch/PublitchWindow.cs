@@ -1,5 +1,3 @@
-// #define PUBLITCH_DEBUG_MODE
-
 using CommonUtils.Editor.BuiltInIcons;
 using CommonUtils.Editor.SystemProcesses;
 using CommonUtils.Verbosables;
@@ -70,7 +68,7 @@ namespace CommonUtils.Editor.Publitch {
 		private Status currentStatus = Status.Idle;
 		private string errorMessage;
 
-		private readonly CommandLineRunner commandLineRunner = new(); //{ Verbosity = Verbosity.Debug | Verbosity.Warning | Verbosity.Error };
+		private readonly CommandLineRunner commandLineRunner = new();
 
 		private string version;
 		private ButlerStatus projectStatus;
@@ -79,16 +77,9 @@ namespace CommonUtils.Editor.Publitch {
 		private bool isInitialized;
 
 		private bool showSettings = false;
+		private bool showAdvancedSettings = false;
 
-		public Verbosity Verbosity {
-			get {
-				#if PUBLITCH_DEBUG_MODE
-				return Verbosity.Debug | Verbosity.Warning | Verbosity.Error;
-				#else
-				return Verbosity.Warning | Verbosity.Error;
-				#endif
-			}
-		}
+		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
 
 		private void initialize() {
 			if(isInitialized) return;
@@ -173,10 +164,7 @@ namespace CommonUtils.Editor.Publitch {
 			ButlerStatus.TryParse(processOutput, ref projectStatus);
 		}
 
-		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) {
-			this.Log(errorMessage, LogLevel.Error);
-			this.errorMessage = errorMessage;
-		}
+		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) => this.errorMessage = errorMessage;
 
 		private void onButlerPublishError(Win32ErrorCode errorCode, string errorMessage) {
 			this.Log(errorMessage, LogLevel.Error);
@@ -228,7 +216,7 @@ namespace CommonUtils.Editor.Publitch {
 			}
 
 			if (string.IsNullOrEmpty(ButlerApiKey)) {
-				EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
+				//EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
 				return;
 			}
 
@@ -330,15 +318,20 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.EndHorizontal();
 				drawAPIKeyInput();
 
-				if (GUILayout.Button("Go to itch.io/butler")) {
-					Application.OpenURL("https://itchio.itch.io/butler");
-				}
-
-				if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
-					if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
-						clearButlerSettings();
-					}
-				}
+				showAdvancedSettings = EditorExtensions.Collapse(showAdvancedSettings,
+					"Advanced Settings",
+					() => {
+						if (GUILayout.Button("Go to itch.io/butler")) {
+							Application.OpenURL("https://itchio.itch.io/butler");
+						}
+						Verbosity = (Verbosity)EditorGUILayout.EnumFlagsField("Publitch Verbosity", Verbosity);
+						commandLineRunner.Verbosity = Verbosity;
+						if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
+							if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
+								clearButlerSettings();
+							}
+						}
+					});
 			},
 			false,
 			true);
