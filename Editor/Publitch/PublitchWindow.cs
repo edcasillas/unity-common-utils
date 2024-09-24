@@ -126,9 +126,7 @@ namespace CommonUtils.Editor.Publitch {
 			if (string.IsNullOrEmpty(buildId)) return;
 			errorMessage = null;
 			fetchStatusProcessRunner.SetEnvVar("BUTLER_API_KEY", ButlerApiKey);
-			fetchStatusProcessRunner.SetArgs($"status {buildId}");
-			fetchStatusProcessRunner.SetCommandPath(ButlerPath);
-			fetchStatusProcessRunner.Start();
+			fetchStatusProcessRunner.Start($"status {buildId}", ButlerPath);
 		}
 
 		private void parseButlerStatusFromProcessOutput(string processOutput) => ButlerStatus.TryParse(processOutput, ref status);

@@ -7,6 +7,9 @@ using UnityEditor;
 
 namespace CommonUtils.Editor.SystemProcesses {
 	public class SystemProcessRunner : IVerbosable {
+		private readonly string command;
+		private string commandPath;
+
 		private ProcessStartInfo startInfo;
 		private Process process;
 
@@ -28,19 +31,21 @@ namespace CommonUtils.Editor.SystemProcesses {
 			}
 		}
 
+		private string processFileName => string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command);
+
 		public Verbosity Verbosity { get; set; } = Verbosity.Warning | Verbosity.Error;
 
-		public SystemProcessRunner(string command, string args, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null) {
-			var processFileName = string.IsNullOrEmpty(commandPath) ? command : Path.Combine(commandPath, command);
+		public SystemProcessRunner(string command, string args = null, string commandPath = null, Action<string> onOutputDataReceived = null, Action<string> onSuccess = null, Action<Win32ErrorCode, string> onFailed = null) {
+			this.command = command ?? throw new ArgumentNullException(nameof(command));
+			this.commandPath = commandPath;
 
 			startInfo = new ProcessStartInfo {
-				FileName = processFileName,
-				Arguments = args,
 				UseShellExecute = false,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				CreateNoWindow = true
 			};
+			if (!string.IsNullOrEmpty(args)) startInfo.Arguments = args;
 
 			this.onOutputDataReceived = onOutputDataReceived;
 			this.onSuccess = onSuccess;
@@ -56,12 +61,12 @@ namespace CommonUtils.Editor.SystemProcesses {
 		// Method to clear an environment variable
 		public void ClearEnvVar(string key) {
 			if (IsRunning) throw new InvalidOperationException("Cannot change environment variables while the process is running.");
-			startInfo.EnvironmentVariables.Remove(key);
+			if(startInfo.EnvironmentVariables.ContainsKey(key)) startInfo.EnvironmentVariables.Remove(key);
 		}
 
 		public void SetCommandPath(string value) {
 			if (IsRunning) throw new InvalidOperationException("Cannot change CommandPath while the process is running.");
-			startInfo.FileName = Path.Combine(value, Path.GetFileName(startInfo.FileName));
+			commandPath = value;
 		}
 
 		public void SetArgs(string args) {
@@ -69,7 +74,7 @@ namespace CommonUtils.Editor.SystemProcesses {
 			startInfo.Arguments = args;
 		}
 
-		public bool Start() {
+		public bool Start(string args = null, string commandPath = null) {
 			if (process != null) {
 				if (process.HasExited) {
 					cleanup();
@@ -78,6 +83,10 @@ namespace CommonUtils.Editor.SystemProcesses {
 					return false;
 				}
 			}
+
+			if (commandPath != null) this.commandPath = commandPath;
+			startInfo.FileName = processFileName;
+			if (args != null) startInfo.Arguments = args;
 
 			process = new Process { StartInfo = startInfo };
 			if (onOutputDataReceived != null) process.OutputDataReceived += outputDataReceivedHandler;
