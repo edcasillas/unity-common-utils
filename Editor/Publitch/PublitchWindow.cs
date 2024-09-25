@@ -55,13 +55,9 @@ namespace CommonUtils.Editor.Publitch {
 		internal static readonly EditorPrefsString ProjectName = new(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), () => PlayerSettings.productName, true);
 		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
 		internal static readonly EditorPrefsString LastBuiltDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
+		internal static readonly EditorPrefsEnum<BuildTarget> ActiveBuildTarget = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
 
-		internal static BuildTarget BuildTarget {
-			get => (BuildTarget)EditorPrefs.GetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)EditorUserBuildSettings.activeBuildTarget);
-			set => EditorPrefs.SetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)value);
-		}
-
-		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
+		private static string buildId => $"{User}/{ProjectName}:{getChannelName(ActiveBuildTarget)}";
 		#endregion
 		#endregion
 
@@ -357,7 +353,7 @@ namespace CommonUtils.Editor.Publitch {
 		[PostProcessBuild]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
 			LastBuiltDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-			BuildTarget = target; // TODO is this really needed
+			ActiveBuildTarget.Value = target; // TODO is this really needed
 			BuildPath.Value = pathToBuiltProject;
 			totalBuildSize = getBuildSizeMBString(BuildPath);
 		}
@@ -387,7 +383,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private static void drawBuildTarget() {
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.EnumPopup("Current Build Target", BuildTarget);
+			EditorGUILayout.EnumPopup("Current Build Target", ActiveBuildTarget);
 			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
 				EditorApplication.ExecuteMenuItem("File/Build Settings...");
 			}
