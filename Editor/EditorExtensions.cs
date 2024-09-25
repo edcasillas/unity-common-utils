@@ -185,9 +185,9 @@ namespace CommonUtils.Editor {
 			return result;
 		}
 
-		public static void FolderField(string label, string currentPath, bool enableReveal = true, Action<string> onFolderSelected = null) {
+		public static void FolderField(string label, string currentPath, Action<string> onFolderSelected, bool enableReveal = true) {
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(label, string.IsNullOrEmpty(currentPath) ? NO_FOLDER_SELECTED : currentPath);
+			ReadOnlyLabelField(label, string.IsNullOrEmpty(currentPath) ? NO_FOLDER_SELECTED : currentPath);
 
 			if (enableReveal && !string.IsNullOrEmpty(currentPath)) {
 				if (EditorIcon.AnimationVisibilityToggleOn.Button("Reveal")) {
@@ -203,6 +203,27 @@ namespace CommonUtils.Editor {
 			}
 
 			EditorGUILayout.EndHorizontal();
+		}
+
+		public static string FolderField(string label, string currentPath, bool enableReveal = true, bool isReadOnly = false) {
+			var result = currentPath;
+			EditorGUILayout.BeginHorizontal();
+			ReadOnlyLabelField(label, string.IsNullOrEmpty(currentPath) ? NO_FOLDER_SELECTED : currentPath);
+
+			if (enableReveal && !string.IsNullOrEmpty(currentPath)) {
+				if (EditorIcon.AnimationVisibilityToggleOn.Button("Reveal")) {
+					EditorUtility.RevealInFinder(currentPath);
+				}
+			}
+
+			if (!isReadOnly && EditorIcon.FolderIcon.Button("Select folder")) {
+				var folder = EditorUtility.OpenFolderPanel("Select folder", currentPath, "");
+				if (!string.IsNullOrEmpty(folder)) result = folder;
+			}
+
+			EditorGUILayout.EndHorizontal();
+
+			return result;
 		}
 	}
 }

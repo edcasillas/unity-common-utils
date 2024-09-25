@@ -1,4 +1,4 @@
-using CommonUtils.Editor.BuiltInIcons;
+﻿using CommonUtils.Editor.BuiltInIcons;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -35,13 +35,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 		}
 
 		private void OnGUI() {
-			EditorGUILayout.BeginHorizontal();
-			EditorExtensions.ReadOnlyLabelField("Save to", saveTo);
-			if (GUILayout.Button(EditorIcon.FolderIcon.ToGUIContent("Change folder..."), EditorStyles.iconButton, GUILayout.Height(16))) {
-				var selectedFolder =EditorUtility.SaveFolderPanel("Choose folder to save screenshots to", saveTo, "Screenshots");
-				if (!string.IsNullOrWhiteSpace(selectedFolder)) saveTo = selectedFolder;
-			}
-			EditorGUILayout.EndHorizontal();
+			saveTo = EditorExtensions.FolderField("Save to", saveTo);
 
 			prefix = EditorGUILayout.TextField("Prefix", prefix)?.Trim();
 

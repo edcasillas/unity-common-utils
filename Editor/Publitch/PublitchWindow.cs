@@ -379,7 +379,7 @@ namespace CommonUtils.Editor.Publitch {
 		private void renderBulterSettings() => showSettings = EditorExtensions.Collapse(showSettings,
 			$"butler {(!string.IsNullOrEmpty(butlerVersion)? butlerVersion: "(Setup Required)")}",
 			() => {
-				EditorExtensions.FolderField("Butler Path", ButlerPath, true,
+				EditorExtensions.FolderField("Butler Path", ButlerPath,
 					newButlerPath => {
 						if (!File.Exists(Path.Combine(newButlerPath, "butler"))) {
 							EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
