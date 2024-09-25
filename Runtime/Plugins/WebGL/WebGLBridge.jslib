@@ -1,6 +1,6 @@
 mergeInto(LibraryManager.library, {
 
-  goFullScreen: function () {
+  commonUtils_webGL_goFullScreen: function () {
     if(instance) {
         instance.SetFullscreen(1);
     } else {
@@ -8,7 +8,7 @@ mergeInto(LibraryManager.library, {
     }
   },
 
-  isMobileBrowser: function () {
+  commonUtils_webGL_isMobileBrowser: function () {
     return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   },
 
