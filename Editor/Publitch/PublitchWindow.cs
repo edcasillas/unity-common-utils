@@ -1,20 +1,27 @@
-// #define PUBLITCH_DEBUG_MODE
-
 using CommonUtils.Editor.BuiltInIcons;
+using CommonUtils.Editor.EditorPrefsValues;
+using CommonUtils.Editor.SystemProcesses;
+using CommonUtils.Verbosables;
 using System;
-using System.ComponentModel;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
-using File = UnityEngine.Windows.File;
 
 namespace CommonUtils.Editor.Publitch {
-	public class PublitchWindow : EditorWindow {
+	public class PublitchWindow : EditorWindow, IVerbosable {
+		private enum Status {
+			Idle,
+			FetchingButlerVersion,
+			FetchingPythonVersion,
+			FetchingStatus,
+			RunningWebServer,
+			Publishing
+		}
+
 		#region Constants
 		private const string EDITOR_PREF_BUTLER_FOLDER_PATH = "ButlerFolderPath";
 		private const string EDITOR_PREF_BUTLER_API_KEY = "ButlerApiKey";
@@ -25,7 +32,6 @@ namespace CommonUtils.Editor.Publitch {
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
 		private const string EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME = "LastPublishDateTime";
 		private const string EDITOR_PREF_KEY_LAST_BUILD_DATETIME = "LastBuiltDateTime";
-		private const string NO_FOLDER_SELECTED = "<no folder selected>";
 		#endregion
 
 		#region Statics (To create the editor menu and save preferences)
@@ -37,220 +43,208 @@ namespace CommonUtils.Editor.Publitch {
 		private static void openActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<PublitchWindow>();
-				instance.titleContent = new GUIContent("Publitch");
-				instance.maxSize = new Vector2(400f, 300f);
+				instance.initialize();
 			}
 
 			instance.Show();
 		}
 
 		#region Properties (connected to EditorPrefs)
-		internal static readonly EditorPrefsString ButlerPath = new EditorPrefsString(EDITOR_PREF_BUTLER_FOLDER_PATH, string.Empty);
-		internal static readonly EditorPrefsString ButlerApiKey = new EditorPrefsString(getEditorPrefKey(EDITOR_PREF_BUTLER_API_KEY), string.Empty, true);
-
-		internal static BuildTarget BuildTarget {
-			get => (BuildTarget)EditorPrefs.GetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)EditorUserBuildSettings.activeBuildTarget);
-			set => EditorPrefs.SetInt(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), (int)value);
-		}
-
-		internal static string BuildPath {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH), value);
-		}
-
-		internal static string User {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_USER));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_USER), value);
-		}
-
-		internal static string ProjectName {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), PlayerSettings.productName);
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), value);
-		}
-
-		internal static string LastPublishDateTime {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), value);
-		}
-		internal static string LastBuiltDateTime {
-			get => EditorPrefs.GetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME));
-			set => EditorPrefs.SetString(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), value);
-		}
-
-		private static string buildId => $"{User}/{ProjectName}:{getChannelName(BuildTarget)}";
+		internal static readonly EditorPrefsString ButlerPath = new(EDITOR_PREF_BUTLER_FOLDER_PATH, string.Empty);
+		internal static readonly EditorPrefsString ButlerApiKey = new(getEditorPrefKey(EDITOR_PREF_BUTLER_API_KEY), string.Empty);
+		internal static readonly EditorPrefsString BuildPath = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_PATH), string.Empty, true);
+		internal static readonly EditorPrefsString User = new(getEditorPrefKey(EDITOR_PREF_KEY_USER), string.Empty, true);
+		internal static readonly EditorPrefsString ProjectName = new(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), () => PlayerSettings.productName, true);
+		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
+		internal static readonly EditorPrefsString LastBuiltDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
+		internal static readonly EditorPrefsEnum<BuildTarget> ActiveBuildTarget = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
 		#endregion
+		private static string buildId => $"{User}/{ProjectName}:{getChannelName(ActiveBuildTarget)}";
+
+		[PostProcessBuild]
+		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
+			LastBuiltDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+			ActiveBuildTarget.Value = target; // TODO is this really needed
+			BuildPath.Value = pathToBuiltProject;
+			totalBuildSize = getBuildSizeMBString(BuildPath);
+		}
 		#endregion
 
+		private Status currentStatus = Status.Idle;
 		private string errorMessage;
 
-		private Process fetchVersionProcess;
-		private string version;
+		private readonly CommandLineRunner commandLineRunner = new();
 
-		private Process fetchStatusProcess;
-		private ButlerStatus status = new ButlerStatus();
-
-		private Process publishProcess;
-		private string publishResult;
-
+		private string butlerVersion;
+		private string pythonVersion;
+		private string webServerPort = "8080";
+		private ButlerStatus projectStatus;
 		private static string totalBuildSize;
+
+		private bool isInitialized;
+
+		private bool showSettings = false;
+		private bool showAdvancedSettings = false;
+		private bool showWebServerSettings = false;
+
+		public Verbosity Verbosity { get; private set; } = Verbosity.Warning | Verbosity.Error;
+
+		private string webServerUrl => $"http://{NetworkAddress.CurrentIpV4}:{webServerPort}";
+
+		private void initialize() {
+			if(isInitialized) return;
+			this.Log("Publitch is initializing.");
+			titleContent = new GUIContent("Publitch");
+			maxSize = new Vector2(400f, 300f);
+			isInitialized = true;
+		}
 
 		private void OnEnable() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-			debugLog("PUBLITCH IS EXECUTING");
+			this.Log("PUBLITCH IS EXECUTING");
+			initialize();
 			checkButlerVersion();
-			EditorApplication.update += Update;
-			if(!string.IsNullOrEmpty(buildId)) fetchStatusProcess = executeButler($"status {buildId}");
 		}
 
-		private void OnDisable() => EditorApplication.update -= Update;
-
-		private void Update() {
-			if(EditorApplication.isPlayingOrWillChangePlaymode) return;
-			if (fetchVersionProcess != null) {
-				if (fetchVersionProcess.HasExited) {
-					debugLog($"Check butler version finished with code {fetchVersionProcess.ExitCode}");
-					if (fetchVersionProcess.ExitCode == 0) {
-						version = fetchVersionProcess.StandardOutput.ReadToEnd();
-						if (!string.IsNullOrEmpty(version)) {
-							var indexOfComma = version.IndexOf(',');
-							if (indexOfComma > 0) {
-								version = version.Substring(0, indexOfComma);
-								//version = version[..indexOfComma];
-							}
-						}
-					} else {
-
-						errorMessage = "An error occurred while trying to fetch the version of butler.";
-					}
-
-					fetchVersionProcess = null;
-				}
-			}
-
-			if (fetchStatusProcess != null) {
-				if (fetchStatusProcess.HasExited) {
-					var statusString = fetchStatusProcess.StandardOutput.ReadToEnd();
-					if (fetchStatusProcess.ExitCode == 0) {
-						ButlerStatus.TryParse(statusString, ref status);
-					} else {
-						if (statusString.ToLower().Contains("no credentials")) {
-							//Debug.LogError("NOT LOGGED IN");
-						} else {
-							errorMessage = "An error occurred while trying to fetch the status of the project.";
-						}
-					}
-
-					fetchStatusProcess = null;
-				}
-			}
-
-			if (publishProcess != null) {
-				if (publishProcess.HasExited) {
-					if (publishProcess.ExitCode == 0) {
-						errorMessage = null;
-						//publishResult = publishProcess.StandardOutput.ReadToEnd();
-						fetchStatusProcess = executeButler($"status {buildId}");
-						LastPublishDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-
-						//EditorUtility.DisplayDialog("Publitch", "Your project has been publ-ITCH-ed!", "Sweet!");
-					} else {
-						errorMessage = "An error occurred while publishing.";
-					}
-
-					publishProcess = null;
-				}
-			}
+		private void OnDisable() {
+			if(commandLineRunner.IsRunning) commandLineRunner.Kill();
 		}
 
-		private void checkButlerVersion() {
-			debugLog("Checking butler version");
-			if (fetchVersionProcess != null) {
-				Debug.LogError("Already checking butler version.");
-				return;
-			}
-			fetchVersionProcess = executeButler("version");
+		private void checkButlerVersion(bool showErrorDialog = false) {
+			this.Log("Checking butler version");
+			errorMessage = null;
+			currentStatus = commandLineRunner.Run("butler",
+				"version",
+				ButlerPath,
+				onSuccess: processOutput => butlerVersion = processOutput.Split(',').FirstOrDefault(),
+				onFailed: (errorCode, errorMsg) => {
+					if (errorCode == Win32ErrorCode.ERROR_FILE_NOT_FOUND) {
+						errorMessage = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder. \nTo install butler, please visit https://itchio.itch.io/butler";
+						if(showErrorDialog) EditorUtility.DisplayDialog("Error", errorMessage, "OK");
+						return;
+					}
+					errorMessage = errorMsg;
+				},
+				onFinished: () => {
+					this.Log("Version command finished.");
+					currentStatus = Status.Idle;
+					if(!string.IsNullOrEmpty(butlerVersion)) fetchStatus();
+				}) ? Status.FetchingButlerVersion : Status.Idle;
 		}
 
-		private Process executeButler(string args, DataReceivedEventHandler onOutputDataReceived = null) {
-			var processFileName = string.IsNullOrEmpty(ButlerPath) || ButlerPath == NO_FOLDER_SELECTED ? "butler" : Path.Combine(ButlerPath, "butler");
-			debugLog($"Executing butler from \"{processFileName}\" with args \"{args}\"");
+		private void runWebServer() {
+			this.Log("Running web server");
+			errorMessage = null;
+			currentStatus = commandLineRunner.Run("python3",
+				$"-m http.server {webServerPort} --directory {BuildPath.Value}",
+				onSuccess: processOutput => this.Log("Web server finished successfully."),
+				onFailed: (errorCode, errorMsg) => {
+					errorMessage = errorMsg;
+				},
+				onFinished: () => {
+					this.Log("Web server finished.");
+					currentStatus = Status.Idle;
+				}) ? Status.RunningWebServer : Status.Idle;
+			if(currentStatus == Status.RunningWebServer) Application.OpenURL(webServerUrl);
+		}
 
-			var startInfo = new ProcessStartInfo {
-				FileName = processFileName,
-				Arguments = args,
-				UseShellExecute = false,
-				RedirectStandardOutput = true,
-				CreateNoWindow = true,
-			};
-			if (!string.IsNullOrEmpty(ButlerApiKey)) {
-				startInfo.Environment.Add("BUTLER_API_KEY", ButlerApiKey);
-			}
+		private void checkPythonVersion(bool showErrorDialog = false) {
+			this.Log("Checking python version");
+			errorMessage = null;
 
-			var proc = new Process { StartInfo = startInfo };
+			currentStatus = commandLineRunner.Run("python3",
+				"--version",
+				//ButlerPath,
+				onSuccess: processOutput => pythonVersion = processOutput.Trim(),
+				onFailed: (errorCode, errorMsg) => {
+					if (errorCode == Win32ErrorCode.ERROR_FILE_NOT_FOUND) {
+						errorMessage = "Couldn't find python in the " + (string.IsNullOrEmpty("") ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder.";
+						if(showErrorDialog) EditorUtility.DisplayDialog("Error", errorMessage, "OK");
+						return;
+					}
+					errorMessage = errorMsg;
+				},
+				onFinished: () => {
+					this.Log("Python version command finished.");
+					currentStatus = Status.Idle;
+				}) ? Status.FetchingPythonVersion : Status.Idle;
+		}
 
-			if (onOutputDataReceived != null) proc.OutputDataReceived += onOutputDataReceived;
+		private void fetchStatus() {
+			if (string.IsNullOrEmpty(buildId)) return;
+			errorMessage = null;
+			projectStatus.Clear();
+			currentStatus = Status.FetchingStatus;
+			commandLineRunner.Run("butler",
+				$"status {buildId}",
+				ButlerPath,
+				onSuccess: parseButlerStatusFromProcessOutput,
+				onFailed: onButlerStatusError,
+				onFinished: () => {
+					this.Log("Status command finished.");
+					currentStatus = Status.Idle;
+				},
+				environmentVariables: new Dictionary<string, string> { { "BUTLER_API_KEY", ButlerApiKey } });
+		}
 
-			try {
-				proc.Start();
-				if (onOutputDataReceived != null) proc.BeginOutputReadLine();
-			} catch (Win32Exception ex) {
-				// Error 2 is not found; if this is the error, we'll show an option to install
-				// butler in the editor window. Otherwise it's an unknown error and we'll log it.
-				if (ex.NativeErrorCode != 2) {
-					Debug.LogException(ex);
-				} else {
-					debugLog($"Butler exited with code {ex.NativeErrorCode} - Not found: {ex.Message}");
-				}
-				return null;
-			}
+		private void publish() {
+			if (string.IsNullOrEmpty(buildId)) return;
+			errorMessage = null;
+			publishData = string.Empty;
+			currentStatus = Status.Publishing;
+			commandLineRunner.Run("butler",
+				$"push {BuildPath} {buildId}",
+				ButlerPath,
+				onOutputDataReceived: OnPublishDataReceived,
+				onSuccess: _ => LastPublishDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture),
+				onFailed: onButlerPublishError,
+				onFinished: () => {
+					currentStatus = Status.Idle;
+					publishData = string.Empty;
+					publishProgressPct = 0f;
+					fetchStatus();
+				},
+				environmentVariables: new Dictionary<string, string> { { "BUTLER_API_KEY", ButlerApiKey } });
+		}
 
-			return proc;
+		private void parseButlerStatusFromProcessOutput(string processOutput) {
+			this.Log($"Status command success: {processOutput}");
+			ButlerStatus.TryParse(processOutput, ref projectStatus);
+		}
+
+		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) => this.errorMessage = errorMessage;
+
+		private void onButlerPublishError(Win32ErrorCode errorCode, string errorMessage) {
+			this.Log(errorMessage, LogLevel.Error);
+			this.errorMessage = errorMessage;
 		}
 
 		private string publishData = string.Empty;
 		private float publishProgressPct = 0f;
-		private void OnPublishDataReceived(object sender, DataReceivedEventArgs e) {
-			if(string.IsNullOrWhiteSpace(e?.Data)) return; // Ignore empty lines.
-			if (ButlerParser.TryParseProgress(e?.Data, out var pct)) {
-				publishProgressPct = pct;
-			} else {
-				Debug.LogWarning($"Didn't find percentage in string: '{e?.Data}'");
+		private void OnPublishDataReceived(string data) {
+			var parseResult = ButlerParser.TryParseProgress(data, out var pct);
+			switch (parseResult) {
+				case ButlerParser.ParseResult.Ok:
+					publishProgressPct = pct;
+					break;
+				case ButlerParser.ParseResult.NotFound:
+				case ButlerParser.ParseResult.MultiplePeriodsInNumber:
+				case ButlerParser.ParseResult.UnexpectedCharacter:
+				case ButlerParser.ParseResult.UnexpectedError:
+					Debug.LogWarning($"Didn't find percentage in string: '{data}'");
+					break;
+				//case ButlerParser.ParseResult.EmptyString:
+				//case ButlerParser.ParseResult.ExpectedNonProgress:
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 
-			publishData = e?.Data;
-		}
-
-		private void handleNullVersion() { // TODO Choose a better name for this method!
-			var errorMsg = "Couldn't find butler in the " + (string.IsNullOrEmpty(ButlerPath) ? "current environment" : "selected install folder") + ".\nMake sure butler is installed properly and select the install folder below. \nTo install butler, please visit https://itchio.itch.io/butler";
-			EditorGUILayout.HelpBox(errorMsg, MessageType.Error);
-
-			if (GUILayout.Button("Go to itch.io/butler")) {
-				Application.OpenURL("https://itchio.itch.io/butler");
-			}
-
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(string.IsNullOrEmpty(ButlerPath) ? NO_FOLDER_SELECTED : ButlerPath);
-			if (GUILayout.Button("Select")) {
-				var folder = EditorUtility.OpenFolderPanel("Select folder", ButlerPath, "");
-				if (!string.IsNullOrEmpty(folder)) {
-					if (!File.Exists(Path.Combine(folder, "butler"))) {
-						EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
-					} else {
-						ButlerPath.Value = folder;
-						checkButlerVersion();
-					}
-				}
-			}
-			EditorGUILayout.EndHorizontal();
-
-			if (GUILayout.Button("Refresh")) {
-				checkButlerVersion();
-			}
+			publishData = data;
 		}
 
 		private void OnGUI() {
 			if(EditorApplication.isPlayingOrWillChangePlaymode) {
-				EditorGUILayout.HelpBox("Publitch is not available on Play mode.", MessageType.Info);
+				EditorGUILayout.HelpBox("Publitch is not available in Play mode.", MessageType.Info);
 				return;
 			}
 
@@ -258,53 +252,27 @@ namespace CommonUtils.Editor.Publitch {
 				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
 			}
 
-			if (fetchVersionProcess != null) {
-				// TODO Replace HelpBox with EditorExtensions.ShowLoadingSpinner once main gets merged in.
-				EditorGUILayout.HelpBox("Checking butler installation", MessageType.Info);
-				return;
+			if (currentStatus == Status.FetchingButlerVersion) {
+				this.ShowLoadingSpinner("Checking butler installation...");
 			}
 
-			if (string.IsNullOrEmpty(version)) {
-				handleNullVersion();
-				return;
-			}
+			showSettings |= string.IsNullOrEmpty(butlerVersion);
+			renderBulterSettings();
 
-			EditorGUILayout.HelpBox($"butler {version}", MessageType.None);
-
-			EditorGUILayout.BeginHorizontal();
-			var apiKey = EditorGUILayout.TextField("Butler API Key", ButlerApiKey);
-			if(apiKey != null) ButlerApiKey.Value = apiKey;
-			if (GUILayout.Button(EditorIcon.SearchIcon.ToGUIContent("Go to API Keys on itch"), EditorStyles.iconButton, GUILayout.Height(16))) {
-				Application.OpenURL("https://itch.io/user/settings/api-keys");
-			}
-			EditorGUILayout.EndHorizontal();
+			if (string.IsNullOrEmpty(butlerVersion)) { return; }
 
 			if (string.IsNullOrEmpty(ButlerApiKey)) {
-				EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
+				//EditorGUILayout.HelpBox("Add your wharf API key from https://itch.io/user/settings/api-keys.", MessageType.Warning);
 				return;
 			}
 
-			var user = EditorGUILayout.TextField("User", User);
-			if (user != User) User = user;
-
-			var projectName = EditorGUILayout.TextField(new GUIContent("Project Name", "As registered on itch."), ProjectName);
-			if (projectName != ProjectName) ProjectName = projectName;
-
+			drawUserInput();
+			drawProjectNameInput();
 			EditorGUILayout.Space();
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.EnumPopup("Current Build Target", BuildTarget);
-			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
-				EditorApplication.ExecuteMenuItem("File/Build Settings...");
-			}
-			EditorGUILayout.EndHorizontal();
+			drawBuildTarget();
 
 			if (!string.IsNullOrEmpty(BuildPath)) {
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.TextField("Build Path", BuildPath);
-				if (GUILayout.Button(EditorIcon.AnimationVisibilityToggleOn.ToGUIContent("Reveal"), EditorStyles.iconButton, GUILayout.Height(16))) {
-					EditorUtility.RevealInFinder(BuildPath);
-				}
-				EditorGUILayout.EndHorizontal();
+				EditorExtensions.FolderField("Build Path", BuildPath);
 
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
 
@@ -328,27 +296,48 @@ namespace CommonUtils.Editor.Publitch {
 			if (GUILayout.Button("View on itch.io", EditorStyles.miniButtonRight)) {
 				Application.OpenURL($"https://{User}.itch.io/{ProjectName}");
 			}
-
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
-			if (fetchStatusProcess == null) {
+			showWebServerSettings = EditorExtensions.Collapse(showWebServerSettings, "Run web server",
+				() => {
+					if (currentStatus == Status.FetchingButlerVersion) {
+						this.ShowLoadingSpinner("Fetching Python3 version");
+					} else {
+						renderVersionField("Python Version", pythonVersion, () => checkPythonVersion(true));
+					}
+					webServerPort = EditorGUILayout.TextField("Port", webServerPort);
+					EditorGUILayout.LabelField("Local URL", webServerUrl);
+
+					if (currentStatus == Status.Idle && GUILayout.Button("Run web server")) {
+						runWebServer();
+					}
+
+					if (currentStatus == Status.RunningWebServer) {
+						this.ShowLoadingSpinner("Running web server");
+						if (GUILayout.Button("Stop web server")) {
+							commandLineRunner.Kill();
+							currentStatus = Status.Idle;
+						}
+					}
+				});
+			EditorGUILayout.Space();
+
+			EditorGUILayout.Space();
+			if (!commandLineRunner.IsRunning) {
 				if (GUILayout.Button("Status")) {
-					fetchStatusProcess = executeButler($"status {buildId}");
+					fetchStatus();
 				}
 			}
 
-			if (fetchStatusProcess != null) {
-				var timeRunning = DateTime.Now - fetchStatusProcess.StartTime;
-				EditorGUILayout.HelpBox($"Fetching status for {timeRunning.TotalSeconds} seconds",
-					MessageType.Info);
-				Repaint();
+			if (currentStatus == Status.FetchingStatus) {
+				this.ShowLoadingSpinner($"Fetching status for {commandLineRunner.ExecutionTime?.TotalSeconds ?? 0} seconds");
 			} else {
-				if (status.HasData) {
-					EditorGUILayout.TextField("Channel", status.ChannelName);
-					EditorGUILayout.TextField("Upload", status.Upload);
-					EditorGUILayout.TextField("Build", status.Build);
-					EditorGUILayout.TextField("Version", status.Version);
+				if (projectStatus.HasData) {
+					EditorGUILayout.TextField("Channel", projectStatus.ChannelName);
+					EditorGUILayout.TextField("Upload", projectStatus.Upload);
+					EditorGUILayout.TextField("Build", projectStatus.Build);
+					EditorGUILayout.TextField("Version", projectStatus.Version);
 				}
 			}
 
@@ -356,45 +345,101 @@ namespace CommonUtils.Editor.Publitch {
 			if (!string.IsNullOrEmpty(LastBuiltDateTime)) EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
 			EditorGUILayout.LabelField("Last published", !string.IsNullOrEmpty(LastPublishDateTime) ? LastPublishDateTime : "<unknown>");
 
-			if (publishProcess == null) {
+			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
-					if (GUILayout.Button("Publitch NOW")) {
-						publishData = string.Empty;
-						publishProcess = executeButler($"push {BuildPath} {buildId}", OnPublishDataReceived);
+					if (EditorExtensions.Button("Publitch NOW", fontColor: Color.white, backgroundColor: Color.green, fontStyle: FontStyle.Bold)) {
+						publish();
 					}
 				} else {
 					EditorGUILayout.HelpBox("To continue please build your project.", MessageType.Warning);
 				}
-			} else {
-				var timeRunning = DateTime.Now - publishProcess.StartTime;
-				EditorGUILayout.HelpBox($"Publishing to itch for {timeRunning.TotalSeconds} seconds",
-					MessageType.Info);
+			}
+			if (currentStatus == Status.Publishing) {
+				this.ShowLoadingSpinner("Publishing...", publishProgressPct / 100f); // TODO Label must be "Publishing for XX seconds"
+				EditorGUILayout.TextArea(publishData ?? string.Empty);
+
 				if (GUILayout.Button("Cancel")) {
 					if (EditorUtility.DisplayDialog("Cancel publish", "Are you sure?", "Yup", "Nope")) {
-						publishProcess.Kill();
-						publishProcess = null;
+						commandLineRunner.Kill();
 					}
 				}
-
-				Repaint();
-			}
-
-			if (!string.IsNullOrEmpty(publishData)) {
-				var progressBarRect = EditorGUILayout.GetControlRect();
-				EditorGUI.ProgressBar(progressBarRect, publishProgressPct / 100f, $"{publishProgressPct}%");
-				EditorGUILayout.TextArea(publishData);
 			}
 		}
 
-		[PostProcessBuild]
-		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
-			LastBuiltDateTime = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-			BuildTarget = target; // TODO is this really needed
-			BuildPath = pathToBuiltProject;
-			totalBuildSize = getBuildSizeMBString(BuildPath);
+		private void renderVersionField(string label, string value, Action refreshDelegate) {
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(label, !string.IsNullOrEmpty(value) ? value : "<not found>");
+			if (EditorIcon.TreeEditorRefresh.Button("Refresh")) {
+				refreshDelegate?.Invoke();
+			}
+			EditorGUILayout.EndHorizontal();
 		}
+
+		private void renderBulterSettings() => showSettings = EditorExtensions.Collapse(showSettings,
+			$"butler {(!string.IsNullOrEmpty(butlerVersion)? butlerVersion: "(Setup Required)")}",
+			() => {
+				EditorExtensions.FolderField("Butler Path", ButlerPath, true,
+					newButlerPath => {
+						if (!File.Exists(Path.Combine(newButlerPath, "butler"))) {
+							EditorUtility.DisplayDialog("Publitch", "butler not found in selected folder", "OK");
+						} else {
+							ButlerPath.Value = newButlerPath;
+							checkButlerVersion(true);
+						}
+					});
+
+				renderVersionField("Butler Version", butlerVersion, () => checkButlerVersion(true));
+				drawAPIKeyInput();
+
+				showAdvancedSettings = EditorExtensions.Collapse(showAdvancedSettings,
+					"Advanced Settings",
+					() => {
+						if (GUILayout.Button("Go to itch.io/butler")) {
+							Application.OpenURL("https://itchio.itch.io/butler");
+						}
+						Verbosity = (Verbosity)EditorGUILayout.EnumFlagsField("Publitch Verbosity", Verbosity);
+						commandLineRunner.Verbosity = Verbosity;
+						if (EditorExtensions.Button("Clear settings", backgroundColor: Color.red, fontStyle: FontStyle.Italic)) {
+							if (EditorUtility.DisplayDialog("Publitch Settings", "Are you sure you want to delete all settings?", "Yes", "Cancel")) {
+								clearButlerSettings();
+							}
+						}
+					});
+			},
+			false,
+			true);
 
 		private static string getEditorPrefKey(string setting) => $"{EDITOR_PREF_KEY_PREFIX}.{setting}";
+
+		private static void drawAPIKeyInput() {
+			EditorGUILayout.BeginHorizontal();
+			var apiKey = EditorGUILayout.PasswordField("Butler API Key", ButlerApiKey);
+			if (apiKey != null) ButlerApiKey.Value = apiKey;
+			if (EditorIcon.SearchIcon.Button("Go to API Keys on itch")) {
+				Application.OpenURL("https://itch.io/user/settings/api-keys");
+			}
+
+			EditorGUILayout.EndHorizontal();
+		}
+
+		private static void drawUserInput() {
+			var user = EditorGUILayout.TextField("User", User);
+			if (user != User) User.Value = user;
+		}
+
+		private static void drawProjectNameInput() {
+			var projectName = EditorGUILayout.TextField(new GUIContent("Project Name", "As registered on itch."), ProjectName);
+			if (projectName != ProjectName) ProjectName.Value = projectName;
+		}
+
+		private static void drawBuildTarget() {
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.EnumPopup("Current Build Target", ActiveBuildTarget);
+			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
+				EditorApplication.ExecuteMenuItem("File/Build Settings...");
+			}
+			EditorGUILayout.EndHorizontal();
+		}
 
 		private static string getChannelName(BuildTarget t) {
 			switch (t) {
@@ -448,10 +493,10 @@ namespace CommonUtils.Editor.Publitch {
 			return size;
 		}
 
-		private static void debugLog(string message) {
-			#if PUBLITCH_DEBUG_MODE
-			Debug.Log(message);
-			#endif
+		private void clearButlerSettings() {
+			ButlerPath.Clear();
+			ButlerApiKey.Clear();
+			butlerVersion = null;
 		}
 	}
 }

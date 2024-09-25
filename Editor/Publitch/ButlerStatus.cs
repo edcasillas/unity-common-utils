@@ -24,5 +24,7 @@ namespace CommonUtils.Editor.Publitch {
 
 			return true;
 		}
+
+		public void Clear() => HasData = false;
 	}
 }
