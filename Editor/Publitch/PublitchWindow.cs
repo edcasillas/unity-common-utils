@@ -273,7 +273,7 @@ namespace CommonUtils.Editor.Publitch {
 			drawBuildTarget();
 
 			if (!string.IsNullOrEmpty(BuildPath)) {
-				EditorExtensions.FolderField("Build Path", BuildPath);
+				EditorExtensions.FolderField("Build Path", BuildPath, isReadOnly: true);
 
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
 
