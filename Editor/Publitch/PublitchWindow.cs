@@ -308,7 +308,13 @@ namespace CommonUtils.Editor.Publitch {
 						renderVersionField("Python Version", pythonVersion, () => checkPythonVersion(true));
 					}
 					webServerPort = EditorGUILayout.TextField("Port", webServerPort);
-					EditorGUILayout.LabelField("Local URL", webServerUrl);
+
+					EditorGUILayout.BeginHorizontal();
+					EditorExtensions.ReadOnlyLabelField("Local URL", webServerUrl);
+					if (currentStatus == Status.RunningWebServer && GUILayout.Button(EditorIcon.PlayButton.ToGUIContent(), EditorStyles.iconButton, GUILayout.Height(16))) {
+						Application.OpenURL(webServerUrl);
+					}
+					EditorGUILayout.EndHorizontal();
 
 					if (currentStatus == Status.Idle && GUILayout.Button("Run web server")) {
 						runWebServer();

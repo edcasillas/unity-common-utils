@@ -94,11 +94,11 @@ namespace CommonUtils.Editor.SystemProcesses {
 				process.Kill();
 				// Optionally wait for process to exit after kill command.
 				// process.WaitForExit();
-				this.LogNoContext($"Process {process.ProcessName} has been killed.");
+				this.LogNoContext($"Process {lastCommandExecuted} has been killed.");
 			} catch (InvalidOperationException ex) {
-				this.LogNoContext($"Failed to kill process {process.ProcessName}: {ex.Message}.", LogLevel.Error);
+				this.LogNoContext($"Failed to kill process {lastCommandExecuted}: {ex.Message}.", LogLevel.Error);
 			} catch (Win32Exception ex) {
-				this.LogNoContext($"Win32Exception occurred while killing process {process.ProcessName}: {ex.Message}.", LogLevel.Error);
+				this.LogNoContext($"Win32Exception occurred while killing process {lastCommandExecuted}: {ex.Message}.", LogLevel.Error);
 				onFailed?.Invoke((Win32ErrorCode)ex.NativeErrorCode, ex.Message);
 			} finally {
 				cleanup();
