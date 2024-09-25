@@ -9,6 +9,16 @@ namespace CommonUtils.WebGL {
 		bool IsMobileBrowser { get; }
 	}
 
+	public enum WebBrowserType {
+		None,
+		Unknown,
+		Chrome,
+		Firefox,
+		Safari,
+		Edge,
+		Opera,
+	}
+
 	public class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
 		#region Static members
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -17,6 +27,9 @@ namespace CommonUtils.WebGL {
 
 	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern bool commonUtils_webGL_isMobileBrowser();
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern bool commonUtils_webGL_getUserAgent();
 #endif
 
 		#region Singleton definition
@@ -63,6 +76,34 @@ namespace CommonUtils.WebGL {
 #else
 				return mockMobileBrowser;
 #endif
+			}
+		}
+
+		public string UserAgent {
+			get {
+#if UNITY_WEBGL && !UNITY_EDITOR
+			return commonUtils_webGL_getUserAgent();
+#else
+				return string.Empty;
+#endif
+			}
+		}
+
+		private WebBrowserType? webBrowserType = null;
+		public WebBrowserType WebBrowserType {
+			get {
+				if (!webBrowserType.HasValue) {
+					var agent = UserAgent;
+					if (string.IsNullOrEmpty(agent)) webBrowserType = WebBrowserType.None;
+					else if (agent.Contains("Mozilla/5.0")) webBrowserType = WebBrowserType.Chrome;
+					else if (agent.Contains("Chrome")) webBrowserType = WebBrowserType.Chrome;
+					else if (agent.Contains("Firefox")) webBrowserType = WebBrowserType.Firefox;
+					else if (agent.Contains("Safari")) webBrowserType = WebBrowserType.Safari;
+					else if (agent.Contains("Edge")) webBrowserType = WebBrowserType.Edge;
+					else if (agent.Contains("Opera")) webBrowserType = WebBrowserType.Opera;
+					else webBrowserType = WebBrowserType.Unknown;
+				}
+				return webBrowserType.Value;
 			}
 		}
 
