@@ -1,4 +1,4 @@
-#define COMMONUTILS_WEBSERVER_DEBUG_MODE
+/*#define COMMONUTILS_WEBSERVER_DEBUG_MODE
 
 using CommonUtils.Editor.SystemProcesses;
 using CommonUtils.Verbosables;
@@ -58,4 +58,4 @@ namespace CommonUtils.Editor.WebGLServer {
 				});
 		}
 	}
-}
+}*/
