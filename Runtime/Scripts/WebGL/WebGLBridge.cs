@@ -7,6 +7,7 @@ using UnityEngine;
 namespace CommonUtils.WebGL {
 	public interface IWebGLBridge : IUnityComponent, IVerbosable {
 		bool IsMobileBrowser { get; }
+		WebBrowserType BrowserType { get; }
 	}
 
 	public enum WebBrowserType {
@@ -89,21 +90,21 @@ namespace CommonUtils.WebGL {
 			}
 		}
 
-		private WebBrowserType? webBrowserType = null;
-		public WebBrowserType WebBrowserType {
+		private WebBrowserType? browserType = null;
+		public WebBrowserType BrowserType {
 			get {
-				if (!webBrowserType.HasValue) {
+				if (!browserType.HasValue) {
 					var agent = UserAgent;
-					if (string.IsNullOrEmpty(agent)) webBrowserType = WebBrowserType.None;
-					else if (agent.Contains("Mozilla/5.0")) webBrowserType = WebBrowserType.Chrome;
-					else if (agent.Contains("Chrome")) webBrowserType = WebBrowserType.Chrome;
-					else if (agent.Contains("Firefox")) webBrowserType = WebBrowserType.Firefox;
-					else if (agent.Contains("Safari")) webBrowserType = WebBrowserType.Safari;
-					else if (agent.Contains("Edge")) webBrowserType = WebBrowserType.Edge;
-					else if (agent.Contains("Opera")) webBrowserType = WebBrowserType.Opera;
-					else webBrowserType = WebBrowserType.Unknown;
+					if (string.IsNullOrEmpty(agent)) browserType = WebBrowserType.None;
+					else if (agent.Contains("Mozilla/5.0")) browserType = WebBrowserType.Chrome;
+					else if (agent.Contains("Chrome")) browserType = WebBrowserType.Chrome;
+					else if (agent.Contains("Firefox")) browserType = WebBrowserType.Firefox;
+					else if (agent.Contains("Safari")) browserType = WebBrowserType.Safari;
+					else if (agent.Contains("Edge")) browserType = WebBrowserType.Edge;
+					else if (agent.Contains("Opera")) browserType = WebBrowserType.Opera;
+					else browserType = WebBrowserType.Unknown;
 				}
-				return webBrowserType.Value;
+				return browserType.Value;
 			}
 		}
 
@@ -142,6 +143,7 @@ namespace CommonUtils.WebGL {
 				this.Log("Mocking mobile browser. To disable, uncheck this option in the WebGLBridge inspector.", LogLevel.Error);
 			}
 #endif
+			this.Log(() => $"Playing game on {BrowserType}");
 		}
 
 		private void OnDestroy() => instance = null;
