@@ -29,7 +29,7 @@ namespace CommonUtils.WebGL {
 	private static extern bool commonUtils_webGL_isMobileBrowser();
 
 	[System.Runtime.InteropServices.DllImport("__Internal")]
-	private static extern bool commonUtils_webGL_getUserAgent();
+	private static extern string commonUtils_webGL_getUserAgent();
 #endif
 
 		#region Singleton definition
