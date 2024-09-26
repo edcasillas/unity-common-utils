@@ -32,10 +32,9 @@ namespace CommonUtils
 		/// <typeparam name="T">The type of the singleton to resolve.</typeparam>
 		/// <param name="instance">The resolved instance, or null if it was not found.</param>
 		/// <returns>True if the instance was found; otherwise, false.</returns>
-		public static bool TryResolve<T>(out T instance) where T : class
-		{
+		public static bool TryResolve<T>(out T instance) where T : class {
 			var result = instances.TryGetValue(typeof(T), out var existingInstance);
-			instance = existingInstance as T;
+			instance = result ? existingInstance as T : null;
 			return result;
 		}
 
@@ -47,8 +46,7 @@ namespace CommonUtils
 		/// <param name="ctor">A constructor function used to create the instance if it does not exist.</param>
 		/// <returns>The resolved or newly created instance.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if the constructor is null and the instance is not registered.</exception>
-		public static T Resolve<T>(Func<T> ctor) where T : class
-		{
+		public static T Resolve<T>(Func<T> ctor = null) where T : class {
 			if (TryResolve<T>(out var result)) {
 				return result;
 			}
