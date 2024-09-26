@@ -53,8 +53,16 @@ namespace CommonUtils.Editor.DebuggableEditors {
 
 			var newValue = RenderEditorField(reflectedProperty, oldValue);
 
-			if (reflectedProperty.SetterIsEnabled && reflectedProperty.HasPublicSetter && !oldValue.Equals(newValue)) {
-				reflectedProperty.SetValue(instance, newValue);
+			try {
+				if (reflectedProperty.SetterIsEnabled && reflectedProperty.HasPublicSetter && !oldValue.Equals(newValue)) {
+					reflectedProperty.SetValue(instance, newValue);
+				}
+			} catch (Exception ex) {
+				var exceptionType = ex.InnerException != null ? ex.InnerException.GetType() : ex.GetType();
+				var exceptionMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+				EditorGUILayout.HelpBox(
+					$"{exceptionType.Name} occurred while calling the setter of property \"{reflectedProperty.RealName}\": {exceptionMessage}",
+					MessageType.Error);
 			}
 		}
 
