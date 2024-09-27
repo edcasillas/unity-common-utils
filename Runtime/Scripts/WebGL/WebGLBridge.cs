@@ -6,6 +6,10 @@ using UnityEngine;
 using ILogger = CommonUtils.Logging.ILogger;
 
 namespace CommonUtils.WebGL {
+	/// <summary>
+	/// Provides a bridge for interacting with WebGL-specific functionality such as pointer lock events, full-screen
+	/// toggling, and key event management.
+	/// </summary>
 	public partial class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
 		#region Native functions
 #if UNITY_WEBGL && !UNITY_EDITOR
