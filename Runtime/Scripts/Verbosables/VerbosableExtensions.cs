@@ -9,10 +9,7 @@ using Object = UnityEngine.Object;
 namespace CommonUtils.Verbosables {
 	public static class VerbosableExtensions {
 		private static ILogger _logger;
-		public static ILogger Logger {
-			get => _logger ??= new UnityLogger();
-			set => _logger = value;
-		}
+		private static ILogger Logger => _logger ??= SingletonRegistry.Resolve<ILogger>(() => new UnityLogger());
 
 		private static bool verbosableShouldLog(IVerbosable verbosable, LogLevel logLevel) {
 			var globalVerbosityLevel = GlobalVerbosityLevel.Current;

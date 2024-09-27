@@ -1,7 +1,9 @@
 using CommonUtils.Logging;
 using CommonUtils.UnityComponents;
 using CommonUtils.Verbosables;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using ILogger = CommonUtils.Logging.ILogger;
 
 namespace CommonUtils.WebGL {
 	public partial class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
@@ -32,16 +34,24 @@ namespace CommonUtils.WebGL {
 
 		#region Static members
 		#region Singleton definition
+		private static bool instanceHasBeenResolved = false;
 		private static IWebGLBridge instance;
 		public static IWebGLBridge Instance {
 			get {
 				if (!instance.IsValid()) {
+					if (instanceHasBeenResolved) {
+						if (SingletonRegistry.TryResolve<ILogger>(out var logger)) {
+							logger.Log(LogLevel.Error, $"Instance of {nameof(WebGLBridge)} has already been destroyed. This might happen when the application is being terminated.");
+						}
+						return null;
+					}
 					instance = FindObjectOfType<WebGLBridge>();
 					if(instance.IsValid()) instance.Log2("WebGLBridge found in scene.", LogLevel.Warning);
 					if (!instance.IsValid()) {
-						instance = new GameObject().AddComponent<WebGLBridge>();
+						instance = new GameObject(nameof(WebGLBridge)).AddComponent<WebGLBridge>();
 						if(instance.IsValid()) instance.Log2("WebGLBridge not found in scene, a game object has been added to the scene.", LogLevel.Warning);
 					}
+					if(instance.IsValid()) instanceHasBeenResolved = true;
 				}
 
 				return instance;
@@ -111,7 +121,7 @@ namespace CommonUtils.WebGL {
 			this.Log("Awake");
 			#region Singleton check
 			if (instance.IsValid() && instance != this as IWebGLBridge) {
-				this.Log("Multiple WebGL bridge instances are active.");
+				this.Log($"Multiple WebGL bridge instances are active. Instance is {instance.name}.", LogLevel.Warning);
 				Destroy(gameObject);
 				return;
 			}
