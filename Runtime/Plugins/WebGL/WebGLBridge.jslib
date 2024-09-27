@@ -14,15 +14,12 @@ mergeInto(LibraryManager.library, {
         function lockChangeAlert() {
             if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas) {
                 // Call the Unity method 'OnPointerLockChanged' in the 'WebGLBridge' object
-                //SendMessage('WebGLBridge', 'OnPointerLockChanged', 1);
-                console.log('Will call pointer locked on game object ' + gameObjectName);
+                commonUtils_webGL_log('Pointer LOCKED Will call pointer locked on game object ' + gameObjectName);
                 SendMessage(gameObjectName, 'OnPointerLockChanged', 1);
-                console.log('Pointer LOCKED');
             } else {
                 //SendMessage('WebGLBridge', 'OnPointerLockChanged', 0);
-                console.log('Will call pointer unlocked on game object ' + gameObjectName);
+                commonUtils_webGL_log('Pointer UNLOCKED Will call pointer unlocked on game object ' + gameObjectName);
                 SendMessage(gameObjectName, 'OnPointerLockChanged', 0);
-                console.log('Pointer UNLOCKED');
             }
         }
 
@@ -31,28 +28,28 @@ mergeInto(LibraryManager.library, {
     },
 
     commonUtils_webGL_removePointerLockEvents: function() {
-        console.log('[CommonUtils] Removing pointer lock events.');
+        commonUtils_webGL_log('Removing pointer lock events.');
         var canvas = document.querySelector("#unity-canvas");
 
         // Check if the function reference exists before attempting to remove
         if (window.lockChangeAlert) {
             document.removeEventListener('pointerlockchange', window.lockChangeAlert, false);
             document.removeEventListener('mozpointerlockchange', window.lockChangeAlert, false);
-            console.log('Pointer lock events unsubscribed');
+            commonUtils_webGL_log('Pointer lock events unsubscribed');
         } else {
-            console.log('No pointer lock events found to unsubscribe');
+            commonUtils_webGL_log('No pointer lock events found to unsubscribe', commonUtils_webGL_logLevel.Warning);
         }
     },
 
     // Function to disable default behavior for a specific key
     commonUtils_webGL_disableDefaultBehaviorForKey: function(keyNamePtr) {
         var key = UTF8ToString(keyNamePtr);
-        console.log('[CommonUtils] Disabling default behavior for key: ' + key);
+        commonUtils_webGL_log('Disabling default behavior for key: ' + key);
 
         // Add keydown event listener
         window.addEventListener('keydown', function(e) {
             if (e.key === key) {
-                console.log('[CommonUtils] Preventing default behavior for key: ' + key);
+                commonUtils_webGL_log('Preventing default behavior for key: ' + key);
                 e.preventDefault();  // Prevent the default behavior when the key is pressed
             }
         }, false);
@@ -63,7 +60,7 @@ mergeInto(LibraryManager.library, {
     if(instance) {
         instance.SetFullscreen(1);
     } else {
-        console.log("Cannot go full screen because Unity Instance could not be found.");
+        commonUtils_webGL_log("Cannot go full screen because Unity Instance could not be found.", commonUtils_webGL_logLevel.Error);
     }
   },
 

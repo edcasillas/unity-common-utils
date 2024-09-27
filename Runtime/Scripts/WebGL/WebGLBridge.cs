@@ -8,6 +8,9 @@ namespace CommonUtils.WebGL {
 		#region Native functions
 #if UNITY_WEBGL && !UNITY_EDITOR
 	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern void commonUtils_webGL_setVerbosity(int verbosity);
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern void commonUtils_webGL_goFullScreen();
 
 	[System.Runtime.InteropServices.DllImport("__Internal")]
@@ -126,6 +129,7 @@ namespace CommonUtils.WebGL {
 			}
 #endif
 			this.Log(() => $"Playing game on {BrowserType}");
+			setNativeVerbosity();
 			if (!IsMobileBrowser) setupPointerLockEvents();
 			DisableDefaultBehavior(KeyCode.Escape);
 		}
@@ -146,6 +150,15 @@ namespace CommonUtils.WebGL {
             string keyString = keyCode.ToString(); // Convert KeyCode to string representation
             this.Log($"Disabling default behavior for {keyString}");
             commonUtils_webGL_disableDefaultBehaviorForKey(keyString);
+#endif
+		}
+
+		private void setNativeVerbosity() {
+			var nativeVerbosity = (int)Verbosity;
+			if (nativeVerbosity < 0) nativeVerbosity = (int)(Verbosity.Debug | Verbosity.Warning | Verbosity.Error);
+			this.Log($"Verbosity will be set to {nativeVerbosity}");
+#if UNITY_WEBGL && !UNITY_EDITOR
+			commonUtils_webGL_setVerbosity((int)nativeVerbosity);
 #endif
 		}
 	}
