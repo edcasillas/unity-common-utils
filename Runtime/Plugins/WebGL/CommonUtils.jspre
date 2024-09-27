@@ -8,7 +8,13 @@ var commonUtils_webGL_logLevel = {
 var commonUtils_webGL_verbosity = commonUtils_webGL_logLevel.Warning | commonUtils_webGL_logLevel.Error;
 
 function commonUtils_webGL_log(message, logLevel) {
-    console.log(message + ": " + logLevel + "; verbosity: " + commonUtils_webGL_verbosity);
+    // Assign default logLevel if not provided
+    if (logLevel === undefined) { logLevel = commonUtils_webGL_logLevel.Debug; }
+
+    // Early return if verbosity is set to None
+    if (commonUtils_webGL_verbosity === commonUtils_webGL_logLevel.None) return;
+
+    // Check if the logLevel is included in the verbosity
     if ((commonUtils_webGL_verbosity & logLevel) === logLevel) {
         if (logLevel === commonUtils_webGL_logLevel.Debug) {
             console.log('[CommonUtils:WebGLBridge-native] ' + message);

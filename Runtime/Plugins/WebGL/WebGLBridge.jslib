@@ -8,7 +8,7 @@ mergeInto(LibraryManager.library, {
     commonUtils_webGL_setupPointerLockEvents: function(gameObjectNamePtr) {
         // Convert the string pointer to the actual string
         var gameObjectName = UTF8ToString(gameObjectNamePtr);
-        commonUtils_webGL_log('Setting up pointer lock events to game object ' + gameObjectName, commonUtils_webGL_logLevel.Warning);
+        commonUtils_webGL_log('Setting up pointer lock events to game object ' + gameObjectName);
         var canvas = document.querySelector("#unity-canvas");
 // etc...
         function lockChangeAlert() {
