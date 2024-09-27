@@ -39,6 +39,20 @@ mergeInto(LibraryManager.library, {
         }
     },
 
+    // Function to disable default behavior for a specific key
+    commonUtils_webGL_disableDefaultBehaviorForKey: function(keyNamePtr) {
+        var key = UTF8ToString(keyNamePtr);
+        console.log('[CommonUtils] Disabling default behavior for key: ' + key);
+
+        // Add keydown event listener
+        window.addEventListener('keydown', function(e) {
+            if (e.key === key) {
+                console.log('[CommonUtils] Preventing default behavior for key: ' + key);
+                e.preventDefault();  // Prevent the default behavior when the key is pressed
+            }
+        }, false);
+    },
+
   commonUtils_webGL_goFullScreen: function () {
     if(instance) {
         instance.SetFullscreen(1);

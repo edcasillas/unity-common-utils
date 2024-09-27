@@ -5,21 +5,6 @@ using System.Collections;
 using UnityEngine;
 
 namespace CommonUtils.WebGL {
-	public interface IWebGLBridge : IUnityComponent, IVerbosable {
-		bool IsMobileBrowser { get; }
-		WebBrowserType BrowserType { get; }
-	}
-
-	public enum WebBrowserType {
-		None,
-		Unknown,
-		Chrome,
-		Firefox,
-		Safari,
-		Edge,
-		Opera,
-	}
-
 	public class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
 		#region Static members
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -37,6 +22,9 @@ namespace CommonUtils.WebGL {
 
 	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern void commonUtils_webGL_removePointerLockEvents();
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void commonUtils_webGL_disableDefaultBehaviorForKey(string key);
 #endif
 
 		#region Singleton definition
@@ -155,6 +143,7 @@ namespace CommonUtils.WebGL {
 #endif
 			this.Log(() => $"Playing game on {BrowserType}");
 			if (!IsMobileBrowser) setupPointerLockEvents();
+			DisableDefaultBehavior(KeyCode.Escape);
 		}
 
 		private void OnDestroy() {
@@ -166,6 +155,7 @@ namespace CommonUtils.WebGL {
 		}
 		#endregion
 
+		#region Pointer locked events
 		private void setupPointerLockEvents() {
 			this.Log("Called setup pointer lock events.");
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -202,6 +192,17 @@ namespace CommonUtils.WebGL {
 			yield return new WaitForSeconds(timeToWaitForPointerLockedEvent);
 			if(receivedFollowUp) yield break;
 			PointerIsLocked = false;
+		}
+		#endregion
+
+		// Not sure this works as expected
+		public void DisableDefaultBehavior(KeyCode keyCode) {
+			this.Log($"{nameof(DisableDefaultBehavior)}({keyCode})");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            string keyString = keyCode.ToString(); // Convert KeyCode to string representation
+            this.Log($"Disabling default behavior for {keyString}");
+            commonUtils_webGL_disableDefaultBehaviorForKey(keyString);
+#endif
 		}
 	}
 }
