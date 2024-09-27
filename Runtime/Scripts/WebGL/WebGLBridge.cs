@@ -1,12 +1,11 @@
 using CommonUtils.Logging;
 using CommonUtils.UnityComponents;
 using CommonUtils.Verbosables;
-using System.Collections;
 using UnityEngine;
 
 namespace CommonUtils.WebGL {
-	public class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
-		#region Static members
+	public partial class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
+		#region Native functions
 #if UNITY_WEBGL && !UNITY_EDITOR
 	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern void commonUtils_webGL_goFullScreen();
@@ -26,7 +25,9 @@ namespace CommonUtils.WebGL {
 	[System.Runtime.InteropServices.DllImport("__Internal")]
     private static extern void commonUtils_webGL_disableDefaultBehaviorForKey(string key);
 #endif
+		#endregion
 
+		#region Static members
 		#region Singleton definition
 		private static IWebGLBridge instance;
 		public static IWebGLBridge Instance {
@@ -56,9 +57,6 @@ namespace CommonUtils.WebGL {
 		#endregion
 
 		#region Inspector fields
-		[SerializeField] private BoolEvent onPointerLockChanged;
-		[SerializeField] private float timeToWaitForPointerLockedEvent = 0.05f;
-
 #pragma warning disable CS0414
 		[SerializeField] private bool mockMobileBrowser = false;
 #pragma warning restore CS0414
@@ -103,21 +101,7 @@ namespace CommonUtils.WebGL {
 				return browserType.Value;
 			}
 		}
-
-		private bool pointerIsLocked;
-		public bool PointerIsLocked {
-			get => pointerIsLocked;
-			private set {
-				if (pointerIsLocked == value) return;
-				pointerIsLocked = value;
-				this.Log($"Pointer is now {(pointerIsLocked ? "locked" : "unlocked")}");
-				onPointerLockChanged?.Invoke(pointerIsLocked);
-			}
-		}
 		#endregion
-
-		private bool wantedNewPointerIsLockedValue;
-		private bool receivedFollowUp = false;
 
 		#region Unity Lifecycle
 		private void Awake() {
@@ -152,46 +136,6 @@ namespace CommonUtils.WebGL {
 
 			if(!IsMobileBrowser) removePointerLockEvents();
 			instance = null;
-		}
-		#endregion
-
-		#region Pointer locked events
-		private void setupPointerLockEvents() {
-			this.Log("Called setup pointer lock events.");
-#if UNITY_WEBGL && !UNITY_EDITOR
-			commonUtils_webGL_setupPointerLockEvents(gameObject.name);
-#endif
-		}
-
-		private void removePointerLockEvents() {
-			this.Log("Called remove pointer lock events.");
-#if UNITY_WEBGL && !UNITY_EDITOR
-			commonUtils_webGL_removePointerLockEvents();
-#endif
-		}
-
-		[ShowInInspector]
-		public void OnPointerLockChanged(int locked) {
-			this.Log(() => $"OnPointerLockChanged {locked}");
-			if (locked > 0) {
-				PointerIsLocked = true;
-				receivedFollowUp = true;
-				return;
-			}
-
-			StartCoroutine(handlePointerUnlocked());
-		}
-
-		/// <summary>
-		/// Waits for a bit to see if there's a second call to OnPointerLockChanged, and does not set it as unlocked if
-		/// another call arrived in a short amount of time.
-		/// </summary>
-		/// <returns></returns>
-		private IEnumerator handlePointerUnlocked() {
-			receivedFollowUp = false;
-			yield return new WaitForSeconds(timeToWaitForPointerLockedEvent);
-			if(receivedFollowUp) yield break;
-			PointerIsLocked = false;
 		}
 		#endregion
 
