@@ -31,6 +31,12 @@ namespace CommonUtils.WebGL {
 
 	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern string commonUtils_webGL_getUserAgent();
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern void commonUtils_webGL_setupPointerLockEvents(string gameObjectName);
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern void commonUtils_webGL_removePointerLockEvents();
 #endif
 
 		#region Singleton definition
@@ -39,8 +45,10 @@ namespace CommonUtils.WebGL {
 			get {
 				if (!instance.IsValid()) {
 					instance = FindObjectOfType<WebGLBridge>();
+					if(instance.IsValid()) instance.Log2("WebGLBridge found in scene.", LogLevel.Warning);
 					if (!instance.IsValid()) {
 						instance = new GameObject().AddComponent<WebGLBridge>();
+						if(instance.IsValid()) instance.Log2("WebGLBridge not found in scene, a game object has been added to the scene.", LogLevel.Warning);
 					}
 				}
 
@@ -125,8 +133,10 @@ namespace CommonUtils.WebGL {
 
 		#region Unity Lifecycle
 		private void Awake() {
+			this.Log("Awake");
 			#region Singleton check
-			if (instance.IsValid() && !ReferenceEquals(instance, this)) {
+			if (instance.IsValid() && instance != this as IWebGLBridge) {
+				this.Log("Multiple WebGL bridge instances are active.");
 				Destroy(gameObject);
 				return;
 			}
@@ -144,13 +154,35 @@ namespace CommonUtils.WebGL {
 			}
 #endif
 			this.Log(() => $"Playing game on {BrowserType}");
+			if (!IsMobileBrowser) setupPointerLockEvents();
 		}
 
-		private void OnDestroy() => instance = null;
+		private void OnDestroy() {
+			this.Log($"{nameof(WebGLBridge)} is being destroyed!");
+			if(instance != this as IWebGLBridge) return;
+
+			if(!IsMobileBrowser) removePointerLockEvents();
+			instance = null;
+		}
 		#endregion
+
+		private void setupPointerLockEvents() {
+			this.Log("Called setup pointer lock events.");
+#if UNITY_WEBGL && !UNITY_EDITOR
+			commonUtils_webGL_setupPointerLockEvents(gameObject.name);
+#endif
+		}
+
+		private void removePointerLockEvents() {
+			this.Log("Called remove pointer lock events.");
+#if UNITY_WEBGL && !UNITY_EDITOR
+			commonUtils_webGL_removePointerLockEvents();
+#endif
+		}
 
 		[ShowInInspector]
 		public void OnPointerLockChanged(int locked) {
+			this.Log(() => $"OnPointerLockChanged {locked}");
 			if (locked > 0) {
 				PointerIsLocked = true;
 				receivedFollowUp = true;
