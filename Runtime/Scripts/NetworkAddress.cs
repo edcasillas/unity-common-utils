@@ -13,11 +13,6 @@ namespace CommonUtils {
 		private static string currentIpV4;
 		private static string currentMacAddress;
 
-		static NetworkAddress() {
-			currentIpV4 = getCurrentIpV4();
-			currentMacAddress = getMacAddress();
-		}
-
 		/// <summary>
 		/// Gets the current Mac address of the device executing the game.
 		/// </summary>
@@ -33,7 +28,7 @@ namespace CommonUtils {
 		/// </summary>
 		public static string CurrentIpV4 {
 			get {
-				currentIpV4 = getCurrentIpV4();
+				currentIpV4 ??= getCurrentIpV4();
 				return currentIpV4;
 			}
 		}
@@ -56,8 +51,6 @@ namespace CommonUtils {
 			}
 
 			var result = activeNic.GetPhysicalAddress().ToString().Replace("-", "").Replace(":", "");
-
-			Debug.Log($"This machine's MAC Address is: {result}");
 			return result;
 		}
 
