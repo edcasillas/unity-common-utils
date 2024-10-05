@@ -73,12 +73,12 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         public override void OnBlockerBecameActive(IButtonExternalControllerBlocker blocker) {
             base.OnBlockerBecameActive(blocker);
-            manager.OnItemEnabledOrDisabled();
+			if(manager.IsValid()) manager.OnItemEnabledOrDisabled();
         }
 
         public override void OnBlockerBecameInactive(IButtonExternalControllerBlocker blocker) {
             base.OnBlockerBecameInactive(blocker);
-            manager.OnItemEnabledOrDisabled();
+            if(manager.IsValid()) manager.OnItemEnabledOrDisabled();
         }
 
         #endregion
