@@ -4,7 +4,7 @@ using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers;
 using UnityEditor;
-#if UNITY_2022_1_OR_NEWER
+#if UNITY_2021_3_OR_NEWER
 using UnityEditor.SceneManagement;
 #else
 using UnityEditor.Experimental.SceneManagement;
