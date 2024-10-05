@@ -94,7 +94,7 @@ public class TextureScale
 			}
 		}
 
-		#if UNITY_2022_1_OR_NEWER
+		#if UNITY_2021_3_OR_NEWER
 		tex.Reinitialize(newWidth, newHeight);
 		#else
 		tex.Resize(newWidth, newHeight);
