@@ -1,15 +1,17 @@
 {
     "name": "com.ecasillas.commonutils",
+    "rootNamespace": "CommonUtils",
     "references": [
         "com.pixelplacement.itween",
         "Unity.TextMeshPro"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

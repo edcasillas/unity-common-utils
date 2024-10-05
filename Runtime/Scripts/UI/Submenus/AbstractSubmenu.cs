@@ -15,25 +15,25 @@ namespace CommonUtils.UI.Submenus {
 		/// </summary>
 		[Tooltip("Ease animation type when showing the submenu.")]
 		public iTween.EaseType EaseIn;
-		
+
 		/// <summary>
 		/// Ease animation type when hiding the submenu.
 		/// </summary>
 		[Tooltip("Ease animation type when hiding the submenu.")]
 		public iTween.EaseType EaseOut;
-		
+
 		/// <summary>
 		/// Duration of in/out animations in seconds.
 		/// </summary>
 		[Range(0, 1)]
 		public float AnimDuration = 0.5f;
-		
+
 		public AudioClip Feedback;
 		public bool PlayFeedbackOnShow;
 		public bool PlayFeedbackOnHide;
 		[Range(0, 20)]
 		public int AutoHide = 0;
-		
+
 		/// <summary>
 		/// When <c>true</c>, writes debug messages on the console when submenus are being shown or hidden.
 		/// </summary>
@@ -41,33 +41,48 @@ namespace CommonUtils.UI.Submenus {
 #pragma warning restore 649
 		#endregion
 
-		#region Properties
-		public bool IsInitialized { get; private set; } = false;
+		#region Properties and backing fields
+		[ShowInInspector] public bool IsInitialized { get; private set; } = false;
 
 		/// <summary>
 		/// Gets a value indicating whether this submenu is being shown.
 		/// </summary>
 		/// <remarks>Formerly called 'IsOpen'.</remarks>
-		public bool IsShown { get; private set; } = false;
+		[ShowInInspector] public bool IsShown { get; private set; } = false;
 
-		public Vector2 HiddenValue { get; protected set; }
-		public Vector2 ShownValue { get; protected set; }
+		[ShowInInspector] public Vector2 HiddenValue { get; protected set; }
+		[ShowInInspector] public Vector2 ShownValue { get; protected set; }
+
+		private RectTransform rectTransform;
+		/// <summary>
+		/// <see cref="RectTransform"/> of the submenu, to manipulate its size, position, etc.
+		/// </summary>
+		protected RectTransform RectTransform {
+			get {
+				if (!rectTransform) rectTransform = GetComponent<RectTransform>();
+				return rectTransform;
+			}
+		}
+
+		private AudioSource audioSource;
+		protected AudioSource AudioSource {
+			get {
+				if (!audioSource) audioSource = GetComponent<AudioSource>();
+				return audioSource;
+			}
+		}
 
 		public bool IsVerbose => verbose;
 		#endregion
 
 		#region Fields
-		/// <summary>
-		/// <see cref="RectTransform"/> of the submenu, to manipulate its size, position, etc.
-		/// </summary>
-		protected RectTransform RectTransform;
-		
-		protected AudioSource AudioSource;
+
 		private Coroutine hideCoroutine;
 		#endregion
 
 		#region Public Methods
 
+		[ShowInInspector]
 		public virtual void Show() {
 			this.DebugLog(() => $"Will show {name}");
 			Init();
@@ -85,6 +100,7 @@ namespace CommonUtils.UI.Submenus {
 			}
 		}
 
+		[ShowInInspector]
 		public virtual void Hide() {
 			if (!IsInitialized) {
 				Debug.LogError($"Cannot hide this submenu before is initialized. Please call Init(); first.");
@@ -121,13 +137,11 @@ namespace CommonUtils.UI.Submenus {
 
 		#region Private Methods
 
+		[ShowInInspector]
 		public void Init() {
-			if(!IsInitialized) {
-				RectTransform = GetComponent<RectTransform>();
-				AudioSource = GetComponent<AudioSource>();
-				OnInit();
-				IsInitialized = true;
-			}
+			if (IsInitialized) return;
+			OnInit();
+			IsInitialized = true;
 		}
 
 		private void animate(Vector2 start, Vector2 end, string onComplete, iTween.EaseType easeType, bool playSound) {

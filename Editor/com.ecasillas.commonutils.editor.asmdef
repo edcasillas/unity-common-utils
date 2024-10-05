@@ -1,5 +1,6 @@
 {
     "name": "com.ecasillas.commonutils.editor",
+    "rootNamespace": "CommonUtils",
     "references": [
         "com.ecasillas.commonutils"
     ],

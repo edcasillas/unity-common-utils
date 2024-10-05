@@ -88,6 +88,6 @@ namespace CommonUtils.LegacyGUI {
 		public float GetCoordY(float percentage) => GUISize.y * percentage;
 		public Vector2 GetCoords(Vector2 percentage) => new Vector2(GetCoordX(percentage.x), GetCoordY(percentage.y));
 		public Rect GetRect(float percentageX, float percentageY, float percentageWidth, float percentageHeight) =>
-			new(GetCoordX(percentageX), GetCoordY(percentageY), GetCoordX(percentageWidth), GetCoordY(percentageHeight));
+			new Rect(GetCoordX(percentageX), GetCoordY(percentageY), GetCoordX(percentageWidth), GetCoordY(percentageHeight));
 	}
 }

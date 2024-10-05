@@ -7,10 +7,10 @@ namespace CommonUtils.Input.ButtonExternalControllers {
         void Subscribe(IButtonExternalController button);
         void Unsubscribe(IButtonExternalController button);
     }
-    
+
     public class ButtonExternalControllerBlocker : MonoBehaviour, IButtonExternalControllerBlocker {
         private readonly HashSet<IButtonExternalController> _subscribers = new HashSet<IButtonExternalController>();
-        public IEnumerable<IButtonExternalController> Subscribers => _subscribers;
+        [ShowInInspector] public IEnumerable<IButtonExternalController> Subscribers => _subscribers;
 
         private void OnEnable() {
             foreach (var subscriber in _subscribers) {

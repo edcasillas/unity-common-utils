@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace CommonUtils.Editor.Inspector {
+namespace CommonUtils.Editor.DynamicEnums.Drawers {
 	[CustomPropertyDrawer(typeof(DynamicEnumAttribute))]
 	public class DynamicEnumDrawer : PropertyDrawer {
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
@@ -13,29 +13,34 @@ namespace CommonUtils.Editor.Inspector {
 			}
 
 			var dynamicEnumAtt = attribute as DynamicEnumAttribute;
-			DrawDynamicEnumField(position, property, label, dynamicEnumAtt);
+			if (dynamicEnumAtt == null) {
+				EditorGUI.HelpBox(position, "DynamicEnum attribute not found.", MessageType.Error);
+				return;
+			}
+
+			DrawDynamicEnumField(position, property, label, dynamicEnumAtt.EnumName);
 		}
 
-		public static void DrawDynamicEnumField(Rect position, SerializedProperty property, GUIContent label, DynamicEnumAttribute dynamicEnumAtt) {
-			var enumValues = DynamicEnumManager.GetValuesAsGuiContent(dynamicEnumAtt.EnumName);
+		public static void DrawDynamicEnumField(Rect position, SerializedProperty property, GUIContent label, string enumName) {
+			var enumValues = DynamicEnumManager.GetValuesAsGuiContent(enumName);
 
 			if (enumValues == null) {
 				EditorGUI.HelpBox(position,
-					$"{dynamicEnumAtt.EnumName} is not defined as a DynamicEnum.",
+					$"{enumName} is not defined as a DynamicEnum.",
 					MessageType.Error);
 				return;
 			}
 
 			var intValue = property.propertyType == SerializedPropertyType.Integer ?
 				property.intValue :
-				DynamicEnumManager.ValueToInt(dynamicEnumAtt.EnumName, property.stringValue);
+				DynamicEnumManager.ValueToInt(enumName, property.stringValue);
 			if (intValue < 0) intValue = 0;
 			intValue = EditorGUI.Popup(position, label, intValue, enumValues);
 
 			if (property.propertyType == SerializedPropertyType.Integer) {
 				property.intValue = intValue;
 			} else {
-				property.stringValue = DynamicEnumManager.IntToValue(dynamicEnumAtt.EnumName, intValue);
+				property.stringValue = DynamicEnumManager.IntToValue(enumName, intValue);
 			}
 		}
 	}

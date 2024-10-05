@@ -1,6 +1,5 @@
 ﻿using CommonUtils.WebResources;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace CommonUtils.UI {

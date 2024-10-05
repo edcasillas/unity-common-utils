@@ -23,4 +23,7 @@ namespace CommonUtils {
 
 	[Serializable]
 	public class Vector3Event : UnityEvent<Vector3> { }
+
+	[Serializable]
+	public class ColorEvent : UnityEvent<Color> { }
 }

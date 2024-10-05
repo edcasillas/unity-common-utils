@@ -10,12 +10,13 @@ namespace CommonUtils.WebResources {
 #pragma warning restore 649
 
 		public string Url { get => url; set => url = value; }
-		public DownloadStatus Status { get; protected set; } = DownloadStatus.NotInited;
+		[ShowInInspector] public DownloadStatus Status { get; protected set; } = DownloadStatus.NotInited;
 
 		protected virtual void Awake() {
 			if(loadOnAwake) Load();
 		}
 
+		[ShowInInspector]
 		public virtual void Load() => Status = DownloadStatus.Loading;
 	}
 }
