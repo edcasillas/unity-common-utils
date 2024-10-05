@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonUtils.LegacyGUI;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -22,8 +23,14 @@ namespace CommonUtils {
 	public class StringEvent : UnityEvent<string> { }
 
 	[Serializable]
+	public class Vector2Event : UnityEvent<Vector2> { }
+
+	[Serializable]
 	public class Vector3Event : UnityEvent<Vector3> { }
 
 	[Serializable]
 	public class ColorEvent : UnityEvent<Color> { }
+
+	[Serializable]
+	public class AspectRatioOrientationEvent : UnityEvent<AspectRatioOrientation>{}
 }

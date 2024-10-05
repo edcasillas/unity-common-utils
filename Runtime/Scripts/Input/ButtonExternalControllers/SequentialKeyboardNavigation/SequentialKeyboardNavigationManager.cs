@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using CommonUtils.Extensions;
 using CommonUtils.UnityComponents;
+using CommonUtils.Verbosables;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
-    public class SequentialKeyboardNavigationManager : MonoBehaviour, ISequentialKeyboardNavigationManager, IVerbosable {
+    public class SequentialKeyboardNavigationManager : EnhancedMonoBehaviour, ISequentialKeyboardNavigationManager {
         #region Singleton
         private static ISequentialKeyboardNavigationManager _instance;
         public static ISequentialKeyboardNavigationManager Instance {
@@ -26,7 +27,6 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         #region Inspector fields
         [SerializeField] private KeyCode navigationKey = KeyCode.Tab;
-        [SerializeField] private bool verbose;
         #endregion
 
         #region Properties and backing fields
@@ -40,9 +40,6 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         [ShowInInspector] public int CurrentIndex => currentIndex ?? -1;
 
         [ShowInInspector] public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
-
-        public bool IsVerbose => verbose;
-
         #endregion
 
         #region Fields
@@ -94,13 +91,13 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         public void Subscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Add(item);
             needsRefreshOfCurrentlyActiveItems = true;
-            this.DebugLog($"{item.name} has been SUBSCRIBED to {name}");
+            this.Log($"{item.name} has been SUBSCRIBED to {name}");
         }
 
         public void Unsubscribe(IFocusableButtonFromKeyboard item) {
             _allItems.Remove(item);
             needsRefreshOfCurrentlyActiveItems = true;
-            this.DebugLog($"{item.name} has been UNSUBSCRIBED from {name}");
+            this.Log($"{item.name} has been UNSUBSCRIBED from {name}");
         }
 
         [ShowInInspector] public void OnItemEnabledOrDisabled() => needsRefreshOfCurrentlyActiveItems = true;
@@ -109,7 +106,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         #region Private methods
         private void onSceneLoaded(Scene arg0, LoadSceneMode arg1) {
             var removedItems = _allItems.RemoveWhere(item => !item.IsValid());
-            this.DebugLog($"A new scene was loaded and {removedItems} items were removed from {name}");
+            this.Log($"A new scene was loaded and {removedItems} items were removed from {name}");
             refreshCurrentlyActiveItems();
         }
 

@@ -38,7 +38,7 @@ namespace CommonUtils.Tests.PlayMode.Extensions {
 			yield return null;
 
 			// Act
-			var removeCount = parent.transform.RemoveChildren();
+			var removeCount = parent.transform.DestroyAllChildren();
 
 			yield return null; // Wait until the next frame so objects are actually destroyed.
 

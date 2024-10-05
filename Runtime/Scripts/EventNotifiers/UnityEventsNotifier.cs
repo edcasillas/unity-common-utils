@@ -1,4 +1,5 @@
 using CommonUtils.Extensions;
+using CommonUtils.Verbosables;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -6,7 +7,7 @@ namespace CommonUtils.EventNotifiers {
 	/// <summary>
 	/// A component that allows other GameObjects be notified when a Unity Event happens to this one.
 	/// </summary>
-	public class UnityEventsNotifier : MonoBehaviour, IVerbosable {
+	public class UnityEventsNotifier : EnhancedMonoBehaviour {
 #pragma warning disable 649
 		[SerializeField] private UnityEvent awake;
 		[SerializeField] private UnityEvent onEnable;
@@ -15,45 +16,42 @@ namespace CommonUtils.EventNotifiers {
 		[SerializeField] private UnityEvent onBecameInvisible;
 		[SerializeField] private UnityEvent onDisable;
 		[SerializeField] private UnityEvent onDestroy;
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
-
-		public bool IsVerbose => verbose;
 
 		#region Unity Lifecycle
 		private void Awake() {
-			this.DebugLog(() => $"{name} executed {nameof(Awake)}.");
+			this.Log(() => $"{name} executed {nameof(Awake)}.");
 			awake?.Invoke();
 		}
 
 		private void Start() {
-			this.DebugLog(() => $"{name} executed {nameof(Start)}.");
+			this.Log(() => $"{name} executed {nameof(Start)}.");
 			start?.Invoke();
 		}
 
 		private void OnEnable() {
-			this.DebugLog(() => $"{name} executed {nameof(OnEnable)}.");
+			this.Log(() => $"{name} executed {nameof(OnEnable)}.");
 			onEnable?.Invoke();
 		}
 
 		private void OnDisable() {
-			this.DebugLog(() => $"{name} executed {nameof(OnDisable)}.");
+			this.Log(() => $"{name} executed {nameof(OnDisable)}.");
 			onDisable?.Invoke();
 		}
 
 		private void OnDestroy() {
-			this.DebugLog(() => $"{name} executed {nameof(OnDestroy)}.");
+			this.Log(() => $"{name} executed {nameof(OnDestroy)}.");
 			onDestroy?.Invoke();
 			UnsubscribeAll();
 		}
 
 		private void OnBecameVisible() {
-			this.DebugLog(() => $"{name} executed {nameof(OnBecameVisible)}.");
+			this.Log(() => $"{name} executed {nameof(OnBecameVisible)}.");
 			onBecameVisible?.Invoke();
 		}
 
 		private void OnBecameInvisible() {
-			this.DebugLog(() => $"{name} executed {nameof(onBecameInvisible)}.");
+			this.Log(() => $"{name} executed {nameof(onBecameInvisible)}.");
 			onBecameInvisible?.Invoke();
 		}
 		#endregion

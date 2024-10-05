@@ -61,18 +61,25 @@ namespace CommonUtils.Tests.Editor.Heaps {
 				heap.Enqueue(queueable);
 			}
 
+			Debug.Log($"Heap before change of priorities: {heap.DataToString()}");
+
 			// Update priorities
 			for (int i = 0; i < expectedOutputIndices.Length; i++) {
 				queueables[expectedOutputIndices[i]].Priority = i + 1;
 				heap.Enqueue(queueables[expectedOutputIndices[i]]); // Call enqueue again to inform it's priority changed.
 			}
 
+			Debug.Log($"Heap after change of priorities: {heap.DataToString()}");
+			var orderOfDequeue = new List<int>();
+
 			// Assert
 			for (var i = 0; i < expectedOutputIndices.Length; i++) { // Check items come out in the selected priority.
 				var dequeued = heap.Dequeue();
 				Assert.AreEqual(queueables[expectedOutputIndices[i]], dequeued);
+				orderOfDequeue.Add(dequeued.Id);
 			}
 			Assert.IsTrue(heap.IsEmpty); // In the end, the queue must be empty.
+			Debug.Log($"Order of dequeued: {string.Join(", ", orderOfDequeue)}");
 		}
 
 		[Test]

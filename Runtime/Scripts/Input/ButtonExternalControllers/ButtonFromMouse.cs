@@ -1,5 +1,6 @@
 ﻿using System;
 using CommonUtils.Extensions;
+using CommonUtils.Verbosables;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers {
@@ -14,16 +15,16 @@ namespace CommonUtils.Input.ButtonExternalControllers {
 		#endregion
 
 		private void Update() {
-			if (!IsBlocked()) {
-				if (UnityEngine.Input.GetMouseButtonDown(mouseButton)) {
-					this.DebugLog($"{name} was pressed using mouse button {mouseButton}");
-					Press();
-				}
+			if (IsBlocked()) return;
+			
+			if (UnityEngine.Input.GetMouseButtonDown(mouseButton)) {
+				this.Log($"{name} was pressed using mouse button {mouseButton}");
+				Press();
+			}
 
-				if (UnityEngine.Input.GetMouseButtonUp(mouseButton)) {
-					this.DebugLog($"{name} was unpressed using key {mouseButton}");
-					Release();
-				}
+			if (UnityEngine.Input.GetMouseButtonUp(mouseButton)) {
+				this.Log($"{name} was unpressed using key {mouseButton}");
+				Release();
 			}
 		}
 #endif

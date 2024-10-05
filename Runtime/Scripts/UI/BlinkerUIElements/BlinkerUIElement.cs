@@ -1,6 +1,5 @@
 ﻿using CommonUtils.Extensions;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace CommonUtils.UI.BlinkerUIElements {
 	[AddComponentMenu("UI/Blinker UI Element")]

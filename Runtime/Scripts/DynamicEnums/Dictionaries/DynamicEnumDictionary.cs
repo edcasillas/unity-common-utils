@@ -10,9 +10,9 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 		[SerializeField] private string enumName;
 		[SerializeField] private List<AutoDynamicEnumKeyValuePair<TValue>> innerList;
 
-		private Dictionary<int, TValue> innerDictionary;
-
 		public abstract string EnumName { get; }
+
+		private Dictionary<int, TValue> innerDictionary;
 
 		public void MakeReadOnly() => innerDictionary = innerList.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
@@ -57,8 +57,8 @@ namespace CommonUtils.DynamicEnums.Dictionaries {
 
 		#region Dictionary Implementation
 		public bool IsReadOnly => innerDictionary != null;
-		public ICollection<int> Keys => IsReadOnly ? innerDictionary.Keys : innerList.Select(kvp => kvp.Key).ToList();
-		public ICollection<TValue> Values => IsReadOnly ? innerDictionary.Values : innerList.Select(kvp => kvp.Value).ToList();
+		public ICollection<int> Keys => IsReadOnly ? innerDictionary.Keys.ToList() : innerList.Select(kvp => kvp.Key).ToList();
+		public ICollection<TValue> Values => IsReadOnly ? innerDictionary.Values.ToList() : innerList.Select(kvp => kvp.Value).ToList();
 
 		public IEnumerator<KeyValuePair<int, TValue>> GetEnumerator() =>
 			IsReadOnly ? innerDictionary.GetEnumerator() :

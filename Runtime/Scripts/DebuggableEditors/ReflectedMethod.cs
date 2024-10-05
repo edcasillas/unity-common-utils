@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Debug = UnityEngine.Debug;
 
 namespace CommonUtils.DebuggableEditors {
 	public class ReflectedMethod : AbstractReflectedMember<MethodInfo> {
@@ -14,14 +16,17 @@ namespace CommonUtils.DebuggableEditors {
 
 		public bool HasBeenCalled { get; private set; }
 		public bool FinishedExecuting { get; private set; }
-		public bool HasReturnValue => MemberInfo.ReturnType != typeof(void);
 
-		private readonly Stopwatch stopwatch = new Stopwatch();
-		public Stopwatch StopWatch => stopwatch;
+		private readonly HashSet<Type> voidTypes = new() { typeof(void), typeof(Task) };
+		public bool HasReturnValue => !voidTypes.Contains(MemberInfo.ReturnType);
+
+		public Stopwatch StopWatch { get; } = new Stopwatch();
 
 		public override Type Type => MemberInfo.ReturnType;
 
 		public object ReturnValue { get; private set; }
+
+		public Exception Exception { get; private set; }
 
 		public ReflectedMethod(MethodInfo methodInfo, string displayName) : base(methodInfo, displayName) {
 			ParamInfo = methodInfo.GetParameters();
@@ -35,14 +40,8 @@ namespace CommonUtils.DebuggableEditors {
 		public void Invoke(object instance) {
 			object invokeResult = null;
 			if (IsAwaitable) {
-				/*if (MemberInfo.ReturnType.IsGenericType)
-				{
-					invokeResult = (object)await (dynamic)MemberInfo.Invoke(instance, arguments);
-				}
-				else
-				{
-					await (Task)MemberInfo.Invoke(instance, arguments);
-				}*/
+				_ = invokeAsync(instance);
+				return;
 			}
 			else {
 				if (MemberInfo.ReturnType == typeof(void)) {
@@ -57,6 +56,43 @@ namespace CommonUtils.DebuggableEditors {
 
 			HasBeenCalled = true;
 			ReturnValue = invokeResult;
+		}
+
+		private async Task invokeAsync(object instance) {
+			// Assuming the method is awaitable
+			object invokeResult = null;
+
+			HasBeenCalled = true;
+			FinishedExecuting = false;
+			Exception = null;
+
+			var returnType = MemberInfo.ReturnType;
+
+			try {
+				StopWatch.Restart();
+				if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>)) {
+					// If return type is Task<T>
+					var task = (Task)MemberInfo.Invoke(instance, Arguments);
+					await task.ConfigureAwait(false);
+					var resultProperty = returnType.GetProperty("Result");
+					invokeResult = resultProperty?.GetValue(task);
+				} else if (returnType == typeof(Task)) {
+					// If return type is Task
+					var task = (Task)MemberInfo.Invoke(instance, Arguments);
+					await task.ConfigureAwait(false);
+				} else {
+					// If return type is not Task or Task<T>
+					StopWatch.Stop();
+					throw new InvalidOperationException("Method is not awaitable");
+				}
+			} catch (Exception ex) {
+				Exception = ex;
+			} finally {
+				StopWatch.Stop();
+
+				FinishedExecuting = true;
+				ReturnValue = invokeResult;
+			}
 		}
 	}
 }

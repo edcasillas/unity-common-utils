@@ -1,18 +1,25 @@
 {
     "name": "com.ecasillas.commonutils.editor.tests",
+    "rootNamespace": "CommonUtils",
     "references": [
-        "com.ecasillas.commonutils"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "com.ecasillas.commonutils",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "com.ecasillas.commonutils.editor"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": []
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

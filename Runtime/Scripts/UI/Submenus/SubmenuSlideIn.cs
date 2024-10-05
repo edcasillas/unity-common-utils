@@ -29,7 +29,6 @@ namespace CommonUtils.UI.Submenus {
 				break;
 			}
 			ShownValue = new Vector2(anchoredPosition.x, anchoredPosition.y);
-			OnAnimationUpdated(HiddenValue);
 		}
 
 		public override void OnAnimationUpdated(Vector2 updatedValue) => RectTransform.anchoredPosition = updatedValue;

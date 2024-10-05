@@ -1,3 +1,4 @@
+using CommonUtils.Editor.BuiltInIcons;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,12 +12,16 @@ namespace CommonUtils.Editor {
 	/// A collection of methods to help showing useful data in CustomEditors.
 	/// </summary>
 	public static partial class EditorExtensions {
-		private static readonly GUIStyle _textureFieldLabelStyle = new GUIStyle(GUI.skin.label)
+		private const string NO_FOLDER_SELECTED = "<no folder selected>";
+
+		private static readonly GUIStyle textureFieldLabelStyle = new GUIStyle(GUI.skin.label)
 			{ alignment = TextAnchor.UpperCenter, fixedWidth = 70 };
+
+		private static readonly GUIStyle richLabelStyle = new GUIStyle(GUI.skin.label) { richText = true };
 
 		public static void ReadOnlyLabelField(string label, object value) => RichLabelField($"{label}: <b>{value}</b>");
 
-		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, GUI.skin.label);
+		public static void RichLabelField(string label) => EditorGUILayout.LabelField(label, richLabelStyle);
 
 		public static void ObjectField(string label, Object obj)
 			=> EditorGUILayout.ObjectField($"{label}:", obj, typeof(Object), false);
@@ -92,12 +97,6 @@ namespace CommonUtils.Editor {
 			return fold;
 		}
 
-		[Obsolete("This variant of ReadonlyEnumerable is deprecated and will be removed in the near future. Please change this call to use the variant without generics.")]
-		public static bool ReadonlyEnumerable<T>(bool fold, IEnumerable<T> enumerable, string displayName) where T : Object => ReadonlyEnumerable(fold, (IEnumerable)enumerable, displayName);
-
-		[Obsolete("This variant of ReadonlyEnumerable is deprecated and will be removed in the near future. Please change this call to use the variant without generics.")]
-		public static bool ReadonlyEnumerable(bool fold, IEnumerable<string> enumerable, string displayName) => ReadonlyEnumerable(fold, (IEnumerable)enumerable, displayName);
-
 		/// <summary>
 		/// Creates a collapsible area.
 		/// </summary>
@@ -142,7 +141,7 @@ namespace CommonUtils.Editor {
 
 		public static Texture2D TextureField(string name, Texture2D texture) {
 			GUILayout.BeginVertical();
-			GUILayout.Label(name, _textureFieldLabelStyle);
+			GUILayout.Label(name, textureFieldLabelStyle);
 			var result = (Texture2D)EditorGUILayout.ObjectField(texture,
 				typeof(Texture2D),
 				false,
@@ -156,6 +155,75 @@ namespace CommonUtils.Editor {
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField(label, MonoScript.FromMonoBehaviour(target), target.GetType(), false);
 			GUI.enabled = true;
+		}
+
+		public static void ShowLoadingSpinner(this EditorWindow editorWindow, string label, float? value = null) {
+			EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+			var spinnerRect = GUILayoutUtility.GetRect(EditorGUIUtility.currentViewWidth, EditorGUIUtility.singleLineHeight);
+			EditorGUI.ProgressBar(spinnerRect, value ?? -1f, string.Empty);
+			editorWindow.Repaint();
+		}
+
+		public static bool Button(this EditorIcon icon, string tooltip = null)
+			=> GUILayout.Button(icon.ToGUIContent(tooltip), EditorStyles.iconButton, GUILayout.Height(16));
+
+		public static bool Button(string text, string tooltip = null, Color? fontColor = null, Color? backgroundColor = null, FontStyle fontStyle = FontStyle.Normal) {
+			var prevBackgroundColor = GUI.backgroundColor;
+			var prevContentColor = GUI.contentColor;
+
+			if(backgroundColor.HasValue){ GUI.backgroundColor = backgroundColor.Value;}
+			if(fontColor.HasValue) GUI.contentColor = fontColor.Value;
+
+			var style = new GUIStyle(GUI.skin.button) { fontStyle = fontStyle };
+
+			var result = GUILayout.Button(new GUIContent(text, tooltip), style);
+
+			// Reset the GUI colors after using them
+			if(backgroundColor.HasValue) GUI.backgroundColor = prevBackgroundColor;
+			if(fontColor.HasValue) GUI.contentColor = prevContentColor;
+
+			return result;
+		}
+
+		public static void FolderField(string label, string currentPath, Action<string> onFolderSelected, bool enableReveal = true) {
+			EditorGUILayout.BeginHorizontal();
+			ReadOnlyLabelField(label, string.IsNullOrEmpty(currentPath) ? NO_FOLDER_SELECTED : currentPath);
+
+			if (enableReveal && !string.IsNullOrEmpty(currentPath)) {
+				if (EditorIcon.AnimationVisibilityToggleOn.Button("Reveal")) {
+					EditorUtility.RevealInFinder(currentPath);
+				}
+			}
+
+			if (onFolderSelected != null) {
+				if (EditorIcon.FolderIcon.Button("Select folder")) {
+					var folder = EditorUtility.OpenFolderPanel("Select folder", currentPath, "");
+					if (!string.IsNullOrEmpty(folder)) onFolderSelected?.Invoke(folder);
+				}
+			}
+
+			EditorGUILayout.EndHorizontal();
+		}
+
+		public static string FolderField(string label, string currentPath, bool enableReveal = true, bool isReadOnly = false) {
+			var result = currentPath;
+			EditorGUILayout.BeginHorizontal();
+			ReadOnlyLabelField(label, string.IsNullOrEmpty(currentPath) ? NO_FOLDER_SELECTED : currentPath);
+
+			if (enableReveal && !string.IsNullOrEmpty(currentPath)) {
+				if (EditorIcon.AnimationVisibilityToggleOn.Button("Reveal")) {
+					EditorUtility.RevealInFinder(currentPath);
+				}
+			}
+
+			if (!isReadOnly && EditorIcon.FolderIcon.Button("Select folder")) {
+				var folder = EditorUtility.OpenFolderPanel("Select folder", currentPath, "");
+				if (!string.IsNullOrEmpty(folder)) result = folder;
+			}
+
+			EditorGUILayout.EndHorizontal();
+
+			return result;
 		}
 	}
 }

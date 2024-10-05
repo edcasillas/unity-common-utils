@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CommonUtils.Extensions {
@@ -30,7 +31,7 @@ namespace CommonUtils.Extensions {
 		/// <param name="where">Condition to filter children to be removed.</param>
 		/// <returns>Count of removed children.</returns>
 		/// <remarks>Please remember that in play mode, objects will be actually destroyed the next frame.</remarks>
-		public static int RemoveChildren(this Transform transform, Func<Transform, bool> where = null) {
+		public static int DestroyAllChildren(this Transform transform, Func<Transform, bool> where = null) {
 			if (!transform) return 0;
 			if (where == null) where = o => true;
 
@@ -105,5 +106,7 @@ namespace CommonUtils.Extensions {
 			temporaryStoredTransformData.Remove(transform);
 		}
 		#endregion
+
+		public static Transform FindChildWithTag(this Transform parent, string tag) => parent.Cast<Transform>().FirstOrDefault(child => child.CompareTag(tag));
 	}
 }

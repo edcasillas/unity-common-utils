@@ -4,18 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace CommonUtils.LegacyGUI {
-	public enum AspectRatio {
-		PORTRAIT_16_9=0,  	//eg 1280×720
-		PORTRAIT_16_10,   	//eg 1280x800
-		PORTRAIT_4_3,		//eg 1280x960
-		PORTRAIT_3_2,		//eg 1152x768
-		LANDSCAPE_16_9,		//eg 1280×720
-		LANDSCAPE_16_10,	//eg 1280x800
-		LANDSCAPE_4_3,		//eg 1280x960
-		LANDSCAPE_3_2,		//eg 1152x768
-		SQUARE_1_1			//eg 1024x1024
-	}
-
 	public interface IGUICoords {
 		Vector2 LastScreenSize { get; }
 		AspectRatio CurrentAspectRatio { get; }
@@ -25,6 +13,8 @@ namespace CommonUtils.LegacyGUI {
 		float GetCoordY(float percentage);
 		Vector2 GetCoords(Vector2 percentage);
 		Rect GetRect(float percentageX, float percentageY, float percentageWidth, float percentageHeight);
+
+		void RefreshCurrentAspectRatio();
 	}
 
 	public class GUICoords : IGUICoords {
@@ -41,6 +31,8 @@ namespace CommonUtils.LegacyGUI {
 			CurrentAspectRatio = GetCurrentAspectRatio();
 			GUISize = GetWidthAndHeightForAspectRatio(CurrentAspectRatio);
 		}
+
+		public void RefreshCurrentAspectRatio() => CurrentAspectRatio = GetCurrentAspectRatio();
 
 		private AspectRatio GetCurrentAspectRatio() {
 			var realAspectFactor = ((float) Screen.width /(float) Screen.height);

@@ -1,10 +1,9 @@
-﻿using CommonUtils.Inspector.ReorderableInspector;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Demos.UI.SettingsFields {
 	public class ClearButtonController : MonoBehaviour {
 #pragma warning disable 649
-		[SerializeField] [Reorderable] private string[] keys;
+		[SerializeField] private string[] keys;
 #pragma warning restore 649
 
 		public void OnPressed() {

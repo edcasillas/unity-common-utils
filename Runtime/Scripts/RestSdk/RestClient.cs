@@ -1,7 +1,12 @@
+using CommonUtils.Coroutines;
+using CommonUtils.Extensions;
+using CommonUtils.Logging;
+using CommonUtils.Verbosables;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -10,27 +15,33 @@ namespace CommonUtils.RestSdk {
 	/// Class with methods that allow interaction with an API through GET, POST, PUT and DELETE methods.
 	/// </summary>
 	public class RestClient : IRestClient {
+		public Verbosity Verbosity { get; set; }
+
 		/// <summary>
 		/// Gets the URL of the API this client will connect to.
 		/// </summary>
 		public string ApiUrl { get; }
 
 		/// <summary>
-		/// When <c>true</c>, this client will log its activity to the console.
-		/// </summary>
-		public bool Verbose { get; set; }
-
-		/// <summary>
 		/// Creates a new instance of <see cref="RestClient"/>.
 		/// </summary>
 		/// <param name="apiUrl">URL of the API this client will connect to, without trailing slash.</param>
-		public RestClient(string apiUrl) => ApiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
+		public RestClient(string apiUrl, Verbosity verbosity = Verbosity.Warning | Verbosity.Error) {
+			ApiUrl = apiUrl ?? throw new ArgumentNullException(nameof(apiUrl));
+			Verbosity = verbosity;
+		}
 
 		#region PING
 		public void Ping(string actionRelativePath, Action<RestResponse> callback) {
 			var url = $"{ApiUrl}{(!string.IsNullOrWhiteSpace(actionRelativePath) ? $"/{actionRelativePath}" : string.Empty)}";
 			var www = UnityWebRequest.Get(url);
 			Coroutiner.StartCoroutine(SendRequest(www, callback));
+		}
+
+		public async Task<RestResponse> PingAsync(string actionRelativePath) {
+			var url = $"{ApiUrl}{(!string.IsNullOrWhiteSpace(actionRelativePath) ? $"/{actionRelativePath}" : string.Empty)}";
+			var www = UnityWebRequest.Get(url);
+			return await SendRequestAsync(www);
 		}
 		#endregion
 
@@ -266,7 +277,7 @@ namespace CommonUtils.RestSdk {
 			if (string.IsNullOrEmpty(actionRelativePath)) throw new ArgumentNullException(nameof(actionRelativePath));
 			if (id == null) throw new ArgumentNullException(nameof(id));
 			if (callback == null) {
-				debugLog($"A callback was not specified for the DELETE request to {actionRelativePath}; will fire and forget.");
+				this.LogNoContext($"A callback was not specified for the DELETE request to {actionRelativePath}; will fire and forget.");
 			}
 			#endregion
 
@@ -300,7 +311,7 @@ namespace CommonUtils.RestSdk {
 			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
 			#endregion
 
-			debugLog($"Sending {request.method} {request.url}");
+			this.LogNoContext($"Sending {request.method} {request.url}");
 
 			RestResponse<TResult> response = null;
 
@@ -321,6 +332,34 @@ namespace CommonUtils.RestSdk {
 			callback(response);
 		}
 
+		protected async Task<RestResponse<TResult>> SendRequestAsync<TResult>(UnityWebRequest request, bool omitHeaders = false) {
+			#region Input validation
+			if (request  == null) throw new ArgumentNullException(nameof(request));
+			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
+			#endregion
+
+			this.LogNoContext($"Sending {request.method} {request.url}");
+
+			RestResponse<TResult> response = null;
+
+			using (request) {
+				if (!omitHeaders) {
+					try {
+						SetRequestHeaders(request);
+					} catch (InvalidOperationException ex) {
+						return new RestResponse<TResult>() {StatusCode = -1, ErrorMessage = ex.Message};
+					}
+				}
+
+				request.SendWebRequest();
+				await AsyncUtils.WaitUntilAsync(() => request.isDone);
+
+				response = GetResponseFrom<TResult>(request);
+			}
+
+			return response;
+		}
+
 		/// <summary>
 		/// Sends a <paramref name="request"/> to the API and obtains the response in the specified <paramref name="callback"/>.
 		/// </summary>
@@ -332,7 +371,7 @@ namespace CommonUtils.RestSdk {
 			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
 			#endregion
 
-			debugLog($"Sending {request.method} {request.url}");
+			this.LogNoContext($"Sending {request.method} {request.url}");
 
 			RestResponse response = null;
 
@@ -359,6 +398,36 @@ namespace CommonUtils.RestSdk {
 			}
 
 			callback?.Invoke(response);
+		}
+
+		protected async Task<RestResponse> SendRequestAsync(UnityWebRequest request, bool omitHeaders = false) {
+			#region Input validation
+			if (request == null) throw new ArgumentNullException(nameof(request));
+			if (request.isDone) throw new InvalidOperationException("Can't execute a request once is done.");
+			#endregion
+
+			this.LogNoContext($"Sending {request.method} {request.url}");
+
+			RestResponse response = null;
+
+			using (request) {
+				if (!omitHeaders) {
+					try {
+						SetRequestHeaders(request);
+					} catch (InvalidOperationException ex) {
+						return new RestResponse() {StatusCode = -1, ErrorMessage = ex.Message};
+					}
+				}
+
+				//yield return request.SendWebRequest();
+				request.SendWebRequest();
+				await AsyncUtils.WaitUntilAsync(() => request.isDone);
+
+				if(request.FinishedWithError()) this.LogNoContext($"REST ERROR: ({request.method}): {request.error}", LogLevel.Error);
+				response = GetResponseFrom(request);
+			}
+
+			return response;
 		}
 
 		protected virtual void SetRequestHeaders(UnityWebRequest www) => www.SetRequestHeader("Content-type", "application/json");
@@ -425,13 +494,10 @@ namespace CommonUtils.RestSdk {
 			}
 
 			var response = new RestResponse {
-				StatusCode = www.responseCode
+				StatusCode = www.responseCode,
+				ErrorMessage = www.error
 			};
 			return response;
-		}
-
-		private void debugLog(string message) {
-			if (Verbose) Debug.Log(message);
 		}
 		#endregion
 	}

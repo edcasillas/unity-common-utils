@@ -15,6 +15,13 @@ namespace CommonUtils.Serializables.Randomizables {
 		public T Min => min;
 		public T Max => max;
 
+		public AbstractRandomizable(){}
+
+		public AbstractRandomizable(T defaultMin, T defaultMax) : this() {
+			min = defaultMin;
+			max = defaultMax;
+		}
+
 		/// <summary>
 		/// When overriden by a derived class, returns a random <typeparamref name="T"/> between <see cref="AbstractRandomizable{T}.Min"/> and <see cref="AbstractRandomizable{T}.Max"/>.
 		/// </summary>

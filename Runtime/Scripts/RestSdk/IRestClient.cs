@@ -1,11 +1,13 @@
+using CommonUtils.Verbosables;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CommonUtils.RestSdk {
 	/// <summary>
 	/// Contract with methods that allow interaction with an API through GET, POST, PUT and DELETE methods.
 	/// </summary>
-	public interface IRestClient {
+	public interface IRestClient : IVerbosable {
 		/// <summary>
 		/// Gets the URL of the API this client will connect to.
 		/// </summary>
@@ -17,6 +19,8 @@ namespace CommonUtils.RestSdk {
 		/// <param name="actionRelativePath">Action path to be called in the API.</param>
 		/// <param name="callback">Method to receive the response.</param>
 		void Ping(string actionRelativePath, Action<RestResponse> callback);
+
+		Task<RestResponse> PingAsync(string actionRelativePath);
 
 		/// <summary>
 		/// Creates a GET request to the specified <paramref name="actionRelativePath"/> and receives a response of type <typeparamref name="TResult"/> in <paramref name="callback"/>.

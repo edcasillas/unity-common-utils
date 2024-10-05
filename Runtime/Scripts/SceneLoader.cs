@@ -1,8 +1,9 @@
-﻿using System;
+﻿using CommonUtils.Coroutines;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using CommonUtils.Extensions;
-using CommonUtils.Inspector.ReorderableInspector;
+using CommonUtils.Verbosables;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -16,12 +17,12 @@ using Random = UnityEngine.Random;
 
 namespace CommonUtils {
 	[AddComponentMenu("UI/Scene Loader")]
-	public class SceneLoader : MonoBehaviour, IVerbosable {
+	public class SceneLoader : EnhancedMonoBehaviour {
 		private const int MAX_PREVIOUS_SCENES = 5;
-		
+
 		#region Static access members
 		private static readonly Stack<int> previousScenes = new Stack<int>();
-		
+
 		private static SceneLoader _instance;
 		private static SceneLoader instance {
 			get {
@@ -87,7 +88,7 @@ namespace CommonUtils {
 			}
 			onReadyToActivate(asyncLoad);
 		}
-		
+
 		private static void pushCurrentScene() {
 			previousScenes.Push(SceneManager.GetActiveScene().buildIndex);
 			#region Trim previous scenes stack when MAX_PREVIOUS_SCENES is reached
@@ -112,34 +113,30 @@ namespace CommonUtils {
 
 		#region Inspector fields
 #pragma warning disable 649
-		[FormerlySerializedAs("SuggestionsLabel")]
-		[SerializeField] private Text suggestionsLabel;
+
+		[SerializeField] private TMP_Text suggestionsLabel;
 
 		[SerializeField] private Slider progressSlider;
 
 		[FormerlySerializedAs("Suggestions")]
-		[SerializeField] [Reorderable] private string[] suggestions;
+		[SerializeField] private string[] suggestions;
 
 		[FormerlySerializedAs("WebOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] webOnlySuggestions;
+		[SerializeField] private string[] webOnlySuggestions;
 
 		[FormerlySerializedAs("AndroidOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] androidOnlySuggestions;
+		[SerializeField] private string[] androidOnlySuggestions;
 
 		[FormerlySerializedAs("IOSOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] iOSOnlySuggestions;
+		[SerializeField] private string[] iOSOnlySuggestions;
 
 		[FormerlySerializedAs("MobileOnlySuggestions")]
-		[SerializeField] [Reorderable] private string[] mobileOnlySuggestions;
+		[SerializeField] private string[] mobileOnlySuggestions;
 
 		[FormerlySerializedAs("SuggestionsChangeEvery")]
 		[SerializeField] [Range(1f, 5f)] private float suggestionsChangeEvery = 1f;
-
-		[SerializeField] private bool verbose;
 #pragma warning restore 649
 		#endregion
-
-		public bool IsVerbose => verbose;
 
 		private CoroutinerInstance suggestionsCoroutine;
 		private List<string> suggestionsToShow;
@@ -205,7 +202,7 @@ namespace CommonUtils {
 			pushCurrentScene();
 			Coroutiner.StartCoroutine(doLoad(scenePath), "Loading scene");
 		}
-		
+
 		/// <summary>
 		/// Loads the scene with the specified <paramref name="scenePath"/> and executes the <paramref name="onReadyToActivate"/> callback when it's fully loaded and ready to activate.
 		/// </summary>
@@ -270,14 +267,14 @@ namespace CommonUtils {
 				initSuggestions();
 			}
 			if(suggestionsLabel && suggestionsToShow != null && suggestionsToShow.Count > 0) {
-				while(true) {
+				while (true) {
 					suggestionsLabel.text = suggestionsToShow[Random.Range(0, suggestionsToShow.Count - 1)];
 					yield return new WaitForSeconds(suggestionsChangeEvery);
 				}
-			} else {
-				this.DebugLog("There are no suggestions to show.");
-				suggestionsLabel.text = string.Empty;
 			}
+
+			this.Log("There are no suggestions to show.");
+			if (suggestionsLabel) suggestionsLabel.text = string.Empty;
 		}
 
 		private void initSuggestions() {

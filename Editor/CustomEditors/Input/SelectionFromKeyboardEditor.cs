@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CommonUtils.Editor.CustomEditors {
 	[Obsolete]
     [CustomEditor(typeof(SelectionFromKeyboard))]
-    public class SelectionFromKeyboardEditor : AbstractDebuggableEditor<SelectionFromKeyboard> {
+    public class SelectionFromKeyboardEditor : AbstractMonoBehaviourDebuggableEditor<SelectionFromKeyboard> {
         #region Constants
         private const string EditorPrefKey_ShowInSceneView = nameof(CommonUtils) + "." + nameof(SelectionFromKeyboardEditor) + "." + nameof(showInSceneView);
         private const string EditorPrefKey_RectSize = nameof(CommonUtils) + "." + nameof(SelectionFromKeyboardEditor) +"." + nameof(rectSize);
