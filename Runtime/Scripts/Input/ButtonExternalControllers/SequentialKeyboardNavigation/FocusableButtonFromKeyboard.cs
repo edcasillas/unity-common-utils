@@ -58,7 +58,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         private void OnDisable() {
             this.Log($"{name} has been disabled.");
-            manager.OnItemEnabledOrDisabled();
+            if(manager.IsValid()) manager.OnItemEnabledOrDisabled();
         }
 
         private void OnDestroy() {
