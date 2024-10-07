@@ -46,12 +46,13 @@ namespace CommonUtils.Input {
 
 		private void Awake() {
 			// Initializes the set of valid characters for this reader.
-			if (!string.IsNullOrEmpty(readableChars)) {
-				readableCharsSet = new HashSet<char>();
-				for (var i = 0; i < readableChars.Length; i++) {
-					if (!readableCharsSet.Contains(readableChars[i])) readableCharsSet.Add(readableChars[i]);
-				}
+			if (string.IsNullOrEmpty(readableChars)) {
+				this.Log("This instance can read any characters from keyboard.");
+				return;
 			}
+			readableCharsSet = new HashSet<char>();
+			foreach (var t in readableChars) readableCharsSet.Add(t);
+			this.Log(() => $"This instance can read the following characters from keyboard: {string.Join(",", readableCharsSet)}");
 		}
 
 		private void Update() {

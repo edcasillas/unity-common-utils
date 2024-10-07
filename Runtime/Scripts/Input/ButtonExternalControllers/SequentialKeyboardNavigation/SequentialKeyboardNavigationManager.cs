@@ -1,26 +1,39 @@
 using System.Collections.Generic;
 using System.Linq;
-using CommonUtils.Extensions;
+using CommonUtils.Logging;
 using CommonUtils.UnityComponents;
 using CommonUtils.Verbosables;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using ILogger = CommonUtils.Logging.ILogger;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
     public class SequentialKeyboardNavigationManager : EnhancedMonoBehaviour, ISequentialKeyboardNavigationManager {
         #region Singleton
-        private static ISequentialKeyboardNavigationManager _instance;
+		private static bool instanceHasBeenResolved = false;
+        private static ISequentialKeyboardNavigationManager instance;
         public static ISequentialKeyboardNavigationManager Instance {
             get {
-                if (!_instance.IsValid()) {
-                    _instance = FindObjectOfType<SequentialKeyboardNavigationManager>();
-                    if (!_instance.IsValid()) {
+                if (!instance.IsValid()) {
+					SingletonRegistry.TryResolve<ILogger>(out var logger);
+
+					if (instanceHasBeenResolved) {
+						logger?.Log(LogLevel.Error, $"Instance of {nameof(SequentialKeyboardNavigationManager)} has already been destroyed. This might happen when the application is being terminated.");
+						return null;
+					}
+
+                    instance = FindObjectOfType<SequentialKeyboardNavigationManager>();
+					if(instance.IsValid()) instance.Log2($"{nameof(SequentialKeyboardNavigationManager)} found in scene.", LogLevel.Warning);
+
+                    if (!instance.IsValid()) {
                         var go = new GameObject(nameof(SequentialKeyboardNavigationManager));
-                        _instance = go.AddComponent<SequentialKeyboardNavigationManager>();
+                        instance = go.AddComponent<SequentialKeyboardNavigationManager>();
+						if(instance.IsValid()) instance.Log2($"{nameof(SequentialKeyboardNavigationManager)} not found in scene, a game object has been added to the scene.", LogLevel.Warning);
                     }
+					if(instance.IsValid()) instanceHasBeenResolved = true;
                 }
 
-                return _instance;
+                return instance;
             }
         }
         #endregion
@@ -40,6 +53,8 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         [ShowInInspector] public int CurrentIndex => currentIndex ?? -1;
 
         [ShowInInspector] public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
+
+		[ShowInInspector] public bool InstanceHasBeenResolved => instanceHasBeenResolved;
         #endregion
 
         #region Fields
@@ -48,12 +63,15 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 
         #region Unity Lifecycle
         private void Awake() {
-            if (_instance.IsValid() && (SequentialKeyboardNavigationManager)_instance != this) {
+            if (instance.IsValid() && (SequentialKeyboardNavigationManager)instance != this) {
+				this.Log($"Multiple instances of {nameof(SequentialKeyboardNavigationManager)} are active. Instance is {instance.name}.", LogLevel.Warning);
+
                 Destroy(gameObject);
                 return;
             }
 
-            _instance = this;
+            instance = this;
+			instanceHasBeenResolved = true;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += onSceneLoaded;
         }
@@ -81,7 +99,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         }
 
         private void OnDestroy() {
-            if ((SequentialKeyboardNavigationManager)_instance == this) _instance = null;
+            if ((SequentialKeyboardNavigationManager)instance == this) instance = null;
         }
 
         private void OnApplicationQuit() => Destroy(gameObject);
