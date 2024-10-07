@@ -15,10 +15,10 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         public static ISequentialKeyboardNavigationManager Instance {
             get {
                 if (!instance.IsValid()) {
+					SingletonRegistry.TryResolve<ILogger>(out var logger);
+
 					if (instanceHasBeenResolved) {
-						if (SingletonRegistry.TryResolve<ILogger>(out var logger)) {
-							logger.Log(LogLevel.Error, $"Instance of {nameof(SequentialKeyboardNavigationManager)} has already been destroyed. This might happen when the application is being terminated.");
-						}
+						logger?.Log(LogLevel.Error, $"Instance of {nameof(SequentialKeyboardNavigationManager)} has already been destroyed. This might happen when the application is being terminated.");
 						return null;
 					}
 
@@ -53,6 +53,8 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
         [ShowInInspector] public int CurrentIndex => currentIndex ?? -1;
 
         [ShowInInspector] public IFocusableButtonFromKeyboard CurrentlyFocusedItem { get; private set; }
+
+		[ShowInInspector] public bool InstanceHasBeenResolved => instanceHasBeenResolved;
         #endregion
 
         #region Fields
@@ -69,6 +71,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
             }
 
             instance = this;
+			instanceHasBeenResolved = true;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += onSceneLoaded;
         }
