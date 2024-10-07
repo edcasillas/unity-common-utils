@@ -1,14 +1,19 @@
-using CommonUtils.Extensions;
 using CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation.FocusFeedback;
 using CommonUtils.UnityComponents;
 using CommonUtils.Verbosables;
 using UnityEngine;
 
 namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigation {
-    public class FocusableButtonFromKeyboard : ButtonFromKeyboard, IFocusableButtonFromKeyboard {
+    /// <summary>
+    /// Component to control a <see cref="ButtonFromKeyboard"/> that can also be used in conjunction with
+    /// <see cref="SequentialKeyboardNavigationManager"/> to acquire focus
+    /// </summary>
+	public class FocusableButtonFromKeyboard : ButtonFromKeyboard, IFocusableButtonFromKeyboard {
 #if (!UNITY_ANDROID && !UNITY_IOS) || UNITY_EDITOR
         #region Inspector fields
         [SerializeField] private int tabIndex;
+
+		// TODO This should be a unique key code set in the SequentialNavigationManager, not in each button.
         [SerializeField] private KeyCode keyCodeWhenFocused = KeyCode.Return;
         #endregion
 
