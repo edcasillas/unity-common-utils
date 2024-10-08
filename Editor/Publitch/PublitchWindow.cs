@@ -90,7 +90,10 @@ namespace CommonUtils.Editor.Publitch {
 
 		private bool showSettings = false;
 		private bool showAdvancedSettings = false;
+
+		#if UNITY_WEBGL
 		private bool showWebServerSettings = false;
+		#endif
 
 		private string fetchStatusErrorMessage;
 
@@ -385,9 +388,11 @@ namespace CommonUtils.Editor.Publitch {
 
 			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
+#if UNITY_WEBGL
 					if (!IsWebGLBuildCompressed) {
 						EditorGUILayout.HelpBox("Your WebGL build is not compressed. You can change the compression format on Player Settings.", MessageType.Warning);
 					}
+#endif
 
 					if (EditorExtensions.Button("Publitch NOW", fontColor: Color.white, backgroundColor: Color.green, fontStyle: FontStyle.Bold)) {
 						publish();
