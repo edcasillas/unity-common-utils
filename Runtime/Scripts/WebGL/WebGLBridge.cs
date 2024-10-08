@@ -39,7 +39,7 @@ namespace CommonUtils.WebGL {
 				if (!instance.IsValid()) {
 					instance = FindObjectOfType<WebGLBridge>();
 					if (!instance.IsValid()) {
-						instance = new GameObject().AddComponent<WebGLBridge>();
+						instance = new GameObject(nameof(WebGLBridge)).AddComponent<WebGLBridge>();
 					}
 				}
 
@@ -50,10 +50,10 @@ namespace CommonUtils.WebGL {
 
 		public static void GoFullScreen() {
 #if UNITY_WEBGL && !UNITY_EDITOR
-		instance.Log2("Requested full screen to the WebGL bridge.");
-		commonUtils_webGL_goFullScreen();
+			Instance.Log2("Requested full screen to the WebGL bridge.");
+			commonUtils_webGL_goFullScreen();
 #else
-			instance.Log2("Requested full screen to the WebGL bridge. This will only work in WebGL builds.", LogLevel.Warning);
+			Instance.Log2("Requested full screen to the WebGL bridge. This will only work in WebGL builds.", LogLevel.Warning);
 #endif
 		}
 		#endregion
@@ -144,7 +144,9 @@ namespace CommonUtils.WebGL {
 #endif
 		}
 
-		private void OnDestroy() => instance = null;
+		private void OnDestroy() {
+			if(instance.IsValid() && ReferenceEquals(instance, this)) instance = null;
+		}
 		#endregion
 
 		[ShowInInspector]
