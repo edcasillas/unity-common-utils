@@ -60,15 +60,15 @@ namespace CommonUtils.Editor.Publitch {
 		internal static readonly EditorPrefsString ProjectName = new(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), () => PlayerSettings.productName, true);
 		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
 		internal static readonly EditorPrefsString LastBuiltDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
-		internal static readonly EditorPrefsEnum<BuildTarget> ActiveBuildTarget = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
+		internal static readonly EditorPrefsEnum<BuildTarget> LastBuildTargetPlatform = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
 		internal static readonly EditorPrefsEnum<WebGLCompressionFormat> BuildCompressionFormat = new(getEditorPrefKey(EDITOR_PREF_KEY_WEBGL_COMPRESSION_METHOD), (WebGLCompressionFormat)(-1), true);
 		#endregion
-		private static string buildId => $"{User}/{ProjectName}:{getChannelName(ActiveBuildTarget)}";
+		private static string buildId => $"{User}/{ProjectName}:{getChannelName(LastBuildTargetPlatform)}";
 
 		[PostProcessBuild]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
 			LastBuiltDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-			ActiveBuildTarget.Value = target; // TODO is this really needed
+			LastBuildTargetPlatform.Value = target;
 			BuildPath.Value = pathToBuiltProject;
 			if(target == BuildTarget.WebGL) BuildCompressionFormat.Value = PlayerSettings.WebGL.compressionFormat;
 			totalBuildSize = getBuildSizeMBString(BuildPath);
@@ -90,10 +90,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private bool showSettings = false;
 		private bool showAdvancedSettings = false;
-
-		#if UNITY_WEBGL
 		private bool showWebServerSettings = false;
-		#endif
 
 		private string fetchStatusErrorMessage;
 
@@ -101,16 +98,9 @@ namespace CommonUtils.Editor.Publitch {
 
 		private string webServerUrl => $"http://{NetworkAddress.CurrentIpV4}:{webServerPort}";
 
-		private bool IsWebGLBuildCompressed {
-			get {
-				#if UNITY_WEBGL
-				return BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
-					   BuildCompressionFormat == WebGLCompressionFormat.Brotli;
-				#else
-				return false;
-			#endif
-			}
-		}
+		private bool IsWebGLBuildCompressed => LastBuildTargetPlatform == BuildTarget.WebGL &&
+											   (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
+												BuildCompressionFormat == WebGLCompressionFormat.Brotli);
 
 		private void initialize() {
 			if(isInitialized) return;
@@ -297,11 +287,10 @@ namespace CommonUtils.Editor.Publitch {
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
 				drawLabelWithRightButton("Build Size", totalBuildSize ?? "<unknown>", EditorIcon.TreeEditorRefresh, () => totalBuildSize = getBuildSizeMBString(BuildPath), "Refresh");
 
-#if UNITY_WEBGL
-				var compressionFormatString = (BuildCompressionFormat == (WebGLCompressionFormat)(-1) ? "<unknown>" : BuildCompressionFormat.ToString());
-				drawLabelWithRightButton("WebGL Compression", compressionFormatString, EditorIcon.SettingsIcon,
-					() => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
-#endif
+				if (LastBuildTargetPlatform == BuildTarget.WebGL) {
+					var compressionFormatString = (BuildCompressionFormat == (WebGLCompressionFormat)(-1) ? "<unknown>" : BuildCompressionFormat.ToString());
+					drawLabelWithRightButton("WebGL Compression", compressionFormatString, EditorIcon.SettingsIcon, () => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
+				}
 			}
 
 			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) {
@@ -319,47 +308,52 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
-			#if UNITY_WEBGL
-			showWebServerSettings = EditorExtensions.Collapse(showWebServerSettings, "Run web server",
-				() => {
-					if (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
-						BuildCompressionFormat == WebGLCompressionFormat.Brotli) {
-						EditorGUILayout.HelpBox("Publitch's web server cannot serve compressed builds. " +
-							"Change the compression format to Disabled in the Player Settings to use this functionality.", MessageType.Warning);
-						return;
-					}
-
-					if (currentStatus == Status.FetchingButlerVersion) {
-						this.ShowLoadingSpinner("Fetching Python3 version");
-					} else {
-						renderVersionField("Python Version", pythonVersion, () => checkPythonVersion(true));
-					}
-					webServerPort = EditorGUILayout.TextField("Port", webServerPort);
-
-					EditorGUILayout.BeginHorizontal();
-					EditorExtensions.ReadOnlyLabelField("Local URL", webServerUrl);
-					if (EditorIcon.Clipboard.Button()) {
-						webServerUrl.CopyToClipboard();
-					}
-					if (currentStatus == Status.RunningWebServer && EditorIcon.PlayButton.Button()) {
-						Application.OpenURL(webServerUrl);
-					}
-					EditorGUILayout.EndHorizontal();
-
-					if (currentStatus == Status.Idle && GUILayout.Button("Run web server")) {
-						runWebServer();
-					}
-
-					if (currentStatus == Status.RunningWebServer) {
-						this.ShowLoadingSpinner("Running web server");
-						if (GUILayout.Button("Stop web server")) {
-							commandLineRunner.Kill();
-							currentStatus = Status.Idle;
+			if (LastBuildTargetPlatform == BuildTarget.WebGL) {
+				showWebServerSettings = EditorExtensions.Collapse(showWebServerSettings,
+					"Run web server",
+					() => {
+						if (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
+							BuildCompressionFormat == WebGLCompressionFormat.Brotli) {
+							EditorGUILayout.HelpBox("Publitch's web server cannot serve compressed builds. " +
+													"Change the compression format to Disabled in the Player Settings to use this functionality.",
+								MessageType.Warning);
+							return;
 						}
-					}
-				});
-			EditorGUILayout.Space();
-			#endif
+
+						if (currentStatus == Status.FetchingButlerVersion) {
+							this.ShowLoadingSpinner("Fetching Python3 version");
+						} else {
+							renderVersionField("Python Version", pythonVersion, () => checkPythonVersion(true));
+						}
+
+						webServerPort = EditorGUILayout.TextField("Port", webServerPort);
+
+						EditorGUILayout.BeginHorizontal();
+						EditorExtensions.ReadOnlyLabelField("Local URL", webServerUrl);
+						if (EditorIcon.Clipboard.Button()) {
+							webServerUrl.CopyToClipboard();
+						}
+
+						if (currentStatus == Status.RunningWebServer && EditorIcon.PlayButton.Button()) {
+							Application.OpenURL(webServerUrl);
+						}
+
+						EditorGUILayout.EndHorizontal();
+
+						if (currentStatus == Status.Idle && GUILayout.Button("Run web server")) {
+							runWebServer();
+						}
+
+						if (currentStatus == Status.RunningWebServer) {
+							this.ShowLoadingSpinner("Running web server");
+							if (GUILayout.Button("Stop web server")) {
+								commandLineRunner.Kill();
+								currentStatus = Status.Idle;
+							}
+						}
+					});
+				EditorGUILayout.Space();
+			}
 
 			EditorGUILayout.Space();
 			if (!commandLineRunner.IsRunning) {
@@ -388,11 +382,11 @@ namespace CommonUtils.Editor.Publitch {
 
 			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
-#if UNITY_WEBGL
-					if (!IsWebGLBuildCompressed) {
-						EditorGUILayout.HelpBox("Your WebGL build is not compressed. You can change the compression format on Player Settings.", MessageType.Warning);
+					if (LastBuildTargetPlatform == BuildTarget.WebGL) {
+						if (!IsWebGLBuildCompressed) {
+							EditorGUILayout.HelpBox("Your WebGL build is not compressed. You can change the compression format on Player Settings.", MessageType.Warning);
+						}
 					}
-#endif
 
 					if (EditorExtensions.Button("Publitch NOW", fontColor: Color.white, backgroundColor: Color.green, fontStyle: FontStyle.Bold)) {
 						publish();
@@ -481,7 +475,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private static void drawBuildTarget() {
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.EnumPopup("Current Build Target", ActiveBuildTarget);
+			EditorGUILayout.EnumPopup("Current Build Target", LastBuildTargetPlatform);
 			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
 				EditorApplication.ExecuteMenuItem("File/Build Settings...");
 			}
