@@ -33,6 +33,7 @@ namespace CommonUtils.Editor.Publitch {
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
 		private const string EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME = "LastPublishDateTime";
 		private const string EDITOR_PREF_KEY_LAST_BUILD_DATETIME = "LastBuiltDateTime";
+		private const string EDITOR_PREF_KEY_WEBGL_COMPRESSION_METHOD = "WebGLCompressionMethod";
 		#endregion
 
 		#region Statics (To create the editor menu and save preferences)
@@ -59,6 +60,7 @@ namespace CommonUtils.Editor.Publitch {
 		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
 		internal static readonly EditorPrefsString LastBuiltDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
 		internal static readonly EditorPrefsEnum<BuildTarget> ActiveBuildTarget = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
+		internal static readonly EditorPrefsEnum<WebGLCompressionFormat> BuildCompressionFormat = new(getEditorPrefKey(EDITOR_PREF_KEY_WEBGL_COMPRESSION_METHOD), (WebGLCompressionFormat)(-1), true);
 		#endregion
 		private static string buildId => $"{User}/{ProjectName}:{getChannelName(ActiveBuildTarget)}";
 
@@ -67,6 +69,7 @@ namespace CommonUtils.Editor.Publitch {
 			LastBuiltDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 			ActiveBuildTarget.Value = target; // TODO is this really needed
 			BuildPath.Value = pathToBuiltProject;
+			if(target == BuildTarget.WebGL) BuildCompressionFormat.Value = PlayerSettings.WebGL.compressionFormat;
 			totalBuildSize = getBuildSizeMBString(BuildPath);
 		}
 		#endregion
@@ -251,13 +254,9 @@ namespace CommonUtils.Editor.Publitch {
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(errorMessage)) {
-				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
-			}
+			if (!string.IsNullOrEmpty(errorMessage)) { EditorGUILayout.HelpBox(errorMessage, MessageType.Error); }
 
-			if (currentStatus == Status.FetchingButlerVersion) {
-				this.ShowLoadingSpinner("Checking butler installation...");
-			}
+			if (currentStatus == Status.FetchingButlerVersion) { this.ShowLoadingSpinner("Checking butler installation..."); }
 
 			showSettings |= string.IsNullOrEmpty(butlerVersion);
 			renderBulterSettings();
@@ -280,11 +279,14 @@ namespace CommonUtils.Editor.Publitch {
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
 
 				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField("Build Size", totalBuildSize ?? "<unknown>");
+				EditorExtensions.ReadOnlyLabelField("Build Size", totalBuildSize ?? "<unknown>");
 				if (GUILayout.Button(EditorIcon.TreeEditorRefresh.ToGUIContent("Refresh"), EditorStyles.iconButton, GUILayout.Height(16))) {
 					totalBuildSize = getBuildSizeMBString(BuildPath);
 				}
 				EditorGUILayout.EndHorizontal();
+#if UNITY_WEBGL
+				EditorExtensions.ReadOnlyLabelField("WebGL Compression", (BuildCompressionFormat == (WebGLCompressionFormat)(-1) ? "<unknown>" : BuildCompressionFormat));
+#endif
 			}
 
 			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) {
