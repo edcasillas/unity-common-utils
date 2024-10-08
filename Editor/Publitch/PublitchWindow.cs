@@ -113,7 +113,10 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void OnDisable() {
-			if(commandLineRunner.IsRunning) commandLineRunner.Kill();
+			if (commandLineRunner.IsRunning) {
+				this.Log("Killing current command line runner.");
+				commandLineRunner.Kill();
+			}
 		}
 
 		private void checkButlerVersion(bool showErrorDialog = false) {
@@ -304,8 +307,16 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
+			#if UNITY_WEBGL
 			showWebServerSettings = EditorExtensions.Collapse(showWebServerSettings, "Run web server",
 				() => {
+					if (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
+						BuildCompressionFormat == WebGLCompressionFormat.Brotli) {
+						EditorGUILayout.HelpBox("Publitch's web server cannot serve compressed builds. " +
+							"Change the compression format to Disabled in the Player Settings to use this functionality.", MessageType.Warning);
+						return;
+					}
+
 					if (currentStatus == Status.FetchingButlerVersion) {
 						this.ShowLoadingSpinner("Fetching Python3 version");
 					} else {
@@ -333,6 +344,7 @@ namespace CommonUtils.Editor.Publitch {
 					}
 				});
 			EditorGUILayout.Space();
+			#endif
 
 			EditorGUILayout.Space();
 			if (!commandLineRunner.IsRunning) {
