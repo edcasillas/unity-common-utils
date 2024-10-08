@@ -314,10 +314,10 @@ namespace CommonUtils.Editor.Publitch {
 					() => {
 						if (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
 							BuildCompressionFormat == WebGLCompressionFormat.Brotli) {
-							EditorGUILayout.HelpBox("Publitch's web server cannot serve compressed builds. " +
-													"Change the compression format to Disabled in the Player Settings to use this functionality.",
+							EditorGUILayout.HelpBox("Publitch's web server cannot serve compressed files. " +
+													"Change the compression format to Disabled in the Player Settings to use this functionality. " +
+													"You can try to run the web server anyway.",
 								MessageType.Warning);
-							return;
 						}
 
 						if (currentStatus == Status.FetchingButlerVersion) {
