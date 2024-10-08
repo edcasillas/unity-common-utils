@@ -88,6 +88,8 @@ namespace CommonUtils.Editor.Publitch {
 		private bool showAdvancedSettings = false;
 		private bool showWebServerSettings = false;
 
+		private string fetchStatusErrorMessage;
+
 		public Verbosity Verbosity { get; private set; } = Verbosity.Warning | Verbosity.Error;
 
 		private string webServerUrl => $"http://{NetworkAddress.CurrentIpV4}:{webServerPort}";
@@ -172,7 +174,7 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void fetchStatus() {
-			if (string.IsNullOrEmpty(buildId)) return;
+			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName) || string.IsNullOrEmpty(buildId)) return;
 			errorMessage = null;
 			projectStatus.Clear();
 			currentStatus = Status.FetchingStatus;
@@ -210,7 +212,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private void parseButlerStatusFromProcessOutput(string processOutput) {
 			this.Log($"Status command success: {processOutput}");
-			ButlerStatus.TryParse(processOutput, ref projectStatus);
+			fetchStatusErrorMessage = ButlerStatus.TryParse(processOutput, ref projectStatus) ? null : processOutput;
 		}
 
 		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) => this.errorMessage = errorMessage;
@@ -340,6 +342,9 @@ namespace CommonUtils.Editor.Publitch {
 			if (currentStatus == Status.FetchingStatus) {
 				this.ShowLoadingSpinner($"Fetching status for {commandLineRunner.ExecutionTime?.TotalSeconds ?? 0} seconds");
 			} else {
+				if (!string.IsNullOrEmpty(fetchStatusErrorMessage)) {
+					EditorGUILayout.HelpBox(fetchStatusErrorMessage, MessageType.Error);
+				}
 				if (projectStatus.HasData) {
 					EditorGUILayout.TextField("Channel", projectStatus.ChannelName);
 					EditorGUILayout.TextField("Upload", projectStatus.Upload);
