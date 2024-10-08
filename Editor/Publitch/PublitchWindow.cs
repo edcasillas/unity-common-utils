@@ -97,6 +97,17 @@ namespace CommonUtils.Editor.Publitch {
 
 		private string webServerUrl => $"http://{NetworkAddress.CurrentIpV4}:{webServerPort}";
 
+		private bool IsWebGLBuildCompressed {
+			get {
+				#if UNITY_WEBGL
+				return BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
+					   BuildCompressionFormat == WebGLCompressionFormat.Brotli;
+				#else
+				return false;
+			#endif
+			}
+		}
+
 		private void initialize() {
 			if(isInitialized) return;
 			this.Log("Publitch is initializing.");
@@ -280,15 +291,12 @@ namespace CommonUtils.Editor.Publitch {
 				EditorExtensions.FolderField("Build Path", BuildPath, isReadOnly: true);
 
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
+				drawLabelWithRightButton("Build Size", totalBuildSize ?? "<unknown>", EditorIcon.TreeEditorRefresh, () => totalBuildSize = getBuildSizeMBString(BuildPath), "Refresh");
 
-				EditorGUILayout.BeginHorizontal();
-				EditorExtensions.ReadOnlyLabelField("Build Size", totalBuildSize ?? "<unknown>");
-				if (GUILayout.Button(EditorIcon.TreeEditorRefresh.ToGUIContent("Refresh"), EditorStyles.iconButton, GUILayout.Height(16))) {
-					totalBuildSize = getBuildSizeMBString(BuildPath);
-				}
-				EditorGUILayout.EndHorizontal();
 #if UNITY_WEBGL
-				EditorExtensions.ReadOnlyLabelField("WebGL Compression", (BuildCompressionFormat == (WebGLCompressionFormat)(-1) ? "<unknown>" : BuildCompressionFormat));
+				var compressionFormatString = (BuildCompressionFormat == (WebGLCompressionFormat)(-1) ? "<unknown>" : BuildCompressionFormat.ToString());
+				drawLabelWithRightButton("WebGL Compression", compressionFormatString, EditorIcon.SettingsIcon,
+					() => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
 #endif
 			}
 
@@ -300,7 +308,7 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.Space();
 
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.TextField("Build ID:", buildId);
+			EditorExtensions.ReadOnlyLabelField("Build ID", buildId);
 			if (GUILayout.Button("View on itch.io", EditorStyles.miniButtonRight)) {
 				Application.OpenURL($"https://{User}.itch.io/{ProjectName}");
 			}
@@ -373,6 +381,10 @@ namespace CommonUtils.Editor.Publitch {
 
 			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
+					if (!IsWebGLBuildCompressed) {
+						EditorGUILayout.HelpBox("Your WebGL build is not compressed. You can change the compression format on Player Settings.", MessageType.Warning);
+					}
+
 					if (EditorExtensions.Button("Publitch NOW", fontColor: Color.white, backgroundColor: Color.green, fontStyle: FontStyle.Bold)) {
 						publish();
 					}
@@ -523,6 +535,15 @@ namespace CommonUtils.Editor.Publitch {
 			ButlerPath.Clear();
 			ButlerApiKey.Clear();
 			butlerVersion = null;
+		}
+
+		private void drawLabelWithRightButton(string label, string text, EditorIcon buttonIcon, Action onButtonPressed, string tooltip = null) {
+			EditorGUILayout.BeginHorizontal();
+			EditorExtensions.ReadOnlyLabelField(label, text);
+			if (buttonIcon.Button(tooltip)) {
+				onButtonPressed?.Invoke();
+			}
+			EditorGUILayout.EndHorizontal();
 		}
 	}
 }
