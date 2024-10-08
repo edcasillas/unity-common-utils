@@ -10,7 +10,7 @@ namespace CommonUtils.Extensions {
 			var textEditor = new TextEditor { text = input };
 			textEditor.SelectAll();
 			textEditor.Copy();
-			Debug.Log($"Text {input} has been copied to clipboard.");
+			Debug.Log($"Text \"{input}\" has been copied to clipboard.");
 		}
 
 		public static string GetFromClipboard() {

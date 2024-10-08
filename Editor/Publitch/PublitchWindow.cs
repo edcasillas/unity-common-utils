@@ -1,6 +1,7 @@
 using CommonUtils.Editor.BuiltInIcons;
 using CommonUtils.Editor.EditorPrefsValues;
 using CommonUtils.Editor.SystemProcesses;
+using CommonUtils.Extensions;
 using CommonUtils.Logging;
 using CommonUtils.Verbosables;
 using System;
@@ -334,7 +335,10 @@ namespace CommonUtils.Editor.Publitch {
 
 					EditorGUILayout.BeginHorizontal();
 					EditorExtensions.ReadOnlyLabelField("Local URL", webServerUrl);
-					if (currentStatus == Status.RunningWebServer && GUILayout.Button(EditorIcon.PlayButton.ToGUIContent(), EditorStyles.iconButton, GUILayout.Height(16))) {
+					if (EditorIcon.Clipboard.Button()) {
+						webServerUrl.CopyToClipboard();
+					}
+					if (currentStatus == Status.RunningWebServer && EditorIcon.PlayButton.Button()) {
 						Application.OpenURL(webServerUrl);
 					}
 					EditorGUILayout.EndHorizontal();

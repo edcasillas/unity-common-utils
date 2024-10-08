@@ -1,4 +1,7 @@
 ﻿using CommonUtils.Coroutines;
+using CommonUtils.Logging;
+using CommonUtils.UI.ProgressDisplay;
+using CommonUtils.UnityComponents;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -112,11 +115,9 @@ namespace CommonUtils {
 		#endregion
 
 		#region Inspector fields
-#pragma warning disable 649
-
 		[SerializeField] private TMP_Text suggestionsLabel;
 
-		[SerializeField] private Slider progressSlider;
+		[SerializeField][Obsolete] private Slider progressSlider;
 
 		[FormerlySerializedAs("Suggestions")]
 		[SerializeField] private string[] suggestions;
@@ -135,8 +136,9 @@ namespace CommonUtils {
 
 		[FormerlySerializedAs("SuggestionsChangeEvery")]
 		[SerializeField] [Range(1f, 5f)] private float suggestionsChangeEvery = 1f;
-#pragma warning restore 649
 		#endregion
+
+		private IProgressDisplay progressDisplay;
 
 		private CoroutinerInstance suggestionsCoroutine;
 		private List<string> suggestionsToShow;
@@ -151,6 +153,17 @@ namespace CommonUtils {
 			_instance = this;
 			DontDestroyOnLoad(gameObject);
 			SceneManager.sceneLoaded += onSceneLoaded;
+
+			progressDisplay = GetComponentInChildren<IProgressDisplay>();
+
+			if (progressDisplay.IsValid()) return;
+#pragma warning disable CS0612
+			if (progressSlider) { this.Log($"{name} is using the obsolete progress slider inspector field. Support for this field will be removed in future versions. Use the {nameof(IProgressDisplay)} instead.", LogLevel.Warning);
+				progressDisplay = SliderProgressDisplay.Create(progressSlider);
+			} else {
+				this.Log("No progress display has been configured.");
+			}
+#pragma warning restore CS0612
 		}
 
 		private void Start() {
@@ -223,42 +236,36 @@ namespace CommonUtils {
 		#region doLoad coroutines
 		private IEnumerator doLoad(int sceneIndex) {
 			var asyncLoad = SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Single);
-			while(!asyncLoad.isDone) {
-				if(progressSlider) progressSlider.value = asyncLoad.progress;
-				yield return null;
-			}
+			yield return waitForLoading(asyncLoad);
 		}
 
 		private IEnumerator doLoad(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
 			var asyncLoad = SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Single);
-			asyncLoad.allowSceneActivation = false;
-			while(asyncLoad.progress < 0.9f) {
-				if(progressSlider) progressSlider.value = asyncLoad.progress;
-				yield return null;
-			}
-
-			if(progressSlider) progressSlider.value = 1f;
+			asyncLoad!.allowSceneActivation = false;
+			yield return waitForLoading(asyncLoad);
 			onReadyToActivate(asyncLoad);
 		}
 
 		private IEnumerator doLoad(string scenePath) {
 			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
-			while(!asyncLoad.isDone) {
-				if(progressSlider) progressSlider.value = asyncLoad.progress;
-				yield return null;
-			}
+			yield return waitForLoading(asyncLoad);
 		}
 
 		private IEnumerator doLoad(string scenePath, Action<AsyncOperation> onReadyToActivate) {
 			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
-			asyncLoad.allowSceneActivation = false;
-			while(asyncLoad.progress < 0.9f) {
-				if(progressSlider) progressSlider.value = asyncLoad.progress;
+			asyncLoad!.allowSceneActivation = false;
+			yield return waitForLoading(asyncLoad);
+			onReadyToActivate(asyncLoad);
+		}
+
+		private IEnumerator waitForLoading(AsyncOperation asyncLoad) {
+			while((asyncLoad.allowSceneActivation && asyncLoad.isDone) || asyncLoad.progress < 0.9f) {
+				this.Log($"Async load progress: {asyncLoad.progress}");
+				if(progressDisplay.IsValid()) progressDisplay.Progress = asyncLoad.progress;
 				yield return null;
 			}
-
-			progressSlider.value = 1f;
-			onReadyToActivate(asyncLoad);
+			if(progressDisplay.IsValid()) progressDisplay.Progress = 1f; // TODO Animate from .9 through 1f so the player can see completion of the loading bar.
+			this.Log("Async load completed.");
 		}
 		#endregion
 

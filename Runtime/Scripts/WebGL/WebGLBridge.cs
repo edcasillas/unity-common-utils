@@ -1,27 +1,21 @@
 using CommonUtils.Logging;
 using CommonUtils.UnityComponents;
 using CommonUtils.Verbosables;
-using System.Collections;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using ILogger = CommonUtils.Logging.ILogger;
 
 namespace CommonUtils.WebGL {
-	public interface IWebGLBridge : IUnityComponent, IVerbosable {
-		bool IsMobileBrowser { get; }
-	}
-
-	public enum WebBrowserType {
-		None,
-		Unknown,
-		Chrome,
-		Firefox,
-		Safari,
-		Edge,
-		Opera,
-	}
-
-	public class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
-		#region Static members
+	/// <summary>
+	/// Provides a bridge for interacting with WebGL-specific functionality such as pointer lock events, full-screen
+	/// toggling, and key event management.
+	/// </summary>
+	public partial class WebGLBridge : EnhancedMonoBehaviour, IWebGLBridge {
+		#region Native functions
 #if UNITY_WEBGL && !UNITY_EDITOR
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern void commonUtils_webGL_setVerbosity(int verbosity);
+
 	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern void commonUtils_webGL_goFullScreen();
 
@@ -30,17 +24,38 @@ namespace CommonUtils.WebGL {
 
 	[System.Runtime.InteropServices.DllImport("__Internal")]
 	private static extern string commonUtils_webGL_getUserAgent();
-#endif
 
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern void commonUtils_webGL_setupPointerLockEvents(string gameObjectName);
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+	private static extern void commonUtils_webGL_removePointerLockEvents();
+
+	[System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern void commonUtils_webGL_disableDefaultBehaviorForKey(string key);
+#endif
+		#endregion
+
+		#region Static members
 		#region Singleton definition
+		private static bool instanceHasBeenResolved = false;
 		private static IWebGLBridge instance;
 		public static IWebGLBridge Instance {
 			get {
 				if (!instance.IsValid()) {
+					if (instanceHasBeenResolved) {
+						if (SingletonRegistry.TryResolve<ILogger>(out var logger)) {
+							logger.Log(LogLevel.Error, $"Instance of {nameof(WebGLBridge)} has already been destroyed. This might happen when the application is being terminated.");
+						}
+						return null;
+					}
 					instance = FindObjectOfType<WebGLBridge>();
+					if(instance.IsValid()) instance.Log2("WebGLBridge found in scene.", LogLevel.Warning);
 					if (!instance.IsValid()) {
 						instance = new GameObject(nameof(WebGLBridge)).AddComponent<WebGLBridge>();
+						if(instance.IsValid()) instance.Log2("WebGLBridge not found in scene, a game object has been added to the scene.", LogLevel.Warning);
 					}
+					if(instance.IsValid()) instanceHasBeenResolved = true;
 				}
 
 				return instance;
@@ -59,9 +74,6 @@ namespace CommonUtils.WebGL {
 		#endregion
 
 		#region Inspector fields
-		[SerializeField] private BoolEvent onPointerLockChanged;
-		[SerializeField] private float timeToWaitForPointerLockedEvent = 0.05f;
-
 #pragma warning disable CS0414
 		[SerializeField] private bool mockMobileBrowser = false;
 #pragma warning restore CS0414
@@ -89,43 +101,31 @@ namespace CommonUtils.WebGL {
 			}
 		}
 
-		private WebBrowserType? webBrowserType = null;
-		public WebBrowserType WebBrowserType {
+		private WebBrowserType? browserType = null;
+		public WebBrowserType BrowserType {
 			get {
-				if (!webBrowserType.HasValue) {
+				if (!browserType.HasValue) {
 					var agent = UserAgent;
-					if (string.IsNullOrEmpty(agent)) webBrowserType = WebBrowserType.None;
-					else if (agent.Contains("Mozilla/5.0")) webBrowserType = WebBrowserType.Chrome;
-					else if (agent.Contains("Chrome")) webBrowserType = WebBrowserType.Chrome;
-					else if (agent.Contains("Firefox")) webBrowserType = WebBrowserType.Firefox;
-					else if (agent.Contains("Safari")) webBrowserType = WebBrowserType.Safari;
-					else if (agent.Contains("Edge")) webBrowserType = WebBrowserType.Edge;
-					else if (agent.Contains("Opera")) webBrowserType = WebBrowserType.Opera;
-					else webBrowserType = WebBrowserType.Unknown;
+					if (string.IsNullOrEmpty(agent)) browserType = WebBrowserType.None;
+					else if (agent.Contains("Mozilla/5.0")) browserType = WebBrowserType.Chrome;
+					else if (agent.Contains("Chrome")) browserType = WebBrowserType.Chrome;
+					else if (agent.Contains("Firefox")) browserType = WebBrowserType.Firefox;
+					else if (agent.Contains("Safari")) browserType = WebBrowserType.Safari;
+					else if (agent.Contains("Edge")) browserType = WebBrowserType.Edge;
+					else if (agent.Contains("Opera")) browserType = WebBrowserType.Opera;
+					else browserType = WebBrowserType.Unknown;
 				}
-				return webBrowserType.Value;
-			}
-		}
-
-		private bool pointerIsLocked;
-		public bool PointerIsLocked {
-			get => pointerIsLocked;
-			private set {
-				if (pointerIsLocked == value) return;
-				pointerIsLocked = value;
-				this.Log($"Pointer is now {(pointerIsLocked ? "locked" : "unlocked")}");
-				onPointerLockChanged?.Invoke(pointerIsLocked);
+				return browserType.Value;
 			}
 		}
 		#endregion
 
-		private bool wantedNewPointerIsLockedValue;
-		private bool receivedFollowUp = false;
-
 		#region Unity Lifecycle
 		private void Awake() {
+			this.Log("Awake");
 			#region Singleton check
-			if (instance.IsValid() && !ReferenceEquals(instance, this)) {
+			if (instance.IsValid() && instance != this as IWebGLBridge) {
+				this.Log($"Multiple WebGL bridge instances are active. Instance is {instance.name}.", LogLevel.Warning);
 				Destroy(gameObject);
 				return;
 			}
@@ -142,34 +142,38 @@ namespace CommonUtils.WebGL {
 				this.Log("Mocking mobile browser. To disable, uncheck this option in the WebGLBridge inspector.", LogLevel.Error);
 			}
 #endif
+			this.Log(() => $"Playing game on {BrowserType}");
+			setNativeVerbosity();
+			if (!IsMobileBrowser) setupPointerLockEvents();
+			DisableDefaultBehavior(KeyCode.Escape);
 		}
 
 		private void OnDestroy() {
-			if(instance.IsValid() && ReferenceEquals(instance, this)) instance = null;
+			this.Log($"{nameof(WebGLBridge)} is being destroyed!");
+			if(instance != this as IWebGLBridge) return;
+
+			if(!IsMobileBrowser) removePointerLockEvents();
+			instance = null;
 		}
 		#endregion
 
-		[ShowInInspector]
-		public void OnPointerLockChanged(int locked) {
-			if (locked > 0) {
-				PointerIsLocked = true;
-				receivedFollowUp = true;
-				return;
-			}
-
-			StartCoroutine(handlePointerUnlocked());
+		// Not sure this works as expected
+		public void DisableDefaultBehavior(KeyCode keyCode) {
+			this.Log($"{nameof(DisableDefaultBehavior)}({keyCode})");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            string keyString = keyCode.ToString(); // Convert KeyCode to string representation
+            this.Log($"Disabling default behavior for {keyString}");
+            commonUtils_webGL_disableDefaultBehaviorForKey(keyString);
+#endif
 		}
 
-		/// <summary>
-		/// Waits for a bit to see if there's a second call to OnPointerLockChanged, and does not set it as unlocked if
-		/// another call arrived in a short amount of time.
-		/// </summary>
-		/// <returns></returns>
-		private IEnumerator handlePointerUnlocked() {
-			receivedFollowUp = false;
-			yield return new WaitForSeconds(timeToWaitForPointerLockedEvent);
-			if(receivedFollowUp) yield break;
-			PointerIsLocked = false;
+		private void setNativeVerbosity() {
+			var nativeVerbosity = (int)Verbosity;
+			if (nativeVerbosity < 0) nativeVerbosity = (int)(Verbosity.Debug | Verbosity.Warning | Verbosity.Error);
+			this.Log($"Verbosity will be set to {nativeVerbosity}");
+#if UNITY_WEBGL && !UNITY_EDITOR
+			commonUtils_webGL_setVerbosity((int)nativeVerbosity);
+#endif
 		}
 	}
 }
