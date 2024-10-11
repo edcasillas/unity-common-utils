@@ -378,6 +378,8 @@ namespace CommonUtils.Editor.Publitch {
 
 			EditorGUILayout.Space();
 			if (!string.IsNullOrEmpty(LastBuiltDateTime)) EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
+
+			// TODO The following line some times logs this error: ArgumentException: Getting control 20's position in a group with only 20 controls when doing repaint Aborting
 			EditorGUILayout.LabelField("Last published", !string.IsNullOrEmpty(LastPublishDateTime) ? LastPublishDateTime : "<unknown>");
 
 			if (currentStatus == Status.Idle) {
