@@ -29,5 +29,7 @@ namespace CommonUtils {
 		public string this[string key] => Properties.GetValueOrDefault(key);
 
 		public void Reload() => propertiesDict = entries?.ToDictionary(e => e.Key, e => e.Value) ?? new Dictionary<string, string>();
+
+		public static GameProperties Load(string assetName) => Resources.Load<GameProperties>(assetName);
 	}
 }
