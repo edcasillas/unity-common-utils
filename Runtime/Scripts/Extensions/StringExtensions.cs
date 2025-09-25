@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -6,6 +7,13 @@ using UnityEngine;
 
 namespace CommonUtils.Extensions {
 	public static class StringExtensions {
+		/// <summary>
+		/// Copies the specified string to the system clipboard using Unity's TextEditor.
+		/// </summary>
+		/// <param name="input">The text to copy to the clipboard.</param>
+		/// <remarks>
+		/// Logs a message upon success. Behavior depends on Unity platform/runtime support for clipboard operations.
+		/// </remarks>
 		public static void CopyToClipboard(this string input) {
 			var textEditor = new TextEditor { text = input };
 			textEditor.SelectAll();
@@ -13,6 +21,10 @@ namespace CommonUtils.Extensions {
 			Debug.Log($"Text \"{input}\" has been copied to clipboard.");
 		}
 
+		/// <summary>
+		/// Retrieves the current text content from the system clipboard using Unity's TextEditor.
+		/// </summary>
+		/// <returns>The clipboard text, or an empty string if none is available.</returns>
 		public static string GetFromClipboard() {
 			var textEditor = new TextEditor();
 			textEditor.Paste();
@@ -31,6 +43,13 @@ namespace CommonUtils.Extensions {
 			return result.ToString();
 		}
 
+		/// <summary>
+		/// Returns a copy of the string with its first character converted to uppercase.
+		/// </summary>
+		/// <param name="input">The source string. Must be non-null and non-empty.</param>
+		/// <returns>The input string with the first character uppercased.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="input"/> is null.</exception>
+		/// <exception cref="ArgumentException">Thrown when <paramref name="input"/> is empty.</exception>
 		public static string FirstCharToUpper(this string input) {
 			switch (input) {
 				case null: throw new ArgumentNullException(nameof(input));
@@ -39,6 +58,13 @@ namespace CommonUtils.Extensions {
 			}
 		}
 
+		/// <summary>
+		/// Returns a copy of the string with its first character converted to lowercase.
+		/// </summary>
+		/// <param name="input">The source string. Must be non-null and non-empty.</param>
+		/// <returns>The input string with the first character lowercased.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="input"/> is null.</exception>
+		/// <exception cref="ArgumentException">Thrown when <paramref name="input"/> is empty.</exception>
 		public static string FirstCharToLower(this string input) {
 			switch (input) {
 				case null: throw new ArgumentNullException(nameof(input));
@@ -47,6 +73,11 @@ namespace CommonUtils.Extensions {
 			}
 		}
 
+		/// <summary>
+		/// Converts a PascalCase or camelCase identifier to a human-readable title by inserting spaces before inner uppercase letters.
+		/// </summary>
+		/// <param name="text">The input text (expected to be non-null and non-empty).</param>
+		/// <returns>A title-cased string with spaces inserted (e.g., "MySampleText" -> "My Sample Text").</returns>
 		public static string PascalToTitleCase(this string text) {
 			text = text.Substring(0, 1).ToUpper() + text.Substring(1);
 			return Regex.Replace(text, @"(\B[A-Z])", @" $1");
@@ -106,6 +137,22 @@ namespace CommonUtils.Extensions {
 			}
 
 			return resultBuilder.ToString();
+		}
+
+		/// <summary>
+		/// Resolves an absolute file system path from a possibly relative project path.
+		/// </summary>
+		/// <param name="maybeRelativePath">A relative or absolute path. If null or empty, null is returned.</param>
+		/// <returns>
+		/// The absolute path. If the input is already rooted, it is returned unchanged. If relative, it is resolved
+		/// against the Unity project root (the parent of the Assets folder).
+		/// </returns>
+		public static string ToAbsolutePath(this string maybeRelativePath) {
+			if (string.IsNullOrEmpty(maybeRelativePath)) return null;
+			if (Path.IsPathRooted(maybeRelativePath)) return maybeRelativePath;
+
+			// Project root = Assets/..
+			return Path.GetFullPath(Path.Combine(Application.dataPath, "..", maybeRelativePath));
 		}
 	}
 }
