@@ -9,7 +9,8 @@ namespace CommonUtils.Editor {
 
 			// Automatic signing
 			proj.SetBuildProperty(targetGuid, "CODE_SIGN_STYLE", "Automatic");
-			proj.SetTeamId(targetGuid, teamId);
+			// NOTE: Avoid SetTeamId because it can throw when called multiple times for the same target.
+			// Xcode auto-signing works with DEVELOPMENT_TEAM + CODE_SIGN_STYLE below.
 
 			// Clear any stale manual settings that can fight with automatic
 			proj.SetBuildProperty(targetGuid, "PROVISIONING_PROFILE_SPECIFIER", "");
