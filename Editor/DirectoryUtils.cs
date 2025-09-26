@@ -27,6 +27,17 @@ namespace CommonUtils.Editor
 				var relative = MakeRelativePath(sourceDir, directory);
 				Directory.CreateDirectory(Path.Combine(destinationDir, relative));
 			}
+
+			// Copy every file, preserving directory structure.
+			foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories)) {
+				var relative = MakeRelativePath(sourceDir, file);
+				var destinationFile = Path.Combine(destinationDir, relative);
+				var destinationFolder = Path.GetDirectoryName(destinationFile);
+				if (!string.IsNullOrEmpty(destinationFolder) && !Directory.Exists(destinationFolder)) {
+					Directory.CreateDirectory(destinationFolder);
+				}
+				File.Copy(file, destinationFile, overwrite: true);
+			}
 		}
 		/// <summary>
 		/// Creates a relative path from <paramref name="basePath"/> to <paramref name="targetPath"/>.
