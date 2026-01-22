@@ -1,8 +1,7 @@
 using System;
 using UnityEditor;
 
-namespace CommonUtils.Editor.EditorPrefsValues
-{
+namespace CommonUtils.Editor.EditorPrefsValues {
 	public class EditorPrefsEnum<TEnum> : AbstractEditorPrefsValue<TEnum> where TEnum : struct, Enum {
 		public EditorPrefsEnum(string editorPrefsKey, bool isProjectSpecific = false) : base(editorPrefsKey, isProjectSpecific) { }
 		public EditorPrefsEnum(string editorPrefsKey, TEnum defaultValue, bool isProjectSpecific = false) : base(editorPrefsKey, defaultValue, isProjectSpecific) { }

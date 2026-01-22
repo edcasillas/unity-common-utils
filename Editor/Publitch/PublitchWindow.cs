@@ -1,6 +1,7 @@
 using CommonUtils.Editor.BuiltInIcons;
 using CommonUtils.Editor.EditorPrefsValues;
 using CommonUtils.Editor.SystemProcesses;
+using CommonUtils.Extensions;
 using CommonUtils.Logging;
 using CommonUtils.Verbosables;
 using System;
@@ -33,6 +34,7 @@ namespace CommonUtils.Editor.Publitch {
 		private const string EDITOR_PREF_KEY_PROJECT_NAME = "ProjectName";
 		private const string EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME = "LastPublishDateTime";
 		private const string EDITOR_PREF_KEY_LAST_BUILD_DATETIME = "LastBuiltDateTime";
+		private const string EDITOR_PREF_KEY_WEBGL_COMPRESSION_METHOD = "WebGLCompressionMethod";
 		#endregion
 
 		#region Statics (To create the editor menu and save preferences)
@@ -58,15 +60,17 @@ namespace CommonUtils.Editor.Publitch {
 		internal static readonly EditorPrefsString ProjectName = new(getEditorPrefKey(EDITOR_PREF_KEY_PROJECT_NAME), () => PlayerSettings.productName, true);
 		internal static readonly EditorPrefsString LastPublishDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_PUBLISH_DATETIME), string.Empty, true);
 		internal static readonly EditorPrefsString LastBuiltDateTime = new(getEditorPrefKey(EDITOR_PREF_KEY_LAST_BUILD_DATETIME), string.Empty, true);
-		internal static readonly EditorPrefsEnum<BuildTarget> ActiveBuildTarget = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
+		internal static readonly EditorPrefsEnum<BuildTarget> LastBuildTargetPlatform = new(getEditorPrefKey(EDITOR_PREF_KEY_BUILD_TARGET), () => EditorUserBuildSettings.activeBuildTarget, true);
+		internal static readonly EditorPrefsEnum<WebGLCompressionFormat> BuildCompressionFormat = new(getEditorPrefKey(EDITOR_PREF_KEY_WEBGL_COMPRESSION_METHOD), (WebGLCompressionFormat)(-1), true);
 		#endregion
-		private static string buildId => $"{User}/{ProjectName}:{getChannelName(ActiveBuildTarget)}";
+		private static string buildId => $"{User}/{ProjectName}:{getChannelName(LastBuildTargetPlatform)}";
 
 		[PostProcessBuild]
 		public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject) {
 			LastBuiltDateTime.Value = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-			ActiveBuildTarget.Value = target; // TODO is this really needed
+			LastBuildTargetPlatform.Value = target;
 			BuildPath.Value = pathToBuiltProject;
+			if(target == BuildTarget.WebGL) BuildCompressionFormat.Value = PlayerSettings.WebGL.compressionFormat;
 			totalBuildSize = getBuildSizeMBString(BuildPath);
 		}
 		#endregion
@@ -88,9 +92,15 @@ namespace CommonUtils.Editor.Publitch {
 		private bool showAdvancedSettings = false;
 		private bool showWebServerSettings = false;
 
+		private string fetchStatusErrorMessage;
+
 		public Verbosity Verbosity { get; private set; } = Verbosity.Warning | Verbosity.Error;
 
 		private string webServerUrl => $"http://{NetworkAddress.CurrentIpV4}:{webServerPort}";
+
+		private bool IsWebGLBuildCompressed => LastBuildTargetPlatform == BuildTarget.WebGL &&
+											   (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
+												BuildCompressionFormat == WebGLCompressionFormat.Brotli);
 
 		private void initialize() {
 			if(isInitialized) return;
@@ -108,7 +118,10 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void OnDisable() {
-			if(commandLineRunner.IsRunning) commandLineRunner.Kill();
+			if (commandLineRunner.IsRunning) {
+				this.Log("Killing current command line runner.");
+				commandLineRunner.Kill();
+			}
 		}
 
 		private void checkButlerVersion(bool showErrorDialog = false) {
@@ -172,7 +185,7 @@ namespace CommonUtils.Editor.Publitch {
 		}
 
 		private void fetchStatus() {
-			if (string.IsNullOrEmpty(buildId)) return;
+			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName) || string.IsNullOrEmpty(buildId)) return;
 			errorMessage = null;
 			projectStatus.Clear();
 			currentStatus = Status.FetchingStatus;
@@ -210,7 +223,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private void parseButlerStatusFromProcessOutput(string processOutput) {
 			this.Log($"Status command success: {processOutput}");
-			ButlerStatus.TryParse(processOutput, ref projectStatus);
+			fetchStatusErrorMessage = ButlerStatus.TryParse(processOutput, ref projectStatus) ? null : processOutput;
 		}
 
 		private void onButlerStatusError(Win32ErrorCode errorCode, string errorMessage) => this.errorMessage = errorMessage;
@@ -249,13 +262,9 @@ namespace CommonUtils.Editor.Publitch {
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(errorMessage)) {
-				EditorGUILayout.HelpBox(errorMessage, MessageType.Error);
-			}
+			if (!string.IsNullOrEmpty(errorMessage)) { EditorGUILayout.HelpBox(errorMessage, MessageType.Error); }
 
-			if (currentStatus == Status.FetchingButlerVersion) {
-				this.ShowLoadingSpinner("Checking butler installation...");
-			}
+			if (currentStatus == Status.FetchingButlerVersion) { this.ShowLoadingSpinner("Checking butler installation..."); }
 
 			showSettings |= string.IsNullOrEmpty(butlerVersion);
 			renderBulterSettings();
@@ -276,13 +285,12 @@ namespace CommonUtils.Editor.Publitch {
 				EditorExtensions.FolderField("Build Path", BuildPath, isReadOnly: true);
 
 				if (totalBuildSize == null) totalBuildSize = getBuildSizeMBString(BuildPath);
+				drawLabelWithRightButton("Build Size", totalBuildSize ?? "<unknown>", EditorIcon.TreeEditorRefresh, () => totalBuildSize = getBuildSizeMBString(BuildPath), "Refresh");
 
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField("Build Size", totalBuildSize ?? "<unknown>");
-				if (GUILayout.Button(EditorIcon.TreeEditorRefresh.ToGUIContent("Refresh"), EditorStyles.iconButton, GUILayout.Height(16))) {
-					totalBuildSize = getBuildSizeMBString(BuildPath);
+				if (LastBuildTargetPlatform == BuildTarget.WebGL) {
+					var compressionFormatString = (BuildCompressionFormat == (WebGLCompressionFormat)(-1) ? "<unknown>" : BuildCompressionFormat.ToString());
+					drawLabelWithRightButton("WebGL Compression", compressionFormatString, EditorIcon.SettingsIcon, () => EditorApplication.ExecuteMenuItem("Edit/Project Settings..."));
 				}
-				EditorGUILayout.EndHorizontal();
 			}
 
 			if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(ProjectName)) {
@@ -293,42 +301,59 @@ namespace CommonUtils.Editor.Publitch {
 			EditorGUILayout.Space();
 
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.TextField("Build ID:", buildId);
+			EditorExtensions.ReadOnlyLabelField("Build ID", buildId);
 			if (GUILayout.Button("View on itch.io", EditorStyles.miniButtonRight)) {
 				Application.OpenURL($"https://{User}.itch.io/{ProjectName}");
 			}
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
-			showWebServerSettings = EditorExtensions.Collapse(showWebServerSettings, "Run web server",
-				() => {
-					if (currentStatus == Status.FetchingButlerVersion) {
-						this.ShowLoadingSpinner("Fetching Python3 version");
-					} else {
-						renderVersionField("Python Version", pythonVersion, () => checkPythonVersion(true));
-					}
-					webServerPort = EditorGUILayout.TextField("Port", webServerPort);
-
-					EditorGUILayout.BeginHorizontal();
-					EditorExtensions.ReadOnlyLabelField("Local URL", webServerUrl);
-					if (currentStatus == Status.RunningWebServer && GUILayout.Button(EditorIcon.PlayButton.ToGUIContent(), EditorStyles.iconButton, GUILayout.Height(16))) {
-						Application.OpenURL(webServerUrl);
-					}
-					EditorGUILayout.EndHorizontal();
-
-					if (currentStatus == Status.Idle && GUILayout.Button("Run web server")) {
-						runWebServer();
-					}
-
-					if (currentStatus == Status.RunningWebServer) {
-						this.ShowLoadingSpinner("Running web server");
-						if (GUILayout.Button("Stop web server")) {
-							commandLineRunner.Kill();
-							currentStatus = Status.Idle;
+			if (LastBuildTargetPlatform == BuildTarget.WebGL) {
+				showWebServerSettings = EditorExtensions.Collapse(showWebServerSettings,
+					"Run web server",
+					() => {
+						if (BuildCompressionFormat == WebGLCompressionFormat.Gzip ||
+							BuildCompressionFormat == WebGLCompressionFormat.Brotli) {
+							EditorGUILayout.HelpBox("Publitch's web server cannot serve compressed files. " +
+													"Change the compression format to Disabled in the Player Settings to use this functionality. " +
+													"You can try to run the web server anyway.",
+								MessageType.Warning);
 						}
-					}
-				});
-			EditorGUILayout.Space();
+
+						if (currentStatus == Status.FetchingButlerVersion) {
+							this.ShowLoadingSpinner("Fetching Python3 version");
+						} else {
+							renderVersionField("Python Version", pythonVersion, () => checkPythonVersion(true));
+						}
+
+						webServerPort = EditorGUILayout.TextField("Port", webServerPort);
+
+						EditorGUILayout.BeginHorizontal();
+						EditorExtensions.ReadOnlyLabelField("Local URL", webServerUrl);
+						if (EditorIcon.Clipboard.Button()) {
+							webServerUrl.CopyToClipboard();
+						}
+
+						if (currentStatus == Status.RunningWebServer && EditorIcon.PlayButton.Button()) {
+							Application.OpenURL(webServerUrl);
+						}
+
+						EditorGUILayout.EndHorizontal();
+
+						if (currentStatus == Status.Idle && GUILayout.Button("Run web server")) {
+							runWebServer();
+						}
+
+						if (currentStatus == Status.RunningWebServer) {
+							this.ShowLoadingSpinner("Running web server");
+							if (GUILayout.Button("Stop web server")) {
+								commandLineRunner.Kill();
+								currentStatus = Status.Idle;
+							}
+						}
+					});
+				EditorGUILayout.Space();
+			}
 
 			EditorGUILayout.Space();
 			if (!commandLineRunner.IsRunning) {
@@ -340,6 +365,9 @@ namespace CommonUtils.Editor.Publitch {
 			if (currentStatus == Status.FetchingStatus) {
 				this.ShowLoadingSpinner($"Fetching status for {commandLineRunner.ExecutionTime?.TotalSeconds ?? 0} seconds");
 			} else {
+				if (!string.IsNullOrEmpty(fetchStatusErrorMessage)) {
+					EditorGUILayout.HelpBox(fetchStatusErrorMessage, MessageType.Error);
+				}
 				if (projectStatus.HasData) {
 					EditorGUILayout.TextField("Channel", projectStatus.ChannelName);
 					EditorGUILayout.TextField("Upload", projectStatus.Upload);
@@ -350,10 +378,18 @@ namespace CommonUtils.Editor.Publitch {
 
 			EditorGUILayout.Space();
 			if (!string.IsNullOrEmpty(LastBuiltDateTime)) EditorGUILayout.LabelField("Last built", LastBuiltDateTime);
+
+			// TODO The following line some times logs this error: ArgumentException: Getting control 20's position in a group with only 20 controls when doing repaint Aborting
 			EditorGUILayout.LabelField("Last published", !string.IsNullOrEmpty(LastPublishDateTime) ? LastPublishDateTime : "<unknown>");
 
 			if (currentStatus == Status.Idle) {
 				if (!string.IsNullOrEmpty(BuildPath)) {
+					if (LastBuildTargetPlatform == BuildTarget.WebGL) {
+						if (!IsWebGLBuildCompressed) {
+							EditorGUILayout.HelpBox("Your WebGL build is not compressed. You can change the compression format on Player Settings.", MessageType.Warning);
+						}
+					}
+
 					if (EditorExtensions.Button("Publitch NOW", fontColor: Color.white, backgroundColor: Color.green, fontStyle: FontStyle.Bold)) {
 						publish();
 					}
@@ -441,7 +477,7 @@ namespace CommonUtils.Editor.Publitch {
 
 		private static void drawBuildTarget() {
 			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.EnumPopup("Current Build Target", ActiveBuildTarget);
+			EditorGUILayout.EnumPopup("Current Build Target", LastBuildTargetPlatform);
 			if (GUILayout.Button(EditorIcon.BuildSettingsEditor.ToGUIContent("Open Build Settings"), EditorStyles.iconButton, GUILayout.Height(16))) {
 				EditorApplication.ExecuteMenuItem("File/Build Settings...");
 			}
@@ -504,6 +540,15 @@ namespace CommonUtils.Editor.Publitch {
 			ButlerPath.Clear();
 			ButlerApiKey.Clear();
 			butlerVersion = null;
+		}
+
+		private void drawLabelWithRightButton(string label, string text, EditorIcon buttonIcon, Action onButtonPressed, string tooltip = null) {
+			EditorGUILayout.BeginHorizontal();
+			EditorExtensions.ReadOnlyLabelField(label, text);
+			if (buttonIcon.Button(tooltip)) {
+				onButtonPressed?.Invoke();
+			}
+			EditorGUILayout.EndHorizontal();
 		}
 	}
 }

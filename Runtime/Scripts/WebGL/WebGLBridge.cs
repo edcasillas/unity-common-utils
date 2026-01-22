@@ -65,10 +65,10 @@ namespace CommonUtils.WebGL {
 
 		public static void GoFullScreen() {
 #if UNITY_WEBGL && !UNITY_EDITOR
-		instance.Log2("Requested full screen to the WebGL bridge.");
-		commonUtils_webGL_goFullScreen();
+			Instance.Log2("Requested full screen to the WebGL bridge.");
+			commonUtils_webGL_goFullScreen();
 #else
-			instance.Log2("Requested full screen to the WebGL bridge. This will only work in WebGL builds.", LogLevel.Warning);
+			Instance.Log2("Requested full screen to the WebGL bridge. This will only work in WebGL builds.", LogLevel.Warning);
 #endif
 		}
 		#endregion
