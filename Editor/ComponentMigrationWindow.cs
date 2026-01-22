@@ -25,7 +25,7 @@ namespace CommonUtils.Editor {
 
 			GUI.enabled = legacyScript != null && newScript != null;
 			if (GUILayout.Button("Migrate All", GUILayout.Height(30))) {
-				MigrateAll();
+				migrateAll();
 			}
 
 			GUI.enabled = true;
@@ -36,7 +36,7 @@ namespace CommonUtils.Editor {
 			EditorGUILayout.EndScrollView();
 		}
 
-		private void MigrateAll() {
+		private void migrateAll() {
 			if (!EditorUtility.DisplayDialog("Migrate Components",
 					$"Replace all instances of '{legacyScript.name}' with '{newScript.name}'?",
 					"Yes",
@@ -44,59 +44,62 @@ namespace CommonUtils.Editor {
 				return;
 
 			statusMessage = "Starting migration...\n";
-			int total = 0;
+			var total = 0;
 
-			total += MigratePrefabs();
-			total += MigrateScenes();
+			total += migratePrefabs();
+			total += migrateScenes();
 
 			AssetDatabase.SaveAssets();
 			statusMessage += $"\nMigration complete. {total} components replaced.";
 		}
 
-		private int MigratePrefabs() {
+		private int migratePrefabs() {
 			var prefabPaths = AssetDatabase.FindAssets("t:Prefab")
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.ToArray();
 
-			int count = 0;
-			for (int i = 0; i < prefabPaths.Length; i++) {
+			var count = 0;
+			for (var i = 0; i < prefabPaths.Length; i++) {
 				if (EditorUtility.DisplayCancelableProgressBar("Migrating Prefabs",
 						prefabPaths[i],
 						(float)i / prefabPaths.Length))
 					break;
 
 				var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPaths[i]);
-				if (prefab != null) {
-					int migrated = MigrateGameObject(prefab);
-					if (migrated > 0) {
-						EditorUtility.SetDirty(prefab);
-						count += migrated;
-						statusMessage += $"Prefab: {prefabPaths[i]} ({migrated})\n";
-					}
-				}
+
+				if (prefab == null) continue;
+
+				var migrated = migrateGameObject(prefab);
+
+				if (migrated <= 0) continue;
+
+				EditorUtility.SetDirty(prefab);
+				count += migrated;
+				statusMessage += $"Prefab: {prefabPaths[i]} ({migrated})\n";
 			}
 
 			EditorUtility.ClearProgressBar();
 			return count;
 		}
 
-		private int MigrateScenes() {
+		private int migrateScenes() {
 			var scenePaths = AssetDatabase.FindAssets("t:Scene")
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.ToArray();
 
-			int count = 0;
-			for (int i = 0; i < scenePaths.Length; i++) {
+			var count = 0;
+			for (var i = 0; i < scenePaths.Length; i++) {
 				if (EditorUtility.DisplayCancelableProgressBar("Migrating Scenes",
 						scenePaths[i],
 						(float)i / scenePaths.Length))
 					break;
 
 				var scene = EditorSceneManager.OpenScene(scenePaths[i], OpenSceneMode.Additive);
-				int migrated = 0;
+
+				var migrated = 0;
 
 				foreach (var root in scene.GetRootGameObjects())
-					migrated += MigrateGameObject(root);
+					migrated += migrateGameObject(root);
 
 				if (migrated > 0) {
 					EditorSceneManager.SaveScene(scene);
@@ -111,24 +114,26 @@ namespace CommonUtils.Editor {
 			return count;
 		}
 
-		private int MigrateGameObject(GameObject go) {
+		private int migrateGameObject(GameObject go) {
 			var legacyType = legacyScript.GetClass();
 			var newType = newScript.GetClass();
 
+			// TODO This check must be done right after pressing the button to avoid doing any work if types are not valid, and show an error.
+			// as a matter of fact, the UI should display an error when an invalid type is dragged into the field, and have the button disabled.
 			if (legacyType == null || newType == null || !typeof(MonoBehaviour).IsAssignableFrom(legacyType) ||
 				!typeof(MonoBehaviour).IsAssignableFrom(newType))
 				return 0;
 
 			var components = go.GetComponentsInChildren(legacyType, true);
-			int count = 0;
+			var count = 0;
 
-			foreach (Component comp in components) {
+			foreach (var comp in components) {
 				var serialized = new SerializedObject(comp);
 				var gameObject = comp.gameObject;
 				var wasEnabled = (comp as MonoBehaviour)?.enabled ?? true;
 
 				var newComp = gameObject.AddComponent(newType) as MonoBehaviour;
-				CopySerializedFields(serialized, new SerializedObject(newComp));
+				copySerializedFields(serialized, new SerializedObject(newComp));
 
 				if (newComp != null)
 					newComp.enabled = wasEnabled;
@@ -140,7 +145,7 @@ namespace CommonUtils.Editor {
 			return count;
 		}
 
-		private void CopySerializedFields(SerializedObject source, SerializedObject dest) {
+		private static void copySerializedFields(SerializedObject source, SerializedObject dest) {
 			var prop = source.GetIterator();
 			while (prop.NextVisible(true)) {
 				if (prop.name == "m_Script")
