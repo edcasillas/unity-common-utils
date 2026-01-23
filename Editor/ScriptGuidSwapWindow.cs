@@ -8,7 +8,7 @@ namespace CommonUtils.Editor {
 		private MonoScript newScript;
 		private string statusMessage = "";
 
-		[MenuItem("Tools/Script GUID Swap")]
+		[MenuItem("Tools/Script GUID Swap...")]
 		public static void ShowWindow() => GetWindow<ScriptGuidSwapWindow>("Script GUID Swap");
 
 		private void OnGUI() {
@@ -58,7 +58,7 @@ namespace CommonUtils.Editor {
 			File.WriteAllText(legacyMetaPath, legacyMeta);
 			File.WriteAllText(newMetaPath, newMeta);
 
-			AssetDatabase.Refresh();
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
 			statusMessage = $"Success!\n\nSwapped GUIDs:\n{legacyScript.name}: {legacyGuid} ↔ {newGuid}\n{newScript.name}: {newGuid} ↔ {legacyGuid}\n\nAll references now point to new script.";
 		}
