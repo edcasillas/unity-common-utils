@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -48,19 +49,22 @@ namespace CommonUtils.Editor {
 
 			var legacyGuid = AssetDatabase.AssetPathToGUID(legacyPath);
 			var newGuid = AssetDatabase.AssetPathToGUID(newPath);
+			var randomGuid = Guid.NewGuid().ToString("N");
 
 			var legacyMeta = File.ReadAllText(legacyMetaPath);
 			var newMeta = File.ReadAllText(newMetaPath);
 
-			legacyMeta = legacyMeta.Replace($"guid: {legacyGuid}", $"guid: {newGuid}");
+			legacyMeta = legacyMeta.Replace($"guid: {legacyGuid}", $"guid: {randomGuid}");
 			newMeta = newMeta.Replace($"guid: {newGuid}", $"guid: {legacyGuid}");
 
 			File.WriteAllText(legacyMetaPath, legacyMeta);
 			File.WriteAllText(newMetaPath, newMeta);
 
+			AssetDatabase.ImportAsset(legacyPath, ImportAssetOptions.ForceUpdate);
+			AssetDatabase.ImportAsset(newPath, ImportAssetOptions.ForceUpdate);
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
-			statusMessage = $"Success!\n\nSwapped GUIDs:\n{legacyScript.name}: {legacyGuid} ↔ {newGuid}\n{newScript.name}: {newGuid} ↔ {legacyGuid}\n\nAll references now point to new script.";
+			statusMessage = $"Success!\n\nGUID changes:\n{legacyScript.name}: {legacyGuid} → {randomGuid}\n{newScript.name}: {newGuid} → {legacyGuid}\n\nAll references now point to new script.";
 		}
 	}
 }
