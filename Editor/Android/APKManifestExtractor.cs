@@ -1,4 +1,5 @@
 #if UNITY_2021_3_OR_NEWER
+using CommonUtils.Editor;
 using System.IO;
 using System.IO.Compression;
 using UnityEditor;
@@ -8,7 +9,7 @@ public class APKManifestExtractor : EditorWindow {
 	private string apkPath = string.Empty;
 	private string manifestContent = string.Empty;
 
-	[MenuItem("Tools/Android/Extract APK Manifest")]
+	[MenuItem(MenuItems.MenuPathPrefix + "Android/Extract APK Manifest", priority = 12)]
 	private static void OpenWindow() {
 		APKManifestExtractor window = GetWindow<APKManifestExtractor>();
 		window.titleContent = new GUIContent("APK Manifest Extractor");

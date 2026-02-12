@@ -9,7 +9,7 @@ namespace CommonUtils.Editor {
 
 		private int selectedTagIndex;
 
-		[MenuItem("Tools/Find objects with tag...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Find objects with tag...", priority = 11)]
 		private static void open() {
 			if (!instance) {
 				instance              = GetWindow<TaggedFinderWindow>();

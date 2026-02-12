@@ -28,7 +28,7 @@ namespace CommonUtils.Editor {
 
 		private Vector3 camPosition => new Vector3(minimapBounds.center.x, minimapBounds.center.y + minimapBounds.extents.y, minimapBounds.center.z);
 
-		[MenuItem("Tools/Generate minimap...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Generate minimap...", priority = 1)]
 		private static void OpenActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<MinimapGeneratorWindow>();

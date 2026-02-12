@@ -10,7 +10,7 @@ namespace CommonUtils.Editor
         private int selectedVerbosityIndex = 2; // Default to "Warning"
         private string currentDefineSymbol = "";
 
-        [MenuItem("Tools/Global Verbosity Settings...")]
+        [MenuItem(MenuItems.MenuPathPrefix + "Global Verbosity Settings...", priority = 2)]
         public static void ShowWindow() => GetWindow<GlobalVerbositySettingsEditor>("Global Verbosity Settings");
 
         private void OnEnable()

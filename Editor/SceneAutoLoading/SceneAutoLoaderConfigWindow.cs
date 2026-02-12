@@ -9,7 +9,7 @@ namespace CommonUtils.Editor.SceneAutoLoading {
 		private bool loadMasterOnPlay;
 		private bool autoSaveOnPlay;
 
-		[MenuItem("Tools/Configure Scene Autoloader...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Configure Scene Autoloader...", priority = 1)]
 		private static void OpenActiveWindow() {
 			if (!instance) {
 				instance              = GetWindow<SceneAutoLoaderConfigWindow>();

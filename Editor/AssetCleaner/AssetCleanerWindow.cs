@@ -41,7 +41,7 @@ namespace CommonUtils.Editor.AssetCleaner
 		private Vector2 scroll;
 		#endregion
 
-		[MenuItem("Tools/Asset Cleaner...", false, 52)]
+		[MenuItem(MenuItems.MenuPathPrefix + "Asset Cleaner...", false, 52)]
 		private static void openAssetCleaner () {
 			var window = CreateInstance<AssetCleanerWindow>();
 			window.titleContent = new GUIContent("Asset Cleaner");

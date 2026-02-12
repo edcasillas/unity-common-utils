@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CommonUtils.Editor.Android {
     public class APKInstallerWindow : EditorWindow {
-        private const string menuPath = "Tools/Android/Install APK...";
+        private const string menuPath = MenuItems.MenuPathPrefix +  "Android/Install APK...";
 
         private string selectedDeviceId = string.Empty;
         private string selectedDeviceName = string.Empty;
@@ -19,7 +19,7 @@ namespace CommonUtils.Editor.Android {
         private bool installOnAllDevices = false;
 		private string installOutputText;
 
-        [MenuItem(menuPath)]
+        [MenuItem(menuPath, priority = 11)]
         private static void openWindow() {
             var window = GetWindow<APKInstallerWindow>();
             window.titleContent = new GUIContent("Install APK");

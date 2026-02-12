@@ -19,7 +19,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 		internal static readonly EditorPrefsInt CurrentCount = new(EDITOR_PREF_KEY_CURRENT_COUNT, 0, true);
         #endregion
 
-        [MenuItem("Tools/Take Screenshot _F10")]
+        [MenuItem(MenuItems.MenuPathPrefix + "Take Screenshot _F10", priority = 200)]
         private static void takeScreenshot() {
             var saveTo = SaveToFolder;
             if (!Directory.Exists(saveTo)) {

@@ -30,7 +30,7 @@ namespace CommonUtils.Editor {
 		 * TODO Subscribe to scene and prefab stage change events to reload automatically.
 		 */
 
-		[MenuItem("Window/UI Keyboard Bindings... #&%k")]
+		[MenuItem(MenuItems.MenuPathPrefix + "UI Keyboard Bindings... #&%k", priority = 1)]
 		private static void OpenActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<UIKeyboardBindingsWindow>();

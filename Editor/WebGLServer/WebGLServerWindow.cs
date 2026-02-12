@@ -16,7 +16,7 @@ namespace CommonUtils.Editor.WebGLServer {
 
 		private static WebGLServerWindow instance;
 
-		[MenuItem("Tools/WebGL Server...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "WebGL Server...")]
 		private static void openConfigWindow() => openActiveWindow();
 
 		private static void openActiveWindow() {

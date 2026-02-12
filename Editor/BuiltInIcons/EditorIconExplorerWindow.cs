@@ -8,7 +8,7 @@ namespace CommonUtils.Editor.BuiltInIcons
         #region Statics (To create the editor menu)
 		private static EditorIconExplorerWindow instance;
 
-		[MenuItem("Tools/Built-in Icon Explorer...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Built-in Icon Explorer...", priority = 800)]
 		private static void openActiveWindow() {
 			if (!instance) {
 				instance = GetWindow<EditorIconExplorerWindow>();

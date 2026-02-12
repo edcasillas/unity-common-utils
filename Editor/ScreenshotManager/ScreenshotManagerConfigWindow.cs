@@ -11,7 +11,7 @@ namespace CommonUtils.Editor.ScreenshotManager {
 		private string prefix;
 		private int currentCount;
 
-		[MenuItem("Tools/Configure screenshots...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Configure screenshots...", priority = 3)]
 		private static void openConfigWindow() => openActiveWindow();
 
 		private static void openActiveWindow() {

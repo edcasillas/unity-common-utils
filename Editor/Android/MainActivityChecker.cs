@@ -11,7 +11,7 @@ namespace CommonUtils.Editor.Android {
 
         private bool isFileSelected = false;
 
-        [MenuItem("Tools/Android/Check main activity in AndroidManifest")]
+        [MenuItem(MenuItems.MenuPathPrefix + "Android/Check main activity in AndroidManifest", priority = 13)]
         private static void OpenWindow() {
             var window = GetWindow<MainActivityChecker>();
             window.titleContent = new GUIContent("Check Main Activity");

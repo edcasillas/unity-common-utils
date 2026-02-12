@@ -40,7 +40,7 @@ namespace CommonUtils.Editor.Publitch {
 		#region Statics (To create the editor menu and save preferences)
 		private static PublitchWindow instance;
 
-		[MenuItem("Tools/Publish to itch.io...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Publish to itch.io...", priority = 11)]
 		private static void openConfigWindow() => openActiveWindow();
 
 		private static void openActiveWindow() {

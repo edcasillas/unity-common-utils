@@ -9,7 +9,7 @@ namespace CommonUtils.Editor {
 		private MonoScript newScript;
 		private string statusMessage = "";
 
-		[MenuItem("Tools/Script GUID Swap...")]
+		[MenuItem(MenuItems.MenuPathPrefix + "Script GUID Swap...", priority = 8)]
 		public static void ShowWindow() => GetWindow<ScriptGuidSwapWindow>("Script GUID Swap");
 
 		private void OnGUI() {
