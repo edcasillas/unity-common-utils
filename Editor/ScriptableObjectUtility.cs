@@ -61,7 +61,7 @@ namespace CommonUtils.Editor {
 					Directory.CreateDirectory(path);
 				}
 				else {
-					Debug.LogError($"Can't create the requested asset because the provided path doesn't exist.");
+					Debug.LogError("Can't create the requested asset because the provided path doesn't exist.");
 					return;
 				}
 			}
