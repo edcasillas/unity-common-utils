@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace CommonUtils.Editor
@@ -13,12 +14,9 @@ namespace CommonUtils.Editor
         [MenuItem(MenuItems.MenuPathPrefix + "Global Verbosity Settings...", priority = 2)]
         public static void ShowWindow() => GetWindow<GlobalVerbositySettingsEditor>("Global Verbosity Settings");
 
-        private void OnEnable()
-        {
-            LoadCurrentDefineSymbol();
-        }
+        private void OnEnable() => LoadCurrentDefineSymbol();
 
-        private void OnGUI()
+		private void OnGUI()
         {
             useGlobalVerbosity = EditorGUILayout.Toggle("Use global verbosity level", useGlobalVerbosity);
 
@@ -39,8 +37,7 @@ namespace CommonUtils.Editor
 
         private void ApplyVerbosityLevel()
         {
-            var targetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            var symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(targetGroup);
+			var symbols = getScriptingDefineSymbols();
 
             // Remove the current define symbol if it exists
             if (!string.IsNullOrEmpty(currentDefineSymbol))
@@ -63,13 +60,12 @@ namespace CommonUtils.Editor
                 currentDefineSymbol = "";
             }
 
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(targetGroup, symbols);
+			setScriptingDefineSymbols(symbols);
         }
 
         private void LoadCurrentDefineSymbol()
         {
-            var targetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            var symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(targetGroup);
+			var symbols = getScriptingDefineSymbols();
 
             useGlobalVerbosity = false;
             selectedVerbosityIndex = 2; // Default to "Warning"
@@ -86,5 +82,21 @@ namespace CommonUtils.Editor
                 }
             }
         }
+
+		private string getScriptingDefineSymbols() {
+#if UNITY_6000
+			return PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup));
+#else
+			return PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+#endif
+		}
+
+		private void setScriptingDefineSymbols(string symbols) {
+#if UNITY_6000
+			PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup), symbols);
+#else
+			PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, symbols);
+#endif
+		}
     }
 }
