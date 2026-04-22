@@ -118,7 +118,7 @@ namespace CommonUtils.Input {
 			get {
 				if(!instance) {
 					// If instance doesn't exist, creates a new one, initializes it and set DontDestroyOnLoad on it.
-					instance = FindObjectOfType<SwipeManager>();
+					instance = MigrationUtils.FindObjectOfType<SwipeManager>();
 					if(!instance) {
 						var gameObject = new GameObject(nameof(SwipeManager));
 						instance = gameObject.AddComponent<SwipeManager>();

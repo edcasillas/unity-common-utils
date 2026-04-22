@@ -49,7 +49,7 @@ namespace CommonUtils.WebGL {
 						}
 						return null;
 					}
-					instance = FindObjectOfType<WebGLBridge>();
+					instance = MigrationUtils.FindObjectOfType<WebGLBridge>();
 					if(instance.IsValid()) instance.Log2("WebGLBridge found in scene.", LogLevel.Warning);
 					if (!instance.IsValid()) {
 						instance = new GameObject(nameof(WebGLBridge)).AddComponent<WebGLBridge>();

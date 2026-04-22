@@ -22,7 +22,7 @@ namespace CommonUtils.Input.ButtonExternalControllers.SequentialKeyboardNavigati
 						return null;
 					}
 
-                    instance = FindObjectOfType<SequentialKeyboardNavigationManager>();
+                    instance = MigrationUtils.FindObjectOfType<SequentialKeyboardNavigationManager>();
 					if(instance.IsValid()) instance.Log2($"{nameof(SequentialKeyboardNavigationManager)} found in scene.", LogLevel.Warning);
 
                     if (!instance.IsValid()) {

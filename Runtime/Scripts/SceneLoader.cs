@@ -30,7 +30,7 @@ namespace CommonUtils {
 		private static SceneLoader instance {
 			get {
 				if (!_instance) {
-					_instance = FindObjectOfType<SceneLoader>();
+					_instance = MigrationUtils.FindObjectOfType<SceneLoader>();
 					if (!_instance) {
 						_instance = Resources.Load<SceneLoader>(nameof(SceneLoader));
 					}

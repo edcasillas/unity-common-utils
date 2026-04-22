@@ -351,8 +351,13 @@ namespace CommonUtils.RestSdk {
 					}
 				}
 
+#if UNITY_6000 // Not tested
+				Debug.LogWarning("Sending web request. This code hasn't been validated YET.");
+				await request.SendWebRequest();
+#else
 				request.SendWebRequest();
 				await AsyncUtils.WaitUntilAsync(() => request.isDone);
+#endif
 
 				response = GetResponseFrom<TResult>(request);
 			}
@@ -419,9 +424,13 @@ namespace CommonUtils.RestSdk {
 					}
 				}
 
-				//yield return request.SendWebRequest();
+#if UNITY_6000
+				Debug.LogWarning("Sending web request. This code hasn't been validated YET.");
+				await request.SendWebRequest();
+#else
 				request.SendWebRequest();
 				await AsyncUtils.WaitUntilAsync(() => request.isDone);
+#endif
 
 				if(request.FinishedWithError()) this.LogNoContext($"REST ERROR: ({request.method}): {request.error}", LogLevel.Error);
 				response = GetResponseFrom(request);
