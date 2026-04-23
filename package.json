@@ -1,12 +1,11 @@
 {
   "name": "com.ecasillas.commonutils",
-  "version": "2022.3.67",
+  "version": "6000.3.7",
   "displayName": "Common Utils for Unity",
   "description": "Common utility library for Unity projects",
   "unity": "2022.3",
   "author": {
     "name": "Ed Casillas",
-    "email": "ed@exagames-studio.com",
     "url": "https://edu.itch.io"
   },
   "type": "library"
