@@ -20,7 +20,7 @@ namespace CommonUtils.Inspector.SceneRefs {
 				return null;
 
 			entry.assetPath = UnityEditor.AssetDatabase.GetAssetPath(sceneObject);
-			var assetGUID = new UnityEditor.GUID(UnityEditor.AssetDatabase.AssetPathToGUID(entry.assetPath));
+			var assetGUID = new UnityEngine.GUID(UnityEditor.AssetDatabase.AssetPathToGUID(entry.assetPath));
 
 			int actualValidIndex = 0;
 			for (var index = 0; index < UnityEditor.EditorBuildSettings.scenes.Length; ++index) {
