@@ -248,6 +248,10 @@ namespace CommonUtils {
 
 		private IEnumerator doLoad(string scenePath) {
 			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
+			if (asyncLoad == null) {
+				Debug.LogError($"There was an error trying to load the scene {scenePath}.");
+				yield break;
+			}
 			yield return waitForLoading(asyncLoad);
 		}
 
