@@ -11,13 +11,16 @@ namespace CommonUtils.Editor.Inspector {
 		protected virtual float FooterHeight { get; } = 10f;
 
 		protected abstract int GetLineCount(SerializedProperty property, GUIContent label);
+		protected virtual float GetContentsHeight(SerializedProperty property, GUIContent label) {
+			var lineCount = GetLineCount(property, label);
+			return LineHeight * lineCount + PadSize * (lineCount - 1);
+		}
 
 		/// <summary>
 		/// Ensure that what we draw in OnGUI always has the room it needs
 		/// </summary>
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-			var lineCount = GetLineCount(property, label);
-			return BoxPadding.vertical + LineHeight * lineCount + PadSize * (lineCount - 1) + FooterHeight;
+			return BoxPadding.vertical + GetContentsHeight(property, label) + FooterHeight;
 		}
 
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {

@@ -44,6 +44,22 @@ namespace CommonUtils.Editor.Inspector {
 			return lines;
 		}
 
+		protected override float GetContentsHeight(SerializedProperty property, GUIContent label) {
+			CheckInitialize(property, label);
+
+			var height = LineHeight;
+			if (!foldout) return height;
+
+			height += PaddedLine;
+
+			var valuesProperty = property.FindPropertyRelative("values");
+			for (var i = 0; i < dictionary.Count; i++) {
+				height += PadSize + GetItemPropertyHeight(valuesProperty, i);
+			}
+
+			return height;
+		}
+
 		protected override void DrawBoxContents(Rect position, SerializedProperty property, GUIContent label) {
 			CheckInitialize(property, label);
 
@@ -82,42 +98,64 @@ namespace CommonUtils.Editor.Inspector {
 			if (dictionary.Count == 0)
 				return;
 
+			var valuesProperty = property.FindPropertyRelative("values");
+			var index = 0;
 			foreach (var item in dictionary) {
 				var key = item.Key;
 				var value = item.Value;
 
 				position.y += PaddedLine;
-
-				var keyRect = position;
-				keyRect.width /= 2;
-				keyRect.width -= 4;
-
-				EditorGUI.BeginDisabledGroup(true);
-				keyRect = drawPrefixLabel(keyRect, "Key");
-				DrawKeyInputField(keyRect, key);
-				EditorGUI.EndDisabledGroup();
+				var isSerializedValue = CanDrawSerializedValue(valuesProperty, index);
+				position.height = GetValuePropertyHeight(valuesProperty, index);
 
 				var valueRect = position;
-				valueRect.x = position.width / 2 + 15;
-				valueRect.width = keyRect.width - kButtonWidth + prefixLabel["Key"].Width;
+				if (isSerializedValue) {
+					valueRect.x += 14f;
+					valueRect.width -= 14f;
+					valueRect.width -= kButtonWidth + 2;
+					if (DrawSerializedValueInputField(valueRect, valuesProperty, index, key)) {
+						property.serializedObject.ApplyModifiedProperties();
+						EditorUtility.SetDirty(property.serializedObject.targetObject);
+						break;
+					}
+				}
+				else {
+					var keyRect = position;
+					keyRect.height = LineHeight;
+					keyRect.width = (position.width / 2) - 4;
 
-				EditorGUI.BeginChangeCheck();
-				valueRect = drawPrefixLabel(valueRect, "Value");
-				value = DrawValueInputField(valueRect, value);
-				if (EditorGUI.EndChangeCheck()) {
-					dictionary[key] = value;
-					EditorUtility.SetDirty(property.serializedObject.targetObject);
-					break;
+					EditorGUI.BeginDisabledGroup(true);
+					keyRect = drawPrefixLabel(keyRect, "Key");
+					DrawKeyInputField(keyRect, key);
+					EditorGUI.EndDisabledGroup();
+
+					valueRect.x = position.x + (position.width / 2) + 15;
+					valueRect.width = keyRect.width - kButtonWidth + prefixLabel["Key"].Width;
+					valueRect = drawPrefixLabel(valueRect, "Value");
+
+					EditorGUI.BeginChangeCheck();
+					value = DrawValueInputField(valueRect, value);
+					if (EditorGUI.EndChangeCheck()) {
+						dictionary[key] = value;
+						EditorUtility.SetDirty(property.serializedObject.targetObject);
+						break;
+					}
 				}
 
 				var removeRect = valueRect;
-				removeRect.x = valueRect.xMax + 2;
+				removeRect.x = position.xMax - kButtonWidth;
+				removeRect.y = position.y;
+				removeRect.height = LineHeight;
 				removeRect.width = kButtonWidth;
 				if (GUI.Button(removeRect, new GUIContent("-", "Remove item"), EditorStyles.miniButtonRight)) {
 					RemoveItem(key);
 					EditorUtility.SetDirty(property.serializedObject.targetObject);
 					break;
 				}
+
+				position.y += GetItemPropertyHeight(valuesProperty, index) - LineHeight;
+				position.height = LineHeight;
+				index++;
 			}
 		}
 
@@ -132,7 +170,7 @@ namespace CommonUtils.Editor.Inspector {
 			newKeyToAdd = DrawKeyInputField(keyRect, newKeyToAdd);
 
 			var valueRect = position;
-			valueRect.x = position.width / 2 + 15;
+			valueRect.x = position.x + (position.width / 2) + 15;
 			valueRect.width = keyRect.width - kButtonWidth + prefixLabel["Key"].Width;
 			valueRect = drawPrefixLabel(valueRect, "Value");
 			newValueToAdd = DrawValueInputField(valueRect, newValueToAdd);
@@ -183,6 +221,33 @@ namespace CommonUtils.Editor.Inspector {
 		protected virtual TKey DrawKeyInputField(Rect rect, TKey value) => drawInputField(rect, value);
 		protected virtual TValue DrawValueInputField(Rect rect, TValue value) => drawInputField(rect, value);
 
+		private float GetValuePropertyHeight(SerializedProperty valuesProperty, int index) {
+			if (CanDrawSerializedValue(valuesProperty, index)) {
+				return EditorGUI.GetPropertyHeight(valuesProperty.GetArrayElementAtIndex(index), GUIContent.none, true);
+			}
+
+			return LineHeight;
+		}
+
+		private float GetItemPropertyHeight(SerializedProperty valuesProperty, int index) {
+			return GetValuePropertyHeight(valuesProperty, index);
+		}
+
+		private bool DrawSerializedValueInputField(Rect rect, SerializedProperty valuesProperty, int index, TKey key) {
+			if (!CanDrawSerializedValue(valuesProperty, index)) return false;
+
+			EditorGUI.BeginChangeCheck();
+			EditorGUI.PropertyField(rect, valuesProperty.GetArrayElementAtIndex(index), new GUIContent(key?.ToString() ?? $"Element {index}"), true);
+			return EditorGUI.EndChangeCheck();
+		}
+
+		private static bool CanDrawSerializedValue(SerializedProperty valuesProperty, int index) {
+			if (valuesProperty == null || index >= valuesProperty.arraySize) return false;
+
+			var valueProperty = valuesProperty.GetArrayElementAtIndex(index);
+			return valueProperty.propertyType == SerializedPropertyType.Generic;
+		}
+
 		private static Rect drawPrefixLabel(Rect rect, string prefix) {
 			EditorGUI.PrefixLabel(rect, prefixLabel[prefix].Label);
 			rect.x += prefixLabel[prefix].Width;
@@ -200,6 +265,12 @@ namespace CommonUtils.Editor.Inspector {
 
 			if (typeof(UnityEngine.Object).IsAssignableFrom(type)) {
 				return (T)(object)EditorGUI.ObjectField(rect, (UnityEngine.Object)(object)value, type, true);
+			}
+
+			if (type.IsClass && Attribute.IsDefined(type, typeof(SerializableAttribute)) && type.GetConstructor(Type.EmptyTypes) != null) {
+				if (value == null) value = Activator.CreateInstance<T>();
+				EditorGUI.LabelField(rect, ObjectNames.NicifyVariableName(type.Name));
+				return value;
 			}
 
 			EditorGUI.HelpBox(rect, $"{type} is not supported", MessageType.Error);
