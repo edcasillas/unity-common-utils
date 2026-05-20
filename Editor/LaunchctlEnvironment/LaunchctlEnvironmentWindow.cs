@@ -9,10 +9,13 @@ using Debug = UnityEngine.Debug;
 namespace CommonUtils.Editor.LaunchctlEnvironment {
 	public class LaunchctlEnvironmentWindow : EditorWindow {
 		private static LaunchctlEnvironmentWindow instance;
+		private static GUIContent deleteContent;
 
 		private readonly List<LaunchctlEnvironmentVariable> variables = new();
 		private Vector2 scroll;
 		private string search = string.Empty;
+		private string newVariableName = string.Empty;
+		private string newVariableValue = string.Empty;
 		private string error;
 		private string status;
 
@@ -37,6 +40,7 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 			}
 
 			drawToolbar();
+			drawCreateVariableControls();
 
 			if (!string.IsNullOrEmpty(error)) {
 				EditorGUILayout.HelpBox(error, MessageType.Error);
@@ -62,11 +66,42 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 			EditorGUILayout.EndHorizontal();
 		}
 
+		private void drawCreateVariableControls() {
+			EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+			EditorGUILayout.LabelField("New", GUILayout.Width(45f));
+			newVariableName = drawTextFieldWithPrompt(newVariableName, "Name", GUILayout.Width(175f));
+			newVariableValue = drawTextFieldWithPrompt(newVariableValue, "Value");
+
+			GUI.enabled = isNewVariableNameValid();
+			if (GUILayout.Button("Create", GUILayout.Width(70f))) {
+				createVariable();
+			}
+			GUI.enabled = true;
+
+			EditorGUILayout.EndHorizontal();
+		}
+
+		private static string drawTextFieldWithPrompt(string value, string prompt, params GUILayoutOption[] options) {
+			var controlName = $"LaunchctlEnvironment{prompt}Field";
+			GUI.SetNextControlName(controlName);
+			var newValue = EditorGUILayout.TextField(value, options);
+
+			if (string.IsNullOrEmpty(newValue) && GUI.GetNameOfFocusedControl() != controlName) {
+				var lastRect = GUILayoutUtility.GetLastRect();
+				var promptStyle = new GUIStyle(EditorStyles.textField) {
+					normal = { textColor = EditorGUIUtility.isProSkin ? new Color(0.55f, 0.55f, 0.55f) : new Color(0.45f, 0.45f, 0.45f) }
+				};
+				GUI.Label(lastRect, prompt, promptStyle);
+			}
+
+			return newValue;
+		}
+
 		private void drawHeader() {
 			EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
 			EditorGUILayout.LabelField("Name", EditorStyles.boldLabel, GUILayout.Width(220f));
 			EditorGUILayout.LabelField("Value", EditorStyles.boldLabel);
-			EditorGUILayout.LabelField("Status", EditorStyles.boldLabel, GUILayout.Width(130f));
+			EditorGUILayout.LabelField(string.Empty, EditorStyles.boldLabel, GUILayout.Width(32f));
 			EditorGUILayout.EndHorizontal();
 		}
 
@@ -100,8 +135,28 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 				saveVariable(variable, newValue);
 			}
 
-			EditorGUILayout.LabelField(variable.Status, GUILayout.Width(130f));
+			if (GUILayout.Button(getDeleteContent(), GUILayout.Width(32f), GUILayout.Height(EditorGUIUtility.singleLineHeight))) {
+				deleteVariable(variable);
+			}
+
 			EditorGUILayout.EndHorizontal();
+		}
+
+		private bool isNewVariableNameValid() {
+			if (string.IsNullOrWhiteSpace(newVariableName)) return false;
+			if (newVariableName.Contains("=")) return false;
+
+			return variables.All(variable => variable.Name != newVariableName.Trim());
+		}
+
+		private static GUIContent getDeleteContent() {
+			if (deleteContent == null) {
+				var iconName = EditorGUIUtility.isProSkin ? "d_TreeEditor.Trash" : "TreeEditor.Trash";
+				var icon = EditorGUIUtility.FindTexture(iconName) ?? EditorGUIUtility.FindTexture("TreeEditor.Trash");
+				deleteContent = icon ? new GUIContent(icon, "Delete") : new GUIContent("X", "Delete");
+			}
+
+			return deleteContent;
 		}
 
 		private void refreshVariables() {
@@ -128,19 +183,63 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 			Repaint();
 		}
 
+		private void createVariable() {
+			var trimmedName = newVariableName.Trim();
+			if (!isNewVariableNameValid()) {
+				error = $"Cannot create environment variable \"{trimmedName}\".";
+				return;
+			}
+
+			var result = runLaunchctl("setenv", trimmedName, newVariableValue);
+			if (!result.Success) {
+				error = $"Could not create {trimmedName}: {result.Error}";
+				Debug.LogError(error);
+				return;
+			}
+
+			var variable = new LaunchctlEnvironmentVariable(trimmedName, newVariableValue);
+			variables.Add(variable);
+			variables.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+			newVariableName = string.Empty;
+			newVariableValue = string.Empty;
+			error = null;
+			status = $"Created {trimmedName}. New processes launched from this launchctl domain will receive the value.";
+			GUI.FocusControl(null);
+		}
+
 		private void saveVariable(LaunchctlEnvironmentVariable variable, string newValue) {
 			var result = runLaunchctl("setenv", variable.Name, newValue);
 			if (!result.Success) {
-				variable.Status = "Save failed";
 				error = $"Could not save {variable.Name}: {result.Error}";
 				Debug.LogError(error);
 				return;
 			}
 
 			variable.Value = newValue;
-			variable.Status = "Saved";
 			error = null;
 			status = $"Saved {variable.Name}. New processes launched from this launchctl domain will receive the updated value.";
+		}
+
+		private void deleteVariable(LaunchctlEnvironmentVariable variable) {
+			if (!EditorUtility.DisplayDialog(
+				    "Delete launchctl environment variable",
+				    $"Delete {variable.Name} from launchctl?",
+				    "Delete",
+				    "Cancel")) {
+				return;
+			}
+
+			var result = runLaunchctl("unsetenv", variable.Name);
+			if (!result.Success) {
+				error = $"Could not delete {variable.Name}: {result.Error}";
+				Debug.LogError(error);
+				return;
+			}
+
+			variables.Remove(variable);
+			error = null;
+			status = $"Deleted {variable.Name}. New processes launched from this launchctl domain will not receive it.";
+			GUI.FocusControl(null);
 		}
 
 		private static LaunchctlResult runLaunchctl(params string[] arguments) {
@@ -164,11 +263,7 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 			return new LaunchctlResult(process.ExitCode == 0, output, stderr.Trim());
 		}
 
-		private static string quoteArgument(string argument) {
-			if (string.IsNullOrEmpty(argument)) return "\"\"";
-
-			return $"\"{argument.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
-		}
+		private static string quoteArgument(string argument) => string.IsNullOrEmpty(argument) ? "\"\"" : $"\"{argument.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
 
 		private readonly struct LaunchctlResult {
 			public bool Success { get; }
