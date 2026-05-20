@@ -69,8 +69,13 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 		private void drawCreateVariableControls() {
 			EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
 			EditorGUILayout.LabelField("New", GUILayout.Width(45f));
-			newVariableName = drawTextFieldWithPrompt(newVariableName, "Name", GUILayout.Width(175f));
-			newVariableValue = drawTextFieldWithPrompt(newVariableValue, "Value");
+			newVariableName = EditorExtensions.TextFieldWithPrompt(newVariableName,
+				"Name",
+				"LaunchctlEnvironmentNameField",
+				GUILayout.Width(175f));
+			newVariableValue = EditorExtensions.TextFieldWithPrompt(newVariableValue,
+				"Value",
+				"LaunchctlEnvironmentValueField");
 
 			GUI.enabled = isNewVariableNameValid();
 			if (GUILayout.Button("Create", GUILayout.Width(70f))) {
@@ -79,22 +84,6 @@ namespace CommonUtils.Editor.LaunchctlEnvironment {
 			GUI.enabled = true;
 
 			EditorGUILayout.EndHorizontal();
-		}
-
-		private static string drawTextFieldWithPrompt(string value, string prompt, params GUILayoutOption[] options) {
-			var controlName = $"LaunchctlEnvironment{prompt}Field";
-			GUI.SetNextControlName(controlName);
-			var newValue = EditorGUILayout.TextField(value, options);
-
-			if (string.IsNullOrEmpty(newValue) && GUI.GetNameOfFocusedControl() != controlName) {
-				var lastRect = GUILayoutUtility.GetLastRect();
-				var promptStyle = new GUIStyle(EditorStyles.textField) {
-					normal = { textColor = EditorGUIUtility.isProSkin ? new Color(0.55f, 0.55f, 0.55f) : new Color(0.45f, 0.45f, 0.45f) }
-				};
-				GUI.Label(lastRect, prompt, promptStyle);
-			}
-
-			return newValue;
 		}
 
 		private void drawHeader() {

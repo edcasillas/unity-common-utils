@@ -148,6 +148,29 @@ namespace CommonUtils.Editor {
 			return result;
 		}
 
+		public static string TextFieldWithPrompt(string value, string prompt, params GUILayoutOption[] options)
+			=> TextFieldWithPrompt(value, prompt, $"EditorExtensions.TextFieldWithPrompt.{prompt}", options);
+
+		public static string TextFieldWithPrompt(string value, string prompt, string controlName,
+			params GUILayoutOption[] options) {
+			GUI.SetNextControlName(controlName);
+			var newValue = EditorGUILayout.TextField(value, options);
+
+			if (string.IsNullOrEmpty(newValue) && GUI.GetNameOfFocusedControl() != controlName) {
+				var lastRect = GUILayoutUtility.GetLastRect();
+				var promptStyle = new GUIStyle(EditorStyles.textField) {
+					normal = {
+						textColor = EditorGUIUtility.isProSkin ?
+							new Color(0.55f, 0.55f, 0.55f) :
+							new Color(0.45f, 0.45f, 0.45f)
+					}
+				};
+				GUI.Label(lastRect, prompt, promptStyle);
+			}
+
+			return newValue;
+		}
+
 		public static void ShowScriptField<T>(this T target, string label = "Script") where T : MonoBehaviour {
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField(label, MonoScript.FromMonoBehaviour(target), target.GetType(), false);
