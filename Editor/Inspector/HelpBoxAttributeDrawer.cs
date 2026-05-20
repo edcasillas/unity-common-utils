@@ -6,14 +6,14 @@ namespace CommonUtils.Editor.Inspector {
     // Original credit: https://forum.unity.com/threads/helpattribute-allows-you-to-use-helpbox-in-the-unity-inspector-window.462768/#post-3014998
     [CustomPropertyDrawer(typeof(HelpBoxAttribute))]
     public class HelpBoxAttributeDrawer : DecoratorDrawer {
+        private const float MinHeight = 40f;
+        private const float LineHeight = 18f;
+        private const float VerticalPadding = 12f;
+        private const int ApproximateCharactersPerLine = 58;
 
         public override float GetHeight() {
             if (!(attribute is HelpBoxAttribute helpBoxAttribute)) return base.GetHeight();
-            var helpBoxStyle = (GUI.skin != null) ? GUI.skin.GetStyle("helpbox") : null;
-            if (helpBoxStyle == null) return base.GetHeight();
-            return Mathf.Max(40f,
-                             helpBoxStyle.CalcHeight(new GUIContent(helpBoxAttribute.text),
-                                                     EditorGUIUtility.currentViewWidth) + 4);
+            return Mathf.Max(MinHeight, getEstimatedLineCount(helpBoxAttribute.text) * LineHeight + VerticalPadding);
         }
 
         public override void OnGUI(Rect position) {
@@ -33,6 +33,30 @@ namespace CommonUtils.Editor.Inspector {
                 default:
                     return MessageType.None;
             }
+        }
+
+        private static int getEstimatedLineCount(string text) {
+            if (string.IsNullOrEmpty(text)) return 1;
+
+            var lineCount = 1;
+            var currentLineLength = 0;
+
+            foreach (var character in text) {
+                if (character == '\n') {
+                    lineCount++;
+                    currentLineLength = 0;
+                    continue;
+                }
+
+                currentLineLength++;
+
+                if (currentLineLength < ApproximateCharactersPerLine) continue;
+
+                lineCount++;
+                currentLineLength = 0;
+            }
+
+            return lineCount;
         }
     }
 }
