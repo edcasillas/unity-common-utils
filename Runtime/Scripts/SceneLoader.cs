@@ -37,7 +37,7 @@ namespace CommonUtils {
 			}
 		}
 
-		public static bool IsActive => _instance && _instance.isActiveAndEnabled;
+		public static bool IsActive => _instance && (_instance.isLoading || _instance.isActiveAndEnabled);
 
 		public static void LoadScene(int sceneIndex) {
 			if (!instance) {
@@ -140,6 +140,7 @@ namespace CommonUtils {
 
 		private CoroutinerInstance suggestionsCoroutine;
 		private List<string> suggestionsToShow;
+		private bool isLoading;
 
 		#region Unity Lifecycle
 		private void Awake() {
@@ -174,6 +175,8 @@ namespace CommonUtils {
 		/// </summary>
 		/// <param name="sceneIndex">Build index of the scene to load.</param>
 		public void Load(int sceneIndex) {
+			if (!beginLoad()) return;
+
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
@@ -186,6 +189,8 @@ namespace CommonUtils {
 		/// <param name="sceneIndex">Build index of the scene to load.</param>
 		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
 		public void Load(int sceneIndex, Action<AsyncOperation> onReadyToActivate) {
+			if (!beginLoad()) return;
+
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
@@ -197,6 +202,8 @@ namespace CommonUtils {
 		/// </summary>
 		/// <param name="scenePath">Path of the scene to load.</param>
 		public void Load(string scenePath) {
+			if (!beginLoad()) return;
+
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
@@ -209,6 +216,8 @@ namespace CommonUtils {
 		/// <param name="scenePath">Path of the scene to load.</param>
 		/// <param name="onReadyToActivate">Callback to execute when the scene is ready to be activated.</param>
 		public void Load(string scenePath, Action<AsyncOperation> onReadyToActivate) {
+			if (!beginLoad()) return;
+
 			gameObject.SetActive(true);
 			if(suggestionsLabel) suggestionsCoroutine = Coroutiner.StartCoroutine(updateSuggestions(), "Loading suggestions", true);
 			pushCurrentScene();
@@ -216,8 +225,16 @@ namespace CommonUtils {
 		}
 
 		public void LoadPrevious() {
-			if (previousScenes.Count == 0) return;
+			if (previousScenes.Count == 0 || isLoading) return;
+
 			LoadScene(previousScenes.Pop());
+		}
+
+		private bool beginLoad() {
+			if (isLoading) return false;
+
+			isLoading = true;
+			return true;
 		}
 
 		#region doLoad coroutines
@@ -245,6 +262,7 @@ namespace CommonUtils {
 			var asyncLoad = SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single);
 			if (asyncLoad == null) {
 				Debug.LogError($"There was an error trying to load the scene {scenePath}.");
+				isLoading = false;
 				yield break;
 			}
 			while(!asyncLoad.isDone) {
@@ -307,6 +325,7 @@ namespace CommonUtils {
 		}
 
 		private void onSceneLoaded(Scene scene, LoadSceneMode mode) {
+			isLoading = false;
 			if(suggestionsCoroutine) {
 				suggestionsCoroutine.StopAndDestroy();
 				suggestionsCoroutine = null;
